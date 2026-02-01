@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/mkz.svg' %}">
+    <title>Login - MundoKaizo</title>
+    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
+    <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/favicon_mkz.ico' %}">
+    
+    <link rel="stylesheet" href="{% static 'core/css/login.css' %}">
+</head>
+<body>
+
+    <div class="login-card">
+        <h3 class="text-center mb-4" style="color: #183a4e;"><b>Mundo <span style="color: #007bff;">Kaizo</span><b></h3>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+                <div class="alert alert-danger" style="font-size: 0.9rem;">
+                    Usuário ou senha inválidos.
+                </div>
+            {% endif %}
+
+            <div class="mb-3">
+                <label class="form-label ps-2 text-muted">Usuário</label>
+                <input type="text" name="username" class="form-control" required autofocus>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label ps-2 text-muted">Senha</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+
+            <button type="submit" class="btn-login">ENTRAR NA PLATAFORMA</button>
+        </form>
+    </div>
+    <img src="{% static 'core/img/mascote.png' %}" alt="Logo KaizoEdu">
+
+</body>
+</html>

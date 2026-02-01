@@ -1,0 +1,226 @@
+/* core/static/core/css/app.css */
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap');
+
+body { 
+    background-color: #d9e3f1; 
+    min-height: 100vh; 
+    padding-bottom: 40px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* --- NAVBAR DINÂMICA (Grid 3 Colunas) --- */
+.navbar-custom {
+    padding: 15px 30px;
+    display: grid;
+    /* Grid: Esquerda(Auto) - Centro(Ocupa Espaço) - Direita(Auto) */
+    grid-template-columns: auto 1fr auto; 
+    align-items: center;
+    gap: 20px;
+    
+    background-color: #d9e3f1;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 20px -10px rgba(184, 193, 205, 0.5);
+    position: relative;
+    z-index: 1000;
+    align-items: center !important;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #5e6e82;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    
+    /* CORREÇÃO: Removemos o padding padrão do Bootstrap que empurrava o texto */
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-right: 0;
+    
+    /* Garante que o texto se comporte bem ao lado do botão */
+    display: inline-flex; 
+    align-items: center;
+    line-height: 1; /* Remove altura de linha extra que atrapalha o centro */
+    height: 100%;   /* Ocupa a altura disponível se necessário */
+}
+
+/* --- Área Central (Busca) --- */
+.navbar-center {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.search-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 400px; /* Largura ideal da busca */
+}
+
+.search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #5e6e82;
+    pointer-events: none;
+}
+
+.search-input {
+    width: 100%;
+    padding: 8px 10px 8px 40px; /* Espaço para o ícone */
+    border-radius: 50px;
+    background: #d9e3f1;
+    border: none;
+    box-shadow: inset 3px 3px 6px #b8c1cd, inset -3px -3px 6px #faffff;
+    color: #5e6e82;
+    transition: all 0.2s;
+}
+
+.search-input:focus {
+    outline: none;
+    box-shadow: inset 5px 5px 10px #b8c1cd, inset -5px -5px 10px #faffff;
+    background: #d9e3f1;
+}
+
+/* --- DROPDOWNS --- */
+.morph-dropdown {
+    background-color: #d9e3f1;
+    border: none;
+    border-radius: 15px;
+    padding: 10px;
+    margin-top: 15px !important;
+    box-shadow: 10px 10px 20px #b8c1cd, -10px -10px 20px #faffff;
+}
+
+.dropdown-header {
+    color: #99aab5;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: bold;
+    padding: 5px 15px;
+}
+
+.dropdown-item {
+    border-radius: 10px;
+    color: #5e6e82;
+    font-weight: 500;
+    padding: 8px 15px;
+    margin-bottom: 5px;
+}
+
+.dropdown-item:hover {
+    background-color: #d9e3f1;
+    color: #007bff;
+    box-shadow: inset 3px 3px 6px #b8c1cd, inset -3px -3px 6px #faffff;
+}
+
+.dropdown-divider { border-top: 1px solid #cdd6e0; }
+
+/* Responsividade Mobile: Joga a busca para linha de baixo */
+@media (max-width: 768px) {
+    .navbar-custom {
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
+        padding: 15px;
+    }
+    .navbar-center {
+        grid-column: 1 / -1;
+        order: 3;
+        margin-top: 15px;
+    }
+}
+
+/* --- Botões Padrão (Leitura/Ação) --- */
+.btn-morph {
+    border-radius: 20px;
+    background: #d9e3f1;
+    box-shadow: 3px 3px 6px #b8c1cd, -3px -3px 6px #faffff;
+    border: none;
+    color: #5e6e82;
+    padding: 8px 20px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    cursor: pointer;
+    gap: 8px;
+}
+
+.btn-morph:hover { color: #333; }
+.btn-morph:active { box-shadow: inset 3px 3px 6px #b8c1cd, inset -3px -3px 6px #faffff; }
+
+/* Variação Vermelha (Perigo) */
+.btn-morph-danger {
+    background-color: #d9e3f1;
+    color: #d9534f;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 0.8rem;
+    box-shadow: 3px 3px 6px #b8c1cd, -3px -3px 6px #faffff;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.btn-morph-danger:active {
+    box-shadow: inset 3px 3px 6px #b8c1cd, inset -3px -3px 6px #faffff;
+    color: #a94442;
+}
+
+/* --- Cards (Paineis) --- */
+.card-panel {
+    background-color: #d9e3f1;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 20px 20px 60px #b8c1cd, -20px -20px 60px #faffff;
+}
+
+/* --- Cards de Livros --- */
+.book-card {
+    background-color: #d9e3f1;
+    border-radius: 15px;
+    padding: 15px;
+    box-shadow: 10px 10px 20px #b8c1cd, -10px -10px 20px #faffff;
+    transition: transform 0.2s;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.book-card:hover { transform: translateY(-5px); }
+
+.book-cover {
+    width: 100%;
+    height: auto;
+    min-height: 200px;
+    background-color: #ecf0f3;
+    border-radius: 10px;
+    box-shadow: inset 5px 5px 10px #b8c1cd, inset -5px -5px 10px #faffff;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    overflow: hidden;
+}
+.book-cover img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    display: block;
+    filter: drop-shadow(5px 5px 10px rgba(0,0,0,0.2));
+    border-radius: 5px;
+}
+
+/* --- Tabelas --- */
+.table-custom { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
+.table-custom th { color: #5e6e82; padding: 10px; text-transform: uppercase; font-size: 0.8rem; text-align: left; }
+.table-custom tr.user-row { background-color: #d9e3f1; box-shadow: inset 3px 3px 6px #b8c1cd, inset -3px -3px 6px #faffff; border-radius: 10px; }
+.table-custom td { padding: 15px; color: #5e6e82; vertical-align: middle; }
+.table-custom td:first-child { border-top-left-radius: 10px; border-bottom-left-radius: 10px; }
+.table-custom td:last-child { border-top-right-radius: 10px; border-bottom-right-radius: 10px; }

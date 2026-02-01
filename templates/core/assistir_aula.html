@@ -1,0 +1,119 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/mkz.svg' %}">
+    <title>{{ aula_atual.titulo }} - MundoKaizo</title>
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    
+    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/css/app.css' %}">
+    
+    
+    <style>
+        /* CSS Específico para tornar o vídeo responsivo */
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 */
+            height: 0;
+            overflow: hidden;
+            border-radius: 15px;
+            box-shadow: inset 5px 5px 10px #b8c1cd, inset -5px -5px 10px #faffff;
+            background: #000;
+        }
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%; border: 0;
+        }
+        
+        /* Lista lateral ativa */
+        .aula-item-active {
+            font-weight: bold;
+            color: #0d6efd !important;
+            box-shadow: inset 3px 3px 6px #b8c1cd, inset -3px -3px 6px #faffff !important;
+        }
+    </style>
+</head>
+<body>
+
+{% include 'includes/navbar.html' with back_url=voltar_url custom_title=aula_atual.titulo show_search=False %}
+
+<div class="container-fluid p-4">
+    <div class="row">
+        
+        <div class="col-lg-8 mb-4">
+            
+            <div class="card-panel p-2 mb-3">
+                <div class="video-wrapper">
+                    {{ aula_atual.codigo_embed|safe }}
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 style="color: #5e6e82; margin: 0;">{{ aula_atual.titulo }}</h4>
+                
+                <div>
+                    {% if aula_anterior %}
+                        <a href="{% url 'assistir_aula' aula_anterior.id %}" class="btn-morph" title="Aula Anterior">
+                            <i class="fas fa-step-backward"></i>
+                        </a>
+                    {% endif %}
+                    
+                    {% if proxima_aula %}
+                        <a href="{% url 'assistir_aula' proxima_aula.id %}" class="btn-morph ms-2" title="Próxima Aula">
+                            <i class="fas fa-step-forward"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card-panel">
+                <h6 class="text-muted mb-2">Descrição</h6>
+                <p class="text-muted">{{ aula_atual.descricao|default:"Sem descrição disponível." }}</p>
+                
+                {% if aula_atual.livro %}
+                    <hr>
+                    <small class="text-muted">
+                        <i class="fas fa-book"></i> Parte do curso: <strong>{{ aula_atual.livro.titulo }}</strong>
+                    </small>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card-panel" style="max-height: 85vh; overflow-y: auto;">
+                <h5 class="mb-3" style="color: #5e6e82; font-size: 1rem;">{{ titulo_playlist }}</h5>
+                
+                <div class="list-group">
+                    {% for a in aulas %}
+                    <a href="{% url 'assistir_aula' a.id %}" 
+                       class="list-group-item list-group-item-action {% if a.id == aula_atual.id %}aula-item-active{% endif %}"
+                       style="background-color: #d9e3f1; border: none; border-bottom: 1px solid #cdd6e0; padding: 15px;">
+                        
+                        <div class="d-flex w-100 justify-content-between align-items-center">
+                            <span>
+                                {% if a.livro %}
+                                    <small class="badge bg-secondary me-1">{{ a.ordem }}</small>
+                                {% else %}
+                                    <i class="fas fa-play-circle me-1 text-muted"></i>
+                                {% endif %}
+                                {{ a.titulo }}
+                            </span>
+                            
+                            {% if a.id == aula_atual.id %}
+                                <i class="fas fa-volume-up text-primary"></i>
+                            {% endif %}
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

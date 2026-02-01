@@ -1,0 +1,55 @@
+/* core/static/core/css/login.css */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap');
+
+body {
+    background-color: #f9fafb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    font-family: 'Montserrat', sans-serif;
+    gap: 5rem;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 400px;
+    padding: 40px;
+    border-radius: 20px;
+    background-color: #f9fafb;
+    /* Efeito Neumórfico no Card */
+    box-shadow: 20px 20px 60px #b8c1cd, -20px -20px 60px #faffff;
+}
+
+.form-control {
+    border-radius: 10px;
+    background: #f9fafb;
+    border: none;
+    /* Efeito "fundido" para os inputs */
+    box-shadow: inset 5px 5px 10px #b8c1cd, inset -5px -5px 10px #faffff;
+    color: #5e6e82;
+}
+
+.form-control:focus {
+    background: #f9fafb;
+    box-shadow: inset 2px 2px 5px #b8c1cd, inset -2px -2px 5px #faffff;
+    color: #000;
+}
+
+.btn-login {
+    width: 100%;
+    border-radius: 50px;
+    background: #007bff;
+    box-shadow: 5px 5px 10px #b8c1cd, -5px -5px 10px #faffff;
+    border: none;
+    color: #fff;
+    font-weight: bold;
+    padding: 10px;
+    margin-top: 20px;
+    transition: all 0.2s;
+}
+
+.btn-login:active {
+    box-shadow: inset 5px 5px 10px #b8c1cd, inset -5px -5px 10px #faffff;
+}

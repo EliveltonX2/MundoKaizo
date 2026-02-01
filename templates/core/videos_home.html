@@ -1,0 +1,70 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/mkz.svg' %}">
+    <title>Galeria de Vídeos - MundoKaizo</title>
+    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/css/app.css' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/favicon_mkz.ico' %}">
+</head>
+<body>
+
+    {% include 'includes/navbar.html' with show_search=True search_placeholder="Pesquisar vídeos..." %}
+
+    <div class="container mt-4">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 style="color: #5e6e82;">{{ titulo_pagina }}</h2>
+            {% if is_gestor %}
+                <a href="/admin/core/videoaula/add/" class="btn-morph" target="_blank">
+                    <i class="fas fa-plus"></i> Novo Vídeo
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="row g-4">
+            {% for video in videos %}
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="book-card h-100"> <div class="book-cover" style="height: 180px; min-height: 180px; background: #000; position: relative;">
+                        <a href="{% url 'assistir_aula' video.id %}" style="position: absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; text-decoration:none;">
+                            <i class="fas fa-play-circle fa-4x text-white" style="opacity: 0.8;"></i>
+                        </a>
+                    </div>
+                    
+                    <div class="mt-3 text-start">
+                        <h5 class="mb-1" style="color: #5e6e82; font-size: 1.1rem; font-weight: bold;">
+                            {{ video.titulo|truncatechars:40 }}
+                        </h5>
+                        
+                        <p class="text-muted small mb-2">
+                            {% if video.livro %}
+                                <i class="fas fa-book me-1"></i> {{ video.livro.titulo|truncatechars:30 }}
+                            {% else %}
+                                <i class="fas fa-film me-1"></i> Vídeo Avulso
+                            {% endif %}
+                        </p>
+
+                        <p class="text-muted small">
+                            {{ video.descricao|truncatewords:15|default:"Sem descrição." }}
+                        </p>
+                    </div>
+
+                    <a href="{% url 'assistir_aula' video.id %}" class="btn-morph w-100 mt-auto">
+                        ASSISTIR
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <h4 class="text-muted">Nenhum vídeo encontrado.</h4>
+                <i class="fas fa-video-slash fa-3x text-muted mt-3"></i>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
+</html>

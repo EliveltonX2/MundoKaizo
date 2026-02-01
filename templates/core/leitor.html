@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/mkz.svg' %}">
+    <title>{{ livro.titulo }} - MundoKaizo</title>
+    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="{% static 'core/css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'core/css/leitor.css' %}">
+</head>
+<body>
+
+    {% url 'estante' as estante_url %}
+    {% include 'includes/navbar.html' with back_url=estante_url custom_title=livro.titulo show_page_navigator=True show_search=False %}
+
+    <div class="main-stage" id="stage">
+        <div class="movable-layer" id="movable">
+            <div id="flipbook">
+                {% for item in paginas_estruturadas %}
+                    <div class="page">
+                        <img src="{% url 'pagina_imagem' livro.id item.conteudo.numero %}" alt="Página {{ item.conteudo.numero }}">
+                    </div>
+                {% empty %}
+                    <div class="page"><p style="text-align:center; padding-top:50%;">Vazio</p></div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="controls-bar">
+            <button class="ctrl-btn" id="prevBtn" title="Anterior"><i class="fas fa-chevron-left"></i></button>
+            <div class="separator"></div>
+            <button class="ctrl-btn" id="zoomOut"><i class="fas fa-minus"></i></button>
+            <button class="ctrl-btn" id="zoomReset">1x</button>
+            <button class="ctrl-btn" id="zoomIn"><i class="fas fa-plus"></i></button>
+            <div class="separator"></div>
+            <button class="ctrl-btn" id="panToggle" title="Arrastar" disabled><i class="fas fa-hand-paper"></i></button>
+            
+            {% if is_staff_school %}
+                <div class="separator" id="videoSeparator" style="display: none;"></div>
+                <a href="#" target="_blank" class="ctrl-btn video-btn-wide" id="videoBtn" title="Assistir Videoaula desta página">
+                    <i class="fas fa-play-circle fa-lg"></i>
+                    <span>VIDEOAULA</span>
+                </a>
+            {% endif %}
+            
+            <div class="separator"></div>
+            <button class="ctrl-btn" id="nextBtn" title="Próximo"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    </div>
+
+    <script>
+        window.mapaVideos = {
+            {% for item in paginas_estruturadas %}
+                {% if item.video %}
+                    {{ item.conteudo.numero }}: "{% url 'assistir_aula' item.video.id %}",
+                {% endif %}
+            {% endfor %}
+        };
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.min.js"></script>
+    <script src="{% static 'core/js/leitor.js' %}"></script>
+</body>
+</html>

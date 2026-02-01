@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Alterar Senha - MundoKaizo</title>
+    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/css/app.css' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/mkz.svg' %}">
+</head>
+<body>
+
+    {% include 'includes/navbar.html' %}
+
+    <div class="container pt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card-panel">
+                    <h3 class="mb-4 text-center" style="color: #5e6e82;">Alterar Senha</h3>
+                    <form method="post">
+                        {% csrf_token %}
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label class="form-label ps-2 text-muted">{{ field.label }}</label>
+                                <input type="{{ field.field.widget.input_type }}" name="{{ field.name }}" class="form-control search-input" id="{{ field.id_for_label }}">
+                                {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
+                            </div>
+                        {% endfor %}
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn-morph" style="color: #007bff;"><i class="fas fa-save"></i> SALVAR</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

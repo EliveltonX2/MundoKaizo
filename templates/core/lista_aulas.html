@@ -1,0 +1,87 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/mkz.svg' %}">
+    <title>Aulas - {{ livro.titulo }}</title>
+    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/css/app.css' %}">
+    
+</head>
+<body>
+
+    {% url 'estante' as estante_url %}
+    {% include 'includes/navbar.html' with back_url=estante_url custom_title=livro.titulo show_search=False %}
+
+    <div class="container pt-4">
+        <div class="row">
+            <div class="col-md-3 mb-4">
+                <div class="book-card">
+                    <div class="book-cover">
+                        {% if livro.capa %}
+                            <img src="{{ livro.capa.url }}" alt="Capa">
+                        {% else %}
+                            <span>Sem Capa</span>
+                        {% endif %}
+                    </div>
+                    
+                    <a href="{% url 'ler_livro' livro.id %}" class="btn-morph mt-3 w-100">
+                        LER LIVRO
+                    </a>
+
+                    {% if is_staff and livro.versao_professor_relacionada %}
+                        <a href="{% url 'ler_livro' livro.versao_professor_relacionada.id %}" 
+                           class="btn-morph mt-2 w-100" 
+                           style="font-size: 0.8rem; color: #fff; background-color: #5e6e82; border: 1px solid #5e6e82;"
+                           title="Acessar versão exclusiva do professor">
+                            <i class="fas fa-chalkboard-teacher me-1"></i> VERSÃO PROFESSOR
+                        </a>
+                    {% endif %}
+                    
+                </div>
+            </div>
+
+            <div class="col-md-9">
+                <div class="card-panel">
+                    <h3 class="mb-4" style="color: #5e6e82;">Videoaulas Disponíveis</h3>
+                    {% if aulas %}
+                        <div class="list-group" style="border-radius: 15px; overflow: hidden;">
+                            {% for aula in aulas %}
+                            <a href="{% url 'assistir_aula' aula.id %}" class="list-group-item list-group-item-action" style="background-color: #d9e3f1; border: none; border-bottom: 1px solid #cdd6e0; padding: 20px;">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <h5 class="mb-1" style="color: #5e6e82;">
+                                    <span class="badge bg-secondary me-2">{{ aula.ordem }}</span>
+                                    {{ aula.titulo }}
+                                    
+                                    {% if aula.livro.is_versao_professor %}
+                                        <span class="badge bg-warning text-dark ms-2" style="font-size: 0.7rem;">
+                                            <i class="fas fa-chalkboard-teacher"></i> PROFESSOR
+                                        </span>
+                                    {% endif %}
+                                </h5>
+                                <small class="text-muted">&rarr;</small>
+                            </div>
+                            
+                            {% if aula.descricao %}
+                                <p class="mb-1 text-muted small">{{ aula.descricao|truncatewords:20 }}</p>
+                            {% endif %}
+                            
+                            {% if aula.livro.id != livro.id %}
+                                <small class="text-muted" style="font-size: 0.75rem;">
+                                    <i class="fas fa-link"></i> Vinculado via: {{ aula.livro.titulo }}
+                                </small>
+                            {% endif %}
+                        </a>
+                        {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Nenhuma aula cadastrada.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

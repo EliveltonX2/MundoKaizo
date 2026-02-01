@@ -1,0 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap');
+
+body {
+    background-color: #d9e3f1;
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; 
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* PALCO PRINCIPAL */
+.main-stage {
+    flex: 1;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: default;
+}
+
+/* CAMADA MÓVEL (ZOOM/PAN) */
+.movable-layer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform-origin: center center;
+    transition: transform 0.1s linear;
+}
+
+/* O LIVRO */
+#flipbook {
+    display: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.page { background-color: white; overflow: hidden; }
+.page img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; }
+
+/* BARRA DE CONTROLES */
+.controls-bar {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    padding: 10px 20px;
+    background-color: rgba(217, 227, 241, 0.95);
+    backdrop-filter: blur(5px);
+    border-radius: 50px;
+    box-shadow: 5px 5px 15px rgba(0,0,0,0.1);
+    z-index: 2000;
+    align-items: center;
+}
+
+.separator { width: 1px; height: 20px; background: #b8c1cd; margin: 0 5px; }
+
+/* Botões Padrão (Redondos) */
+.ctrl-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: #d9e3f1;
+    box-shadow: 3px 3px 6px #b8c1cd, -3px -3px 6px #faffff;
+    color: #5e6e82;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+.ctrl-btn:active { box-shadow: inset 3px 3px 6px #b8c1cd, inset -3px -3px 6px #faffff; }
+.ctrl-btn.active { color: #007bff; box-shadow: inset 3px 3px 6px #b8c1cd, inset -3px -3px 6px #faffff; }
+.ctrl-btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+
+/* --- NOVO: Botão de Vídeo Largo (Pílula) --- */
+.video-btn-wide {
+    width: auto !important;     /* Permite crescer */
+    padding: 0 20px;            /* Espaço lateral */
+    border-radius: 50px;        /* Pílula */
+    gap: 8px;                   /* Espaço ícone-texto */
+    
+    font-weight: bold;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    text-decoration: none;
+    
+    /* Estilo "Ativo" (Afundado e Vermelho) */
+    color: #d9534f !important; 
+    box-shadow: inset 3px 3px 6px #b8c1cd, inset -3px -3px 6px #faffff !important;
+    
+    display: none; /* JS controla a exibição (flex) */
+    align-items: center;
+    justify-content: center;
+}
+.video-btn-wide:hover {
+    color: #c9302c !important;
+}

@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/mkz.svg' %}">
+    <title>Estante - MundoKaizo</title>
+    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/css/app.css' %}">
+
+</head>
+<body>
+
+    {% include 'includes/navbar.html' with show_search=True search_placeholder="Filtrar livros..." %}
+
+    <div class="container mt-4">
+        {% if is_gestor %}
+            <div class="alert alert-info mb-4" style="border-radius: 15px; box-shadow: inset 3px 3px 6px #b8c1cd, inset -3px -3px 6px #faffff; border:none;">
+                <i class="fas fa-info-circle me-2"></i> Painel de Gestão: Você está vendo todos os livros disponíveis.
+            </div>
+        {% endif %}
+
+        <div class="row g-4">
+            {% for livro in livros %}
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="book-card">
+                    <div class="book-cover">
+                        {% if livro.capa %}
+                            <img src="{{ livro.capa.url }}" alt="Capa">
+                        {% else %}
+                            <span style="color: #999;">Sem Capa</span>
+                        {% endif %}
+                    </div>
+                    
+                    <h5 style="color: #5e6e82; font-size: 1.1rem;">{{ livro.titulo }}</h5>
+                    
+                    {% if livro.is_versao_professor %}
+                        <span class="badge bg-warning text-dark mb-2" style="align-self: center;">Professor</span>
+                    {% endif %}
+
+                    <a href="{% url 'ler_livro' livro.id %}" class="btn-morph mt-2">LER LIVRO</a>
+
+                    <a href="{% url 'lista_aulas' livro.id %}" class="btn-morph mt-2" style="font-size: 0.8rem;">
+                        <i class="fas fa-play-circle"></i> VIDEOAULAS
+                    </a>
+
+                    {% if is_gestor or request.user.tipo == 'PROFESSOR' %}
+                        {% if livro.versao_professor_relacionada %}
+                            <a href="{% url 'ler_livro' livro.versao_professor_relacionada.id %}" 
+                            class="btn-morph mt-2" 
+                            style="font-size: 0.75rem; color: #fff; background-color: #5e6e82; border: 1px solid #5e6e82;">
+                            <i class="fas fa-chalkboard-teacher"></i> VERSÃO PROFESSOR
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center mt-5">
+                <p class="text-muted">Nenhum livro encontrado.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
