@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 from django.contrib import messages
 from django.core.cache import cache
+from django.core.files.storage import default_storage
 from .models import Livro, Pagina, User, VideoAula
 from .services import adicionar_watermark
 from django.db.models import Q
@@ -29,45 +30,41 @@ def estante_view(request):
 
 @login_required
 def pagina_livro_view(request, livro_id, numero_pagina):
-    # 1. Busca o livro e a página no banco
+    # 1. Busca o livro e a página
     livro = get_object_or_404(Livro, pk=livro_id)
     pagina = get_object_or_404(Pagina, livro=livro, numero=numero_pagina)
 
-    # 2. Segurança: Verificar permissões (Lógica simplificada para teste)
-    # Aqui expandiremos depois para verificar se o User Aluno pode ver o Livro Professor
+    # 2. Segurança
     if livro.is_versao_professor and request.user.tipo == 'ALUNO':
-        return HttpResponseForbidden("Acesso negado: Conteúdo exclusivo para professores.")
+        return HttpResponseForbidden("Acesso restrito.")
 
-    # 3. Definição da Chave de Cache
-    # Ex: watermark_user1_livro1_pag5
+    # 3. Cache Key
     cache_key = f"watermark_u{request.user.id}_l{livro_id}_p{numero_pagina}"
-    
-    # 4. Tenta pegar do Cache
     imagem_data = cache.get(cache_key)
 
     if not imagem_data:
-        # --- CACHE MISS (Processar Imagem) ---
-        print(f"Processando imagem (Miss): {cache_key}") # Log para debug no terminal
-        
-        # Pega o caminho físico do arquivo
-        caminho_arquivo = pagina.imagem_original.path
-        
-        # Chama nosso serviço do Pillow
-        buffer = adicionar_watermark(caminho_arquivo, request.user.username.upper())
-        
-        if buffer:
-            imagem_data = buffer.getvalue()
-            # Salva no cache por 24 horas (86400 segundos)
-            cache.set(cache_key, imagem_data, timeout=86400)
-        else:
-            return HttpResponse("Erro ao processar imagem", status=500)
-    else:
-        # --- CACHE HIT ---
-        print(f"Servindo do Cache (Hit): {cache_key}")
+        try:
+            # --- CORREÇÃO S3 ---
+            # Não usamos .path! Abrimos o arquivo diretamente do S3.
+            # O 'imagem_original' é um FieldFile que se comporta como arquivo aberto.
+            arquivo_s3 = pagina.imagem_original
+            arquivo_s3.open() # Abre o stream do S3
+            
+            # Passamos o ARQUIVO ABERTO para o serviço, não uma string de caminho
+            buffer = adicionar_watermark(arquivo_s3, request.user.username.upper())
+            
+            if buffer:
+                imagem_data = buffer.getvalue()
+                cache.set(cache_key, imagem_data, timeout=86400)
+            else:
+                raise Exception("Falha ao gerar marca d'água")
+                
+        except Exception as e:
+            print(f"ERRO S3/WATERMARK: {e}")
+            return HttpResponse(status=500)
 
-    # 5. Retorna a imagem binária como resposta HTTP
-    return HttpResponse(imagem_data, content_type="image/jpeg")
-
+    # 5. Retorna como WEBP (já que seus arquivos originais são WebP)
+    return HttpResponse(imagem_data, content_type="image/webp")
 
 @login_required
 def visualizar_livro(request, livro_id):
