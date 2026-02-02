@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'storages',
     'core',
 ]
 
@@ -86,6 +87,47 @@ database_url = os.environ.get("DATABASE_URL")
 if database_url:
     DATABASES['default'] = dj_database_url.parse(database_url)
 
+#AWS S3 Settings for Media Files
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME', 'us-east-1')
+
+# Muito importante para não misturar com o outro projeto:
+AWS_LOCATION = 'mundokaizo_media'
+
+# 2. Configurações de Comportamento
+AWS_S3_FILE_OVERWRITE = False    # Se subir arquivo com mesmo nome, cria cópia (não substitui)
+AWS_DEFAULT_ACL = None           # Importante: Deixa o controle de acesso para o IAM (mais seguro)
+AWS_S3_VERIFY = True             # Verifica certificados SSL
+
+# 3. Assinatura de URL (A PROTEÇÃO QUE VOCÊ QUERIA)
+# Se True: Os links expiram em x segundos (ninguém consegue roubar o link direto)
+# Se False: Os links são públicos permanentes
+AWS_QUERYSTRING_AUTH = True      
+AWS_S3_SIGNATURE_VERSION = 's3v4'
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400', # Cache de 1 dia para não gastar requisições
+}
+
+# 4. Onde salvar dentro do Bucket?
+AWS_LOCATION = 'mundokaizo_media' # <--- ISSO CRIA UMA PASTA SÓ PARA ESSE PROJETO
+
+# 5. Dizer ao Django para usar o S3 apenas para Media
+if 'RENDER' in os.environ:
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+else:
+    # Localmente continua normal
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -125,8 +167,6 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Mídia Protegida (Livros e Páginas)
 # Não colocaremos MEDIA_URL público para os livros, para evitar acesso direto.
