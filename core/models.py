@@ -125,35 +125,36 @@ class VideoAula(models.Model):
     @property
     def get_capa(self):
         """
-        Retorna a URL da capa:
-        1. Se tiver upload manual, usa ele.
-        2. Se for link do YouTube, pega do YouTube.
-        3. Se não tiver nada, retorna um placeholder padrão.
+        Versão Blindada: Busca thumb em upload manual, links do YouTube ou iframes de embed.
         """
+        # 1. Prioridade total para capa manual (Upload)
         if self.thumbnail:
             return self.thumbnail.url
         
-        # Tenta extrair do link (se o campo se chamar 'link_video' ou 'url')
-        # Ajuste 'self.link_video' para o nome real do seu campo de URL
-        url_alvo = getattr(self, 'link_video', '') or getattr(self, 'url', '')
-        
-        if url_alvo:
-            # Regex para pegar o ID do YouTube (funciona com youtube.com e youtu.be)
-            youtube_regex = (
-                r'(https?://)?(www\.)?'
-                '(youtube|youtu|youtube-nocookie)\.(com|be)/'
-                '(watch\?v=|embed/|v/|.+\?v=)?([^&=%\?]{11})'
-            )
-            match = re.match(youtube_regex, url_alvo)
+        # 2. Define onde procurar o link do YouTube.
+        # O 'getattr' evita erro se o campo não existir.
+        # Tenta pegar conteúdo dos campos: 'url', 'link', 'video_url' ou 'codigo_embed'
+        textos_para_analise = [
+            getattr(self, 'url', ''),
+            getattr(self, 'link', ''),
+            getattr(self, 'video_url', ''),
+            getattr(self, 'link_video', ''),
+            getattr(self, 'codigo_embed', '') # Pega até se for um <iframe> colado
+        ]
+
+        # 3. Regex Poderoso (O "Busca-Tudo")
+        # Ele caça um ID de 11 letras do YouTube em qualquer lugar do texto
+        regex_youtube = r'(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})'
+
+        for texto in textos_para_analise:
+            if not texto:
+                continue
+                
+            match = re.search(regex_youtube, str(texto))
             if match:
-                video_id = match.group(6)
+                video_id = match.group(1)
                 # Retorna a imagem de alta qualidade do YouTube
                 return f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
 
-        # Retorna uma imagem padrão se não achar nada
-        # Você precisa ter essa imagem na pasta static
-        return static('core/img/video_placeholder.svg')
-
-    def __str__(self):
-        origem = self.livro.titulo if self.livro else "Vídeo Avulso"
-        return f"[{origem}] {self.titulo}"
+        # 4. Se não achou nada, retorna o placeholder
+        return static('core/img/video_placeholder.png')
