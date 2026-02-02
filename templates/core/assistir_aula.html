@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'core/css/app.css' %}">
     
-    
     <style>
         /* CSS Específico para tornar o vídeo responsivo */
         .video-wrapper {
@@ -23,9 +22,11 @@
             box-shadow: inset 5px 5px 10px #b8c1cd, inset -5px -5px 10px #faffff;
             background: #000;
         }
-        .video-wrapper iframe {
+        .video-wrapper iframe, 
+        .video-wrapper video { /* Adicionado suporte a video tag */
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%; border: 0;
+            object-fit: contain; /* Garante que o vídeo não corte */
         }
         
         /* Lista lateral ativa */
@@ -47,7 +48,14 @@
             
             <div class="card-panel p-2 mb-3">
                 <div class="video-wrapper">
-                    {{ aula_atual.codigo_embed|safe }}
+                    {% if aula_atual.arquivo_video %}
+                        <video controls poster="{{ aula_atual.get_capa }}">
+                            <source src="{{ aula_atual.arquivo_video.url }}" type="video/mp4">
+                            Seu navegador não suporta vídeos HTML5.
+                        </video>
+                    {% else %}
+                        {{ aula_atual.codigo_embed|safe }}
+                    {% endif %}
                 </div>
             </div>
 
@@ -89,21 +97,23 @@
                 <div class="list-group">
                     {% for a in aulas %}
                     <a href="{% url 'assistir_aula' a.id %}" 
-                       class="list-group-item list-group-item-action {% if a.id == aula_atual.id %}aula-item-active{% endif %}"
-                       style="background-color: #d9e3f1; border: none; border-bottom: 1px solid #cdd6e0; padding: 15px;">
+                       class="list-group-item list-group-item-action {% if a.id == aula_atual.id %}aula-item-active{% endif %} d-flex align-items-center gap-3"
+                       style="background-color: #d9e3f1; border: none; border-bottom: 1px solid #cdd6e0; padding: 10px;">
                         
-                        <div class="d-flex w-100 justify-content-between align-items-center">
-                            <span>
+                        <div style="width: 80px; height: 45px; flex-shrink: 0; border-radius: 6px; overflow: hidden; background: #000;">
+                            <img src="{{ a.get_capa }}" alt="Thumb" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+
+                        <div class="flex-grow-1 d-flex justify-content-between align-items-center">
+                            <span class="small fw-bold text-muted">
                                 {% if a.livro %}
-                                    <small class="badge bg-secondary me-1">{{ a.ordem }}</small>
-                                {% else %}
-                                    <i class="fas fa-play-circle me-1 text-muted"></i>
+                                    {{ a.ordem }}.
                                 {% endif %}
-                                {{ a.titulo }}
+                                {{ a.titulo|truncatechars:35 }}
                             </span>
                             
                             {% if a.id == aula_atual.id %}
-                                <i class="fas fa-volume-up text-primary"></i>
+                                <i class="fas fa-volume-up text-primary small"></i>
                             {% endif %}
                         </div>
                     </a>

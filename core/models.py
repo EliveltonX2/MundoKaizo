@@ -1,5 +1,7 @@
+import re
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.templatetags.static import static
 
 # --- Estrutura Geográfica e Institucional ---
 
@@ -104,11 +106,13 @@ class Pagina(models.Model):
 class VideoAula(models.Model):
     # Alteramos aqui: null=True, blank=True
     livro = models.ForeignKey(Livro, related_name='aulas', on_delete=models.CASCADE, null=True, blank=True)
+    pagina_referencia = models.ForeignKey(Pagina, on_delete=models.SET_NULL, null=True, blank=True)
     
     titulo = models.CharField(max_length=200)
     descricao = models.TextField(blank=True)
     codigo_embed = models.TextField()
-    pagina_referencia = models.ForeignKey(Pagina, on_delete=models.SET_NULL, null=True, blank=True)
+
+    thumbnail = models.ImageField(upload_to='thumbnails_videos/', blank=True, null=True)
     
     # Importante para a galeria: Data de criação para ordenar os "Mais Recentes"
     criado_em = models.DateTimeField(auto_now_add=True) 
@@ -117,6 +121,38 @@ class VideoAula(models.Model):
     class Meta:
         # Ordenamos por data de criação (mais recente primeiro) se não tiver ordem definida
         ordering = ['-criado_em', 'ordem']
+
+    @property
+    def get_capa(self):
+        """
+        Retorna a URL da capa:
+        1. Se tiver upload manual, usa ele.
+        2. Se for link do YouTube, pega do YouTube.
+        3. Se não tiver nada, retorna um placeholder padrão.
+        """
+        if self.thumbnail:
+            return self.thumbnail.url
+        
+        # Tenta extrair do link (se o campo se chamar 'link_video' ou 'url')
+        # Ajuste 'self.link_video' para o nome real do seu campo de URL
+        url_alvo = getattr(self, 'link_video', '') or getattr(self, 'url', '')
+        
+        if url_alvo:
+            # Regex para pegar o ID do YouTube (funciona com youtube.com e youtu.be)
+            youtube_regex = (
+                r'(https?://)?(www\.)?'
+                '(youtube|youtu|youtube-nocookie)\.(com|be)/'
+                '(watch\?v=|embed/|v/|.+\?v=)?([^&=%\?]{11})'
+            )
+            match = re.match(youtube_regex, url_alvo)
+            if match:
+                video_id = match.group(6)
+                # Retorna a imagem de alta qualidade do YouTube
+                return f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
+
+        # Retorna uma imagem padrão se não achar nada
+        # Você precisa ter essa imagem na pasta static
+        return static('core/img/video_placeholder.svg')
 
     def __str__(self):
         origem = self.livro.titulo if self.livro else "Vídeo Avulso"

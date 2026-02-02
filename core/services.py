@@ -1,60 +1,48 @@
-# core/services.py
-from PIL import Image, ImageDraw, ImageFont, ImageEnhance
-import os
+from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
-from django.conf import settings
 
-def adicionar_watermark(imagem_path, texto_usuario):
-    """
-    Abre a imagem do disco, adiciona marca d'água e retorna um objeto BytesIO.
-    """
+def adicionar_watermark(arquivo_imagem, texto):
     try:
-        # 1. Abrir imagem original (Converte para RGBA para suportar transparência na edição)
-        base_image = Image.open(imagem_path).convert("RGBA")
+        # Image.open do Pillow é inteligente:
+        # Ele aceita tanto caminho (str) quanto arquivo aberto (file-like object do S3)
+        img = Image.open(arquivo_imagem).convert("RGBA")
         
-        # Cria uma camada transparente do mesmo tamanho da imagem base
-        txt_layer = Image.new("RGBA", base_image.size, (255, 255, 255, 0))
+        # Cria a camada de texto (Marca d'água)
+        txt_layer = Image.new("RGBA", img.size, (255, 255, 255, 0))
         draw = ImageDraw.Draw(txt_layer)
         
-        # 2. Configurar Fonte
-        # Tenta pegar uma fonte arial ou usa padrão. 
-        # No futuro (Deploy), colocaremos uma fonte .ttf na pasta static.
+        # Tenta carregar fonte ou usa padrão
         try:
-            font_size = int(base_image.width / 20) # Tamanho dinâmico (5% da largura)
-            font = ImageFont.truetype("arial.ttf", font_size)
-        except IOError:
+            font = ImageFont.truetype("arial.ttf", 36)
+        except:
             font = ImageFont.load_default()
 
-        # 3. Desenhar o Texto (Padrão Diagonal e Repetido)
-        width, height = base_image.size
-        text_width = int(width / 2) # estimativa
-        text_height = int(height / 4)
+        # Posiciona o texto (Ex: Canto inferior direito)
+        # Ajuste a posição conforme seu gosto
+        largura, altura = img.size
+        # Usando textbbox para calcular tamanho do texto (Pillow moderno)
+        bbox = draw.textbbox((0, 0), texto, font=font)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
         
-        # Cor do texto: Cinza claro semi-transparente (R, G, B, Alpha)
-        # Alpha 50 = bem suave. 128 = médio.
-        text_color = (128, 128, 128, 80) 
+        x = largura - text_width - 20
+        y = altura - text_height - 20
 
-        # Loop para criar um padrão repetido (Grid 3x3 para cobrir a página)
-        for x in range(0, width, int(width/2)):
-            for y in range(0, height, int(height/4)):
-                draw.text((x, y), texto_usuario, font=font, fill=text_color)
+        # Desenha o texto semi-transparente
+        draw.text((x, y), texto, font=font, fill=(255, 255, 255, 128))
 
-        # Opcional: Rotacionar a camada de texto (requer cálculo complexo de canvas, 
-        # vamos manter simples/reto por enquanto para garantir performance)
-
-        # 4. Fundir as camadas (Composite)
-        watermarked_image = Image.alpha_composite(base_image, txt_layer)
+        # Combina as imagens
+        watermarked = Image.alpha_composite(img, txt_layer)
         
-        # 5. Converter de volta para RGB (remove canal alpha para salvar como JPEG)
-        watermarked_image = watermarked_image.convert("RGB")
+        # Converte de volta para WebP ou RGB para salvar
+        if watermarked.mode in ("RGBA", "P"):
+            watermarked = watermarked.convert("RGB")
 
-        # 6. Salvar em memória (BytesIO)
-        output_io = BytesIO()
-        watermarked_image.save(output_io, format='JPEG', quality=85)
-        output_io.seek(0) # Retorna o ponteiro para o início do arquivo
-
-        return output_io
+        # Salva em memória
+        buffer = BytesIO()
+        watermarked.save(buffer, format="WEBP", quality=85)
+        return buffer
 
     except Exception as e:
-        print(f"Erro no processamento de imagem: {e}")
+        print(f"Erro no serviço de watermark: {e}")
         return None

@@ -49,32 +49,39 @@
                     {% if aulas %}
                         <div class="list-group" style="border-radius: 15px; overflow: hidden;">
                             {% for aula in aulas %}
-                            <a href="{% url 'assistir_aula' aula.id %}" class="list-group-item list-group-item-action" style="background-color: #d9e3f1; border: none; border-bottom: 1px solid #cdd6e0; padding: 20px;">
-                            <div class="d-flex w-100 justify-content-between align-items-center">
-                                <h5 class="mb-1" style="color: #5e6e82;">
-                                    <span class="badge bg-secondary me-2">{{ aula.ordem }}</span>
-                                    {{ aula.titulo }}
+                                <a href="{% url 'assistir_aula' aula.id %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3" style="background-color: #d9e3f1; border: none; border-bottom: 1px solid #cdd6e0; padding: 15px;">
                                     
-                                    {% if aula.livro.is_versao_professor %}
-                                        <span class="badge bg-warning text-dark ms-2" style="font-size: 0.7rem;">
-                                            <i class="fas fa-chalkboard-teacher"></i> PROFESSOR
-                                        </span>
-                                    {% endif %}
-                                </h5>
-                                <small class="text-muted">&rarr;</small>
-                            </div>
-                            
-                            {% if aula.descricao %}
-                                <p class="mb-1 text-muted small">{{ aula.descricao|truncatewords:20 }}</p>
-                            {% endif %}
-                            
-                            {% if aula.livro.id != livro.id %}
-                                <small class="text-muted" style="font-size: 0.75rem;">
-                                    <i class="fas fa-link"></i> Vinculado via: {{ aula.livro.titulo }}
-                                </small>
-                            {% endif %}
-                        </a>
-                        {% endfor %}
+                                    <div style="width: 120px; height: 68px; flex-shrink: 0; border-radius: 8px; overflow: hidden; background: #000;">
+                                        <img src="{{ aula.get_capa }}" alt="Thumb" style="width: 100%; height: 100%; object-fit: cover;">
+                                    </div>
+
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex w-100 justify-content-between align-items-center">
+                                            <h5 class="mb-1" style="color: #5e6e82; font-size: 1rem;">
+                                                <span class="badge bg-secondary me-2">{{ aula.ordem }}</span>
+                                                {{ aula.titulo }}
+                                                
+                                                {% if aula.livro.is_versao_professor %}
+                                                    <span class="badge bg-warning text-dark ms-2" style="font-size: 0.6rem;">
+                                                        <i class="fas fa-chalkboard-teacher"></i> PROF
+                                                    </span>
+                                                {% endif %}
+                                            </h5>
+                                            <small class="text-muted"><i class="fas fa-play-circle"></i></small>
+                                        </div>
+                                        
+                                        {% if aula.descricao %}
+                                            <p class="mb-1 text-muted small">{{ aula.descricao|truncatewords:15 }}</p>
+                                        {% endif %}
+                                        
+                                        {% if aula.livro.id != livro.id %}
+                                            <small class="text-muted" style="font-size: 0.75rem;">
+                                                <i class="fas fa-link"></i> Via: {{ aula.livro.titulo }}
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                </a>
+                            {% endfor %}
                         </div>
                     {% else %}
                         <p class="text-muted">Nenhuma aula cadastrada.</p>
