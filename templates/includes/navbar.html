@@ -2,7 +2,7 @@
 <nav class="navbar-custom">
     <div class="d-flex align-items-center gap-3">
         {% if back_url %}
-            <a href="{{ back_url }}" class="btn-morph" style="padding: 8px 12px;" title="Voltar">
+            <a href="{{ back_url }}" class="btn-morph-navbar" style="padding: 8px 12px;" title="Voltar">
                 <i class="fas fa-arrow-left"></i>
             </a>
         {% endif %}
@@ -16,7 +16,7 @@
         
         {% if show_page_navigator %}
         <div class="d-flex align-items-center justify-content-center gap-2">
-            <span class="text-muted small fw-bold d-none d-sm-inline">Pág.</span>
+            <span class="text-muted small fw-bold d-none d-sm-inline" style="color: #f9fafb !important;">Pág.</span>
             
             <input type="number" 
                    id="pageInput" 
@@ -25,9 +25,9 @@
                    value="1" 
                    min="1">
             
-            <span class="text-muted small fw-bold">/ <span id="totalPages">--</span></span>
+            <span class="text-muted small fw-bold" style="color: #f9fafb !important;">/ <span id="totalPages">--</span></span>
             
-            <button id="goPageBtn" class="btn-morph ms-2" style="padding: 5px 12px;" title="Ir para página">
+            <button id="goPageBtn" class="btn-morph-navbar ms-2" style="padding: 5px 12px;" title="Ir para página">
                 <i class="fas fa-arrow-right"></i>
             </button>
         </div>
@@ -50,22 +50,22 @@
     <div class="navbar-right d-flex gap-3 align-items-center">
         
         <div class="dropdown">
-            <button class="btn-morph dropdown-toggle px-3" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <button class="btn-morph-navbar dropdown-toggle px-3" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="fas fa-user-circle me-md-2"></i>
                 <span class="d-none d-md-inline">Olá, {{ request.user.username }}</span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end morph-dropdown" aria-labelledby="userDropdown">
-                <li><h6 class="dropdown-header">Minha Conta</h6></li>
+                
                 <li>
                     <a class="dropdown-item" href="{% url 'alterar_senha' %}">
                         <i class="fas fa-key me-2"></i> Alterar Senha
                     </a>
                 </li>
-                <li><hr class="dropdown-divider"></li>
+                
                 <li>
                     <form action="{% url 'logout' %}" method="post" class="d-block w-100">
                         {% csrf_token %}
-                        <button type="submit" class="dropdown-item text-danger">
+                        <button type="submit" class="dropdown-item ">
                             <i class="fas fa-sign-out-alt me-2"></i> Sair
                         </button>
                     </form>
@@ -74,25 +74,25 @@
         </div>
 
         <div class="dropdown">
-            <button class="btn-morph dropdown-toggle px-3" type="button" id="navDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <button class="btn-morph-navbar dropdown-toggle px-3" type="button" id="navDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="fas fa-bars"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-end morph-dropdown" aria-labelledby="navDropdown">
-                <li><h6 class="dropdown-header">Navegação</h6></li>
+                
                 <li>
                     <a class="dropdown-item" href="{% url 'estante' %}">
-                        <i class="fas fa-book me-2"></i> Estante
+                        <i class="fas fa-book me-2"></i> Livros
                     </a>
                 </li>
                 <li>
                     <a class="dropdown-item" href="{% url 'galeria_videos' %}">
-                        <i class="fas fa-video me-2"></i> Galeria de Vídeos
+                        <i class="fas fa-video me-2"></i> Vídeos
                     </a>
                 </li>
                 
                 {% if request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_GERAL' or request.user.tipo == 'ADMIN' %}
-                <li><hr class="dropdown-divider"></li>
-                <li><h6 class="dropdown-header">Gestão</h6></li>
+                
+                
                 <li>
                     <a class="dropdown-item" href="{% url 'painel_gestao' %}">
                         <i class="fas fa-cogs me-2"></i> Painel de Controle

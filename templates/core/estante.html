@@ -16,7 +16,7 @@
 
     <div class="container mt-4">
         {% if is_gestor %}
-            <div class="alert alert-info mb-4" style="border-radius: 15px; box-shadow: inset 3px 3px 6px #b8c1cd, inset -3px -3px 6px #faffff; border:none;">
+            <div class="alert mb-4" style="border-radius: 15px; box-shadow: inset 3px 3px 6px #b5b5b5, inset -3px -3px 6px #d3d3d3ff; border:none; color: #5e5e5e;">
                 <i class="fas fa-info-circle me-2"></i> Painel de Gestão: Você está vendo todos os livros disponíveis.
             </div>
         {% endif %}
@@ -33,7 +33,7 @@
                         {% endif %}
                     </div>
                     
-                    <h5 style="color: #5e6e82; font-size: 1.1rem;">{{ livro.titulo }}</h5>
+                    <h5 style="color: #151b22; font-size: 1.1rem;">{{ livro.titulo }}</h5>
                     
                     {% if livro.is_versao_professor %}
                         <span class="badge bg-warning text-dark mb-2" style="align-self: center;">Professor</span>

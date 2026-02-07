@@ -19,7 +19,7 @@ body {
     border-radius: 20px;
     background-color: #f9fafb;
     /* Efeito Neumórfico no Card */
-    box-shadow: 20px 20px 60px #b8c1cd, -20px -20px 60px #faffff;
+    box-shadow: 10px 10px 30px #b8c1cd, -10px -10px 30px #faffff;
 }
 
 .form-control {
@@ -27,8 +27,8 @@ body {
     background: #f9fafb;
     border: none;
     /* Efeito "fundido" para os inputs */
-    box-shadow: inset 5px 5px 10px #b8c1cd, inset -5px -5px 10px #faffff;
-    color: #5e6e82;
+    /*box-shadow: inset 5px 5px 10px #b8c1cd, inset -5px -5px 10px #faffff;*/
+    color: #000;
 }
 
 .form-control:focus {
@@ -39,7 +39,7 @@ body {
 
 .btn-login {
     width: 100%;
-    border-radius: 50px;
+    border-radius: 10px;
     background: #007bff;
     box-shadow: 5px 5px 10px #b8c1cd, -5px -5px 10px #faffff;
     border: none;
@@ -52,4 +52,9 @@ body {
 
 .btn-login:active {
     box-shadow: inset 5px 5px 10px #b8c1cd, inset -5px -5px 10px #faffff;
+}
+.form-label{
+    margin-bottom: 0 !important;
+    font-size: 1.2rem !important;
+    color: #000 !important;
 }
