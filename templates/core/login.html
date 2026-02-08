@@ -4,41 +4,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/mkz.svg' %}">
+
+    <link rel="icon" type="image/png" href={% static "core/ico/favicon/favicon-96x96.png" %} sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href={% static "core/ico/favicon.svg" %} />
+    <link rel="shortcut icon" href={% static "core/ico/favicon.ico" %} />
+    <link rel="apple-touch-icon" sizes="180x180" href={% static "core/ico/apple-touch-icon.png" %} />
+    <link rel="manifest" href={% static "core/ico/site.webmanifest" %} />
+
+
     <title>Login - MundoKaizo</title>
     <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
-    <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/favicon_mkz.ico' %}">
-    
     <link rel="stylesheet" href="{% static 'core/css/login.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-    <div class="login-card">
-        <h3 class="text-center mb-4" style="color: #183a4e;"><b>Mundo <span style="color: #007bff;">Kaizo</span><b></h3>
+    <div class="main-wrapper">
         
-        <form method="post">
-            {% csrf_token %}
-            
-            {% if form.errors %}
-                <div class="alert alert-danger" style="font-size: 0.9rem;">
-                    Usuário ou senha inválidos.
+        <div class="logo-section">
+            <img src="{% static 'core/img/logokaizo.png' %}" alt="Logo Mundo Kaizo" class="img-fluid main-logo">
+        </div>
+
+        <div class="login-card-section">
+            <div class="login-card">
+                <h3 class="text-center mb-4" style="color: #183a4e;">
+                    Bem-vindo
+                </h3>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                        <div class="alert alert-danger shadow-sm mb-4" style="font-size: 0.9rem; border-radius: 10px;">
+                            <i class="fas fa-exclamation-circle me-2"></i> Usuário ou senha incorretos.
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label ps-2 text-muted fw-bold small">USUÁRIO</label>
+                        <div class="input-group">
+                            <span class="input-group-text border-0 bg-light ps-3" style="border-radius: 12px 0 0 12px;">
+                                <i class="fas fa-user text-muted"></i>
+                            </span>
+                            <input type="text" name="username" class="form-control form-control-lg bg-light border-0" style="border-radius: 0 12px 12px 0;" placeholder="Seu usuário" required autofocus>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label ps-2 text-muted fw-bold small">SENHA</label>
+                        
+                        <div class="input-group">
+                             <span class="input-group-text border-0 bg-light ps-3" style="border-radius: 12px 0 0 12px;">
+                                <i class="fas fa-lock text-muted"></i>
+                            </span>
+                            
+                            <input type="password" name="password" id="senhaInput" class="form-control form-control-lg bg-light border-0" style="border-radius: 0;" placeholder="Sua senha" required>
+                            
+                            <span class="input-group-text border-0 bg-light pe-3" style="border-radius: 0 12px 12px 0; cursor: pointer;" onclick="toggleSenha()">
+                                <i class="fas fa-eye text-muted" id="iconeOlho"></i>
+                            </span>
+                        </div>
+
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 btn-lg shadow-sm py-3" style="border-radius: 12px; font-weight: bold; letter-spacing: 1px; background-color: #2288c4; color: #fff">
+                        ENTRAR
+                    </button>
+                </form>
+                
+                <div class="text-center mt-4">
+                    <a href="{% url 'password_reset_guide' %}" class="text-muted text-decoration-none small">
+                        <i class="fas fa-question-circle me-1"></i> Esqueceu a senha?
+                    </a>
                 </div>
-            {% endif %}
-
-            <div class="mb-3">
-                <label class="form-label ps-2 text-muted">Usuário</label>
-                <input type="text" name="username" class="form-control" required autofocus>
             </div>
+        </div>
 
-            <div class="mb-3">
-                <label class="form-label ps-2 text-muted">Senha</label>
-                <input type="password" name="password" class="form-control" required>
-            </div>
-
-            <button type="submit" class="btn-login">ENTRAR NA PLATAFORMA</button>
-        </form>
     </div>
-    <img src="{% static 'core/img/mascote.png' %}" alt="Logo KaizoEdu">
+    <img src="{% static 'core/img/kaizo_jap.png' %}" alt="Detalhe" class="corner-image">
+
+    <script>
+        function toggleSenha() {
+            var input = document.getElementById("senhaInput");
+            var icone = document.getElementById("iconeOlho");
+            
+            if (input.type === "password") {
+                input.type = "text";
+                icone.classList.remove("fa-eye");
+                icone.classList.add("fa-eye-slash"); // Ícone de olho cortado
+            } else {
+                input.type = "password";
+                icone.classList.remove("fa-eye-slash");
+                icone.classList.add("fa-eye"); // Ícone de olho normal
+            }
+        }
+    </script>
 
 </body>
 </html>

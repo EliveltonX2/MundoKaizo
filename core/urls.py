@@ -1,4 +1,5 @@
 from django.urls import path, include
+from django.views.generic import TemplateView
 from django.contrib.auth import views as auth_views
 from . import views
 from django.contrib import admin
@@ -21,6 +22,7 @@ urlpatterns = [
 
     path('', views.estante_view, name='estante'),
     path('login/', auth_views.LoginView.as_view(template_name='core/login.html'), name='login'),
+    path('recuperar-senha/', TemplateView.as_view(template_name='core/password_reset_guide.html'), name='password_reset_guide'),
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
     path('alterar-senha/', 
          auth_views.PasswordChangeView.as_view(

@@ -1,60 +1,135 @@
 /* core/static/core/css/login.css */
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap');
 
+/* Reset e Fundo */
 body {
+    /* Um fundo gradiente sutil para dar profundidade */
     background-color: #f9fafb;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    margin: 0;
     font-family: 'Montserrat', sans-serif;
-    gap: 5rem;
+    min-height: 100vh;
+    margin: 0;
+    display: flex;
+    align-items: center; /* Centraliza verticalmente */
+}
+
+/* Wrapper Principal - O Flexbox que segura tudo */
+.main-wrapper {
+    width: 100%;
+    max-width: 1200px; /* Largura máxima do conjunto */
+    margin: 0 auto;
+    padding: 30px;
+    display: flex;
+    flex-direction: row; /* Lado a lado no PC */
+    align-items: center; /* Alinha os centros verticais */
+    justify-content: center; /* Centraliza horizontalmente */
+    gap: 60px; /* O ESPAÇO entre a logo e o card (o deslocamento que você pediu) */
+}
+
+/* --- SEÇÃO DA ESQUERDA: LOGO --- */
+.logo-section {
+    flex: 1; /* Ocupa espaço flexível */
+    display: flex;
+    justify-content: flex-end; /* Alinha a logo à direita do seu bloco, aproximando do card */
+    max-width: 450px; /* Limita a largura da área da logo */
+}
+
+.main-logo {
+    width: 100%;
+    max-width: 380px; /* Tamanho máximo da logo no PC */
+    height: auto;
+    /* Uma sombra suave na logo para ela "descolar" do fundo */
+    filter: drop-shadow(0 15px 25px rgba(0,0,0,0.15));
+    transition: transform 0.3s ease;
+}
+
+.main-logo:hover {
+    transform: scale(1.03); /* Efeito sutil ao passar o mouse */
+}
+
+/* --- SEÇÃO DA DIREITA: CARD DE LOGIN --- */
+.login-card-section {
+    flex: 1; /* Ocupa espaço flexível */
+    max-width: 450px; /* Largura fixa ideal para o card de formulário */
 }
 
 .login-card {
-    width: 100%;
-    max-width: 400px;
-    padding: 40px;
-    border-radius: 20px;
-    background-color: #f9fafb;
-    /* Efeito Neumórfico no Card */
-    box-shadow: 10px 10px 30px #b8c1cd, -10px -10px 30px #faffff;
+    background: #ffffff;
+    padding: 45px;
+    border-radius: 25px; /* Bordas bem arredondadas */
+    /* A sombra agora fica SÓ no card, não no conjunto todo */
+    box-shadow: 4px 6px 4px 3px rgba(0, 0, 0, 0.08), 0 5px 15px rgba(0, 0, 0, 0.05);
 }
 
-.form-control {
-    border-radius: 10px;
-    background: #f9fafb;
-    border: none;
-    /* Efeito "fundido" para os inputs */
-    /*box-shadow: inset 5px 5px 10px #b8c1cd, inset -5px -5px 10px #faffff;*/
-    color: #000;
-}
-
+/* --- Ajustes Finos do Formulário --- */
 .form-control:focus {
-    background: #f9fafb;
-    box-shadow: inset 2px 2px 5px #b8c1cd, inset -2px -2px 5px #faffff;
-    color: #000;
+    box-shadow: none; /* Remove o shadow padrão do bootstrap */
+    background-color: #fff !important; /* Fica branco ao focar */
+}
+.input-group{
+    box-shadow: 0px 0px 3px 3px rgba(55, 94, 148, .3), inset -10px -10px 10px rgba(255, 255, 255, .8) !important;
+}
+.input-group:focus-within .input-group-text {
+      background-color: #fff !important;
+      color: #0d6efd !important; /* Ícone fica azul no foco */
+}
+.input-group-text, .form-control {
+    transition: all 0.3s ease;
 }
 
-.btn-login {
-    width: 100%;
-    border-radius: 10px;
-    background: #007bff;
-    box-shadow: 5px 5px 10px #b8c1cd, -5px -5px 10px #faffff;
-    border: none;
-    color: #fff;
-    font-weight: bold;
-    padding: 10px;
-    margin-top: 20px;
-    transition: all 0.2s;
+
+/* --- MODO MOBILE (Responsividade) --- */
+/* Usando 992px (tablets/laptops pequenos) para quebrar o layout mais cedo */
+@media (max-width: 992px) {
+    .main-wrapper {
+        flex-direction: column; /* Empilha: Logo em cima, Card embaixo */
+        gap: 40px; /* Espaço menor entre eles no celular */
+        padding: 20px;
+        justify-content: center;
+    }
+
+    .logo-section {
+        justify-content: center; /* Centraliza a logo no celular */
+        max-width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .main-logo {
+        max-width: 220px; /* Logo menor no celular */
+    }
+
+    .login-card-section {
+        width: 100%;
+        max-width: 400px; /* Card na largura total disponível (respeitando o max) */
+    }
+
+    .login-card {
+        padding: 30px 25px; /* Menos espaçamento interno no card mobile */
+    }
 }
 
-.btn-login:active {
-    box-shadow: inset 5px 5px 10px #b8c1cd, inset -5px -5px 10px #faffff;
+.corner-image {
+    position: fixed;  /* O segredo: fixa em relação à janela do navegador */
+    bottom: 20px;     /* Distância do fundo */
+    right: 20px;      /* Distância da direita */
+    
+    width: 100px;     /* Tamanho da imagem (ajuste conforme necessário) */
+    height: auto;     /* Mantém a proporção */
+    
+    z-index: 1000;    /* Garante que fique por cima de tudo */
+    
+    /* Opcional: Efeito de transparência para ficar sutil */
+    opacity: 0.9;
+    
+    /* Opcional: Uma transição suave se quiser adicionar efeito de hover depois */
+    transition: all 0.3s ease;
 }
-.form-label{
-    margin-bottom: 0 !important;
-    font-size: 1.2rem !important;
-    color: #000 !important;
+
+/* AJUSTE PARA CELULAR (Responsividade) */
+/* No celular, a tela é pequena, então vamos diminuir a imagem e aproximar do canto */
+@media (max-width: 576px) {
+    .corner-image {
+        width: 70px;   /* Fica menorzinha no celular */
+        bottom: 10px;  /* Mais perto da borda */
+        right: 10px;
+    }
 }

@@ -248,3 +248,25 @@ body {
 .table-custom td { padding: 15px; color: #5e6e82; vertical-align: middle; }
 .table-custom td:first-child { border-top-left-radius: 10px; border-bottom-left-radius: 10px; }
 .table-custom td:last-child { border-top-right-radius: 10px; border-bottom-right-radius: 10px; }
+
+
+/* Controle da Logo na Navbar */
+.navbar-logo {
+    height: 40px;          /* Altura ideal para não "estourar" a barra */
+    width: auto;           /* Largura automática para não distorcer */
+    object-fit: contain;   /* Garante que a imagem caiba perfeitamente */
+    display: block;        /* Remove espaçamentos extras de linha */
+    transition: transform 0.2s ease;
+}
+
+/* Efeito sutil ao passar o mouse na logo */
+.navbar-brand:hover .navbar-logo {
+    transform: scale(1.05);
+}
+
+/* Ajuste Responsivo para Celulares */
+@media (max-width: 768px) {
+    .navbar-logo {
+        height: 35px; /* Um pouco menor em telas pequenas */
+    }
+}
