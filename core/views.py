@@ -1,14 +1,18 @@
 from django.shortcuts import get_object_or_404, render, redirect
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 from django.contrib import messages
 from django.core.cache import cache
 from django.core.files.storage import default_storage
-from .models import Livro, Pagina, User, VideoAula
+from .models import Livro, Pagina, User, VideoAula, Turma
 from .services import adicionar_watermark
 from django.db.models import Q
 from django.urls import reverse
+from django.utils import timezone
+from django.contrib.auth import login
+from .forms import ValidarTokenForm, RegistroAlunoForm
+from .models import TokenCadastro
 
 @login_required
 def estante_view(request):
@@ -281,3 +285,79 @@ def assistir_aula_view(request, aula_id):
         'aula_anterior': aula_anterior
     }
     return render(request, 'core/assistir_aula.html', context)
+
+def ativar_conta_view(request):
+    # ETAPA 1: Validar o Código
+    if 'token_validado' not in request.session:
+        if request.method == 'POST':
+            form = ValidarTokenForm(request.POST)
+            if form.is_valid():
+                codigo = form.cleaned_data['codigo']
+                token = TokenCadastro.objects.get(codigo=codigo)
+                
+                # Salva na sessão temporária
+                request.session['token_validado'] = token.id
+                request.session['token_tipo'] = token.tipo_usuario
+                return redirect('ativar_conta') # Recarrega para cair no 'else' abaixo
+        else:
+            form = ValidarTokenForm()
+        
+        return render(request, 'registration/ativar_codigo.html', {'form': form})
+
+    # ETAPA 2: Preencher Dados (Se já validou o código)
+    token_id = request.session['token_validado']
+    tipo_usuario = request.session['token_tipo']
+    
+    # Se for ALUNO
+    if tipo_usuario == 'ALUNO':
+        if request.method == 'POST':
+            form = RegistroAlunoForm(request.POST)
+            if form.is_valid():
+                token = TokenCadastro.objects.get(id=token_id)
+                if token.usado:
+                    return HttpResponse("Este token já foi usado enquanto você preenchia.")
+
+                # Cria o usuário
+                user = form.save(commit=False)
+                user.set_password(form.cleaned_data['senha'])
+                user.tipo = 'ALUNO'
+                user.save()
+                
+                # Vincula Turma e Escola
+                escola = form.cleaned_data['escola']
+                turma = form.cleaned_data['turma']
+                user.escolas.add(escola)
+                user.turmas.add(turma)
+
+                # QUEIMA O TOKEN
+                token.usado = True
+                token.usado_por = user
+                token.data_uso = timezone.now()
+                token.save()
+
+                # Limpa sessão e loga
+                del request.session['token_validado']
+                login(request, user)
+                return redirect('estante')
+        else:
+            form = RegistroAlunoForm()
+        
+        return render(request, 'registration/cadastro_aluno.html', {'form': form})
+
+    # (Adicione aqui os elifs para GESTOR e PROFESSOR com seus forms específicos)
+    
+    return HttpResponse("Tipo de usuário não implementado ainda.")
+
+# API simples para o Javascript consumir
+def api_turmas_por_escola(request, escola_id):
+    turmas = Turma.objects.filter(escola_id=escola_id).values('id', 'nome', 'serie') 
+    # Ajuste 'nome' e 'serie' conforme seus campos no models.py
+    
+    lista_turmas = []
+    for t in turmas:
+        lista_turmas.append({
+            'id': t['id'],
+            'nome_completo': f"{t['serie']} - {t['nome']}" # Ex: "6º Ano - A"
+        })
+        
+    return JsonResponse(lista_turmas, safe=False)

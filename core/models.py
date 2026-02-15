@@ -1,9 +1,44 @@
 import re
+import uuid
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.templatetags.static import static
 
 # --- Estrutura Geográfica e Institucional ---
+class TokenCadastro(models.Model):
+    TIPOS = (
+        ('ALUNO', 'Aluno'),
+        ('PROFESSOR', 'Professor'),
+        ('GESTOR_LOCAL', 'Gestor Escolar'),
+    )
+
+    # O código curto para digitar (Ex: KZ-A9B2-X1Y2)
+    codigo = models.CharField(max_length=20, unique=True, editable=False)
+    
+    # Qual o papel que esse token libera?
+    tipo_usuario = models.CharField(max_length=20, choices=TIPOS)
+    
+    # Identificação do lote (Ex: "Prefeitura SP - Lote 1 - 2026")
+    lote = models.CharField(max_length=100)
+    
+    # Controle de uso
+    usado = models.BooleanField(default=False)
+    usado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    data_uso = models.DateTimeField(null=True, blank=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.codigo:
+            # Gera um código estilo Gift Card (12 digitos em blocos)
+            raw = str(uuid.uuid4()).upper().replace('-', '')
+            self.codigo = f"KZ-{raw[:4]}-{raw[4:8]}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        status = "USADO" if self.usado else "DISPONÍVEL"
+        return f"[{self.tipo_usuario}] {self.codigo} - {status}"
+
 
 class Cidade(models.Model):
     nome = models.CharField(max_length=100)

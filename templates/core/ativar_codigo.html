@@ -1,0 +1,26 @@
+{% extends 'base_login.html' %} {% block content %}
+<div class="text-center">
+    <h3>Ativar Acesso</h3>
+    <p class="text-muted">Digite o código impresso no seu cartão</p>
+    
+    <form method="post" class="mt-4">
+        {% csrf_token %}
+        
+        <div class="mb-3">
+            {{ form.codigo }}
+            {% if form.codigo.errors %}
+                <div class="text-danger small mt-1">{{ form.codigo.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-success w-100 btn-lg">
+            VALIDAR CÓDIGO <i class="fas fa-check ms-2"></i>
+        </button>
+    </form>
+    
+    <div class="mt-4 border-top pt-3">
+        <small class="text-muted">Ainda não tem um código? Contate sua secretaria.</small> <br>
+        <a href="{% url 'login' %}" class="small">Voltar para Login</a>
+    </div>
+</div>
+{% endblock %}
