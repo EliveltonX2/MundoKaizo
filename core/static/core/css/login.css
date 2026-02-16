@@ -76,6 +76,31 @@ body {
     transition: all 0.3s ease;
 }
 
+.btn_login{
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    border-radius: 12px; 
+    font-weight: bold; 
+    letter-spacing: 1px; 
+    color: #fff
+}
+.btn_login:hover{
+    background-color: #0b5ed7;
+    border-color: #0b5ed7;
+    color: #fff;
+}
+
+.btn_login_ativar_card{
+    background-color: #0097b2;
+    box-shadow: none;
+}
+.btn_login_ativar_card:hover{
+    background-color: #007a8c;
+    color: #fff;
+    border-color: #007a8c;
+    box-shadow: none;
+}
+
 
 /* --- MODO MOBILE (Responsividade) --- */
 /* Usando 992px (tablets/laptops pequenos) para quebrar o layout mais cedo */
@@ -106,6 +131,8 @@ body {
         padding: 30px 25px; /* Menos espaçamento interno no card mobile */
     }
 }
+
+
 
 .corner-image {
     position: fixed;  /* O segredo: fixa em relação à janela do navegador */

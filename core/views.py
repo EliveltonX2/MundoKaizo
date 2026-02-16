@@ -5,14 +5,13 @@ from django.contrib.auth.hashers import make_password
 from django.contrib import messages
 from django.core.cache import cache
 from django.core.files.storage import default_storage
-from .models import Livro, Pagina, User, VideoAula, Turma
+from .models import Livro, Pagina, User, VideoAula, Turma, TokenCadastro
 from .services import adicionar_watermark
 from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
 from django.contrib.auth import login
-from .forms import ValidarTokenForm, RegistroAlunoForm
-from .models import TokenCadastro
+from .forms import *
 
 @login_required
 def estante_view(request):
@@ -287,66 +286,66 @@ def assistir_aula_view(request, aula_id):
     return render(request, 'core/assistir_aula.html', context)
 
 def ativar_conta_view(request):
-    # ETAPA 1: Validar o Código
-    if 'token_validado' not in request.session:
+    # FASE 1: Digitar Código
+    if 'token_id' not in request.session:
         if request.method == 'POST':
             form = ValidarTokenForm(request.POST)
             if form.is_valid():
-                codigo = form.cleaned_data['codigo']
-                token = TokenCadastro.objects.get(codigo=codigo)
-                
-                # Salva na sessão temporária
-                request.session['token_validado'] = token.id
+                token = TokenCadastro.objects.get(codigo=form.cleaned_data['codigo'])
+                request.session['token_id'] = token.id
                 request.session['token_tipo'] = token.tipo_usuario
-                return redirect('ativar_conta') # Recarrega para cair no 'else' abaixo
+                return redirect('ativar_conta')
         else:
             form = ValidarTokenForm()
-        
         return render(request, 'registration/ativar_codigo.html', {'form': form})
 
-    # ETAPA 2: Preencher Dados (Se já validou o código)
-    token_id = request.session['token_validado']
-    tipo_usuario = request.session['token_tipo']
+    # FASE 2: Preencher Dados
+    token_id = request.session.get('token_id')
+    token_tipo = request.session.get('token_tipo')
+    token = TokenCadastro.objects.get(id=token_id)
     
-    # Se for ALUNO
-    if tipo_usuario == 'ALUNO':
-        if request.method == 'POST':
-            form = RegistroAlunoForm(request.POST)
-            if form.is_valid():
-                token = TokenCadastro.objects.get(id=token_id)
-                if token.usado:
-                    return HttpResponse("Este token já foi usado enquanto você preenchia.")
-
-                # Cria o usuário
-                user = form.save(commit=False)
-                user.set_password(form.cleaned_data['senha'])
-                user.tipo = 'ALUNO'
-                user.save()
-                
-                # Vincula Turma e Escola
-                escola = form.cleaned_data['escola']
-                turma = form.cleaned_data['turma']
-                user.escolas.add(escola)
-                user.turmas.add(turma)
-
-                # QUEIMA O TOKEN
-                token.usado = True
-                token.usado_por = user
-                token.data_uso = timezone.now()
-                token.save()
-
-                # Limpa sessão e loga
-                del request.session['token_validado']
-                login(request, user)
-                return redirect('estante')
-        else:
-            form = RegistroAlunoForm()
+    if request.method == 'POST':
+        form = RegistroUsuarioForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data['senha'])
+            
+            # 1. APLICA O TIPO DE USUÁRIO DIRETO DO CARTÃO
+            user.tipo = token.tipo_usuario 
+            user.save()
+            
+            # 2. VINCULAÇÕES
+            # Se o cartão tem uma escola (Gestor, Prof, Aluno), vincula.
+            if token.escola:
+                user.escolas.add(token.escola)
+            
+            # Se o cartão tem uma turma (Aluno), vincula.
+            if token.turma and token.tipo_usuario == 'ALUNO':
+                user.turmas.add(token.turma)
+            
+            # 3. QUEIMA O CARTÃO
+            token.usado = True
+            token.usado_por = user
+            token.data_uso = timezone.now()
+            token.save()
+            
+            # 4. LIMPEZA E REDIRECIONAMENTO
+            del request.session['token_id']
+            del request.session['token_tipo']
+            login(request, user)
+            
+            # Todos vão para a estante inicialmente (você pode mudar depois)
+            return redirect('estante') 
+    else:
+        form = RegistroUsuarioForm()
         
-        return render(request, 'registration/cadastro_aluno.html', {'form': form})
-
-    # (Adicione aqui os elifs para GESTOR e PROFESSOR com seus forms específicos)
-    
-    return HttpResponse("Tipo de usuário não implementado ainda.")
+    # Passamos o tipo (ex: "Professor") para o HTML mostrar "Bem-vindo, Professor!"
+    contexto = {
+        'form': form, 
+        'token': token,
+        'tipo_nome': token.get_tipo_usuario_display()
+    }
+    return render(request, 'registration/cadastro_usuario.html', contexto)
 
 # API simples para o Javascript consumir
 def api_turmas_por_escola(request, escola_id):
@@ -361,3 +360,45 @@ def api_turmas_por_escola(request, escola_id):
         })
         
     return JsonResponse(lista_turmas, safe=False)
+
+
+@login_required
+def vincular_cartoes_view(request):
+    # Apenas Professores ou Gestores podem acessar
+    if request.user.tipo not in ['PROFESSOR', 'GESTOR_LOCAL', 'GESTOR_GERAL', 'ADMIN']:
+        return redirect('estante')
+
+    if request.method == 'POST':
+        form = VincularCartoesForm(request.POST, professor=request.user)
+        if form.is_valid():
+            codigos_raw = form.cleaned_data['codigos']
+            turma_selecionada = form.cleaned_data['turma']
+            
+            # Limpa o texto, separando por linha e removendo espaços
+            lista_codigos = [c.strip().upper() for c in codigos_raw.split('\n') if c.strip()]
+            
+            sucesso = 0
+            erros = 0
+            
+            for codigo in lista_codigos:
+                try:
+                    # Busca o token em branco
+                    token = TokenCadastro.objects.get(codigo=codigo, tipo_usuario='ALUNO', usado=False)
+                    # Vincula a turma e a escola
+                    token.turma = turma_selecionada
+                    token.escola = turma_selecionada.escola
+                    token.save()
+                    sucesso += 1
+                except TokenCadastro.DoesNotExist:
+                    erros += 1
+            
+            if sucesso > 0:
+                messages.success(request, f"{sucesso} cartões foram vinculados à turma {turma_selecionada.nome} com sucesso!")
+            if erros > 0:
+                messages.warning(request, f"{erros} códigos eram inválidos, não eram de aluno ou já estavam usados.")
+                
+            return redirect('vincular_cartoes') # Atualize com o nome da sua URL de gestão
+    else:
+        form = VincularCartoesForm(professor=request.user)
+
+    return render(request, 'core/vincular_cartoes.html', {'form': form})

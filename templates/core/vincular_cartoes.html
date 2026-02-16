@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vincular Cartões - Gestão Kaizo</title>
+    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-5">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="{% url 'estante' %}">
+                <i class="fas fa-arrow-left me-2"></i> Voltar
+            </a>
+            <span class="navbar-text text-white fw-bold">
+                Painel do {{ request.user.get_tipo_display }}
+            </span>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 800px;">
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="fas fa-info-circle me-2"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="card shadow-lg border-0 rounded-4">
+            <div class="card-header bg-white border-0 pt-4 pb-0 text-center">
+                <h3 class="fw-bold text-primary"><i class="fas fa-link me-2"></i> Vincular Cartões de Aluno</h3>
+                <p class="text-muted small">Atribua os cartões físicos às suas respectivas turmas antes de entregá-los aos alunos.</p>
+            </div>
+            
+            <div class="card-body p-4 p-md-5">
+                <form method="post" action="{% url 'vincular_cartoes' %}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-muted small text-uppercase">1. Selecione a Turma de Destino</label>
+                        {{ form.turma }}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-muted small text-uppercase">2. Digite ou bipe os códigos (Um por linha)</label>
+                        {{ form.codigos }}
+                        <div class="form-text mt-2"><i class="fas fa-barcode"></i> Você pode usar um leitor de código de barras. Cada "bip" pulará uma linha automaticamente.</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 btn-lg rounded-pill fw-bold shadow-sm">
+                        <i class="fas fa-save me-2"></i> SALVAR VÍNCULOS
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

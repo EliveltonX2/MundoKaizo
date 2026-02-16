@@ -10,6 +10,26 @@ body {
     font-family: 'Montserrat', sans-serif;
 }
 
+/* --- LOADER GLOBAL --- */
+.global-loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #f9fafb; /* Fundo sólido para cobrir a tela inteira enquanto carrega */
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.5s ease, visibility 0.5s;
+}
+
+.global-loader-overlay.oculto {
+    opacity: 0;
+    visibility: hidden;
+}
+
 /* PALCO PRINCIPAL */
 .main-stage {
     flex: 1;
@@ -78,23 +98,19 @@ body {
 .ctrl-btn.active { color: #007bff; box-shadow: inset 3px 3px 6px #b8c1cd, inset -3px -3px 6px #faffff; }
 .ctrl-btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
 
-/* --- NOVO: Botão de Vídeo Largo (Pílula) --- */
+/* Botão de Vídeo Largo (Pílula) */
 .video-btn-wide {
-    width: auto !important;     /* Permite crescer */
-    padding: 0 20px;            /* Espaço lateral */
-    border-radius: 50px;        /* Pílula */
-    gap: 8px;                   /* Espaço ícone-texto */
-    
+    width: auto !important;
+    padding: 0 20px;
+    border-radius: 50px;
+    gap: 8px;
     font-weight: bold;
     font-size: 0.85rem;
     text-transform: uppercase;
     text-decoration: none;
-    
-    /* Estilo "Ativo" (Afundado e Vermelho) */
     color: #d9534f !important; 
     box-shadow: inset 3px 3px 6px #b8c1cd, inset -3px -3px 6px #faffff !important;
-    
-    display: none; /* JS controla a exibição (flex) */
+    display: none; 
     align-items: center;
     justify-content: center;
 }

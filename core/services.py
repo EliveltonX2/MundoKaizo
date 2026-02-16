@@ -5,6 +5,29 @@ from django.conf import settings
 
 def adicionar_watermark(arquivo_imagem, texto):
     try:
+        img = Image.open(arquivo_imagem).convert("RGBA")
+        
+        # --- MELHORIA 1: REDIMENSIONAMENTO ---
+        max_width = 1920 # Full HD é suficiente para leitura web
+        if img.width > max_width:
+            # Calcula a altura proporcional para não achatar a imagem
+            ratio = max_width / float(img.width)
+            new_height = int((float(img.height) * float(ratio)))
+            
+            # Redimensiona usando algoritmo de alta qualidade (LANCZOS)
+            img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
+
+        # ... (continua seu código da marca d'água igualzinho) ...
+        
+        # ... (código do grid de texto) ...
+
+        # Na hora de salvar, mantenha o WebP e Quality 85
+    
+    except Exception as e:
+        print(f"Erro no serviço de watermark: {e}")
+        return None
+    
+    try:
         # 1. Abre a imagem e converte para permitir transparência
         img = Image.open(arquivo_imagem).convert("RGBA")
         largura_img, altura_img = img.size
@@ -83,3 +106,4 @@ def adicionar_watermark(arquivo_imagem, texto):
     except Exception as e:
         print(f"Erro no serviço de watermark: {e}")
         return None
+    

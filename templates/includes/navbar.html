@@ -11,7 +11,7 @@
             {% if custom_title %}
                 {{ custom_title }}
             {% else %}
-                <img src="{% static 'core/img/logokaizo.png' %}" alt="Mundo Kaizo" class="navbar-logo">
+                <img src="{% static 'core/img/logokaizo2.png' %}" alt="Mundo Kaizo" class="navbar-logo">
             {% endif %}
         </a>
         
@@ -103,6 +103,13 @@
                         <i class="fas fa-cogs me-2"></i> Painel de Controle
                     </a>
                 </li>
+
+                <li>
+                    <a class="dropdown-item" href="{% url 'vincular_cartoes' %}">
+                        <i class="fas fa-id-card me-1"></i> Vincular Cartões
+                    </a>
+                </li>
+
                 {% endif %}
             </ul>
         </div>

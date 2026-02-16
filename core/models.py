@@ -22,6 +22,10 @@ class TokenCadastro(models.Model):
     # Identificação do lote (Ex: "Prefeitura SP - Lote 1 - 2026")
     lote = models.CharField(max_length=100)
     
+
+    escola = models.ForeignKey('Escola', on_delete=models.CASCADE, null=True, blank=True)
+    turma = models.ForeignKey('Turma', on_delete=models.CASCADE, null=True, blank=True)
+
     # Controle de uso
     usado = models.BooleanField(default=False)
     usado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)

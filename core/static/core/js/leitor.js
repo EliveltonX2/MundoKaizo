@@ -1,4 +1,66 @@
+console.log("[KAIZO] Script leitor.js iniciado.");
+
 window.onload = function() {
+    console.log("[KAIZO] Evento window.onload disparado.");
+    
+    // --- LÓGICA DO LOADER GLOBAL ---
+    const loader = document.getElementById("globalLoader");
+    const imagens = document.querySelectorAll(".pagina-livro");
+    
+    console.log(`[KAIZO] Elemento loader encontrado?`, !!loader);
+    console.log(`[KAIZO] Total de imagens (.pagina-livro) encontradas:`, imagens.length);
+
+    function esconderLoader() {
+        console.log("[KAIZO] Função esconderLoader() chamada.");
+        if(loader) {
+            loader.classList.add("oculto");
+            console.log("[KAIZO] Classe 'oculto' adicionada com sucesso.");
+        } else {
+            console.error("[KAIZO] ERRO: Elemento 'globalLoader' não encontrado no HTML!");
+        }
+    }
+
+    // Pega apenas as 2 primeiras páginas
+    const imagensParaVerificar = Array.from(imagens).slice(0, 2);
+    console.log(`[KAIZO] Imagens selecionadas para verificação (Capa/Verso):`, imagensParaVerificar.length);
+    
+    let imagensPendentes = 0;
+
+    if (imagensParaVerificar.length === 0) {
+        console.log("[KAIZO] Nenhuma imagem na página. Escondendo loader.");
+        esconderLoader();
+    } else {
+        imagensParaVerificar.forEach((img, index) => {
+            console.log(`[KAIZO] Analisando Imagem ${index + 1}: complete=${img.complete}, src=${img.src}`);
+            
+            if (!img.complete) {
+                imagensPendentes++;
+                console.log(`[KAIZO] Imagem ${index + 1} pendente. Total pendentes:`, imagensPendentes);
+                
+                img.addEventListener("load", () => {
+                    imagensPendentes--;
+                    console.log(`[KAIZO] Imagem ${index + 1} CARREGOU. Pendentes restando:`, imagensPendentes);
+                    if (imagensPendentes === 0) esconderLoader();
+                });
+                
+                img.addEventListener("error", () => {
+                    imagensPendentes--;
+                    console.error(`[KAIZO] ERRO na Imagem ${index + 1}. Pendentes restando:`, imagensPendentes);
+                    if (imagensPendentes === 0) esconderLoader();
+                });
+            } else {
+                console.log(`[KAIZO] Imagem ${index + 1} já estava cacheada/carregada (complete=true).`);
+            }
+        });
+        
+        console.log(`[KAIZO] Verificação inicial concluída. Pendentes finais:`, imagensPendentes);
+        if (imagensPendentes === 0) {
+            console.log("[KAIZO] Nenhuma imagem pendente de carregamento. Escondendo loader imediato.");
+            esconderLoader();
+        }
+    }
+    // --------------------------------
+
     const pageFlipElement = document.getElementById('flipbook');
     const movableLayer = document.getElementById('movable');
     const stage = document.getElementById('stage');
@@ -105,17 +167,14 @@ window.onload = function() {
             const paginaDireita = currentIndex + 2;
             const videoDireita = mapa[paginaDireita];
             
-            // Prioriza esquerda, mas se não tiver, pega da direita
             if (!urlVideo && videoDireita) {
                 urlVideo = videoDireita;
                 paginaEncontrada = paginaDireita;
             }
         }
 
-        console.log(`Checando Pág ${paginaEsquerda} e ${paginaEsquerda+1}. Vídeo encontrado?`, urlVideo ? "SIM" : "NÃO");
-
         if (urlVideo) {
-            videoBtn.style.display = 'flex'; // Usa Flex para alinhar texto e ícone
+            videoBtn.style.display = 'flex'; 
             videoBtn.href = urlVideo;
             if (videoSeparator) videoSeparator.style.display = 'block';
         } else {
@@ -127,60 +186,48 @@ window.onload = function() {
     pageFlip.on('flip', checkVideoAvailability);
     setTimeout(checkVideoAvailability, 500);
 
-    // --- 5. NAVEGAÇÃO BÁSICA (Botões Inferiores) ---
+    // --- 5. NAVEGAÇÃO BÁSICA ---
     document.getElementById('prevBtn').onclick = () => pageFlip.flipPrev();
     document.getElementById('nextBtn').onclick = () => pageFlip.flipNext();
     
-    // --- 6. NAVEGAÇÃO PELA NAVBAR (NOVO) ---
+    // --- 6. NAVEGAÇÃO PELA NAVBAR ---
     const pageInput = document.getElementById('pageInput');
     const totalPagesSpan = document.getElementById('totalPages');
     const goPageBtn = document.getElementById('goPageBtn');
 
-    // Atualiza o total de páginas assim que carregar
-    // (Pequeno delay para garantir que o pageFlip calculou)
     setTimeout(() => {
         if(totalPagesSpan) {
             totalPagesSpan.innerText = pageFlip.getPageCount();
         }
     }, 1000);
 
-    // Função para atualizar o input quando a página vira manualmente
     function updatePageInput() {
         if (!pageInput) return;
-        // +1 porque o índice começa em 0
         const currentPage = pageFlip.getCurrentPageIndex() + 1;
         pageInput.value = currentPage;
     }
 
-    // Adiciona listener no evento 'flip' (Junto com a checagem de vídeo)
     pageFlip.on('flip', (e) => {
-        checkVideoAvailability(); // Sua função existente
-        updatePageInput();        // Nova função
+        checkVideoAvailability(); 
+        updatePageInput();        
     });
 
-    // Ação: Ir para a página digitada
     function goToTypedPage() {
         if (!pageInput) return;
         let pageNum = parseInt(pageInput.value);
         const total = pageFlip.getPageCount();
 
-        // Validação básica
         if (pageNum < 1) pageNum = 1;
         if (pageNum > total) pageNum = total;
 
-        // Converter para índice (Base 0) e virar
         pageFlip.flip(pageNum - 1);
-        
-        // Tira o foco do input para não ficar o cursor piscando
         pageInput.blur();
     }
 
-    // Evento no Botão "Ir"
     if (goPageBtn) {
         goPageBtn.onclick = goToTypedPage;
     }
 
-    // Evento "Enter" no Input
     if (pageInput) {
         pageInput.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
@@ -191,7 +238,6 @@ window.onload = function() {
 
     // --- ATALHOS DE TECLADO ---
     document.addEventListener('keydown', (e) => {
-        // Só ativa atalhos se o foco NÃO estiver no input de página
         if (document.activeElement !== pageInput && !isPanMode) {
             if (e.key === 'ArrowLeft') pageFlip.flipPrev();
             if (e.key === 'ArrowRight') pageFlip.flipNext();

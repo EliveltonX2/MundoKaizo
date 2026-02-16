@@ -252,7 +252,7 @@ body {
 
 /* Controle da Logo na Navbar */
 .navbar-logo {
-    height: 40px;          /* Altura ideal para não "estourar" a barra */
+    height: 25px;          /* Altura ideal para não "estourar" a barra */
     width: auto;           /* Largura automática para não distorcer */
     object-fit: contain;   /* Garante que a imagem caiba perfeitamente */
     display: block;        /* Remove espaçamentos extras de linha */

@@ -1,26 +1,54 @@
-{% extends 'base_login.html' %} {% block content %}
-<div class="text-center">
-    <h3>Ativar Acesso</h3>
-    <p class="text-muted">Digite o código impresso no seu cartão</p>
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/mkz.svg' %}">
+    <title>Ativar Conta - Mundo Kaizo</title>
     
-    <form method="post" class="mt-4">
-        {% csrf_token %}
+    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'core/css/login.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="main-wrapper" style="flex-direction: column; max-width: 500px; margin: 0 auto;">
         
-        <div class="mb-3">
-            {{ form.codigo }}
-            {% if form.codigo.errors %}
-                <div class="text-danger small mt-1">{{ form.codigo.errors.0 }}</div>
-            {% endif %}
+        <div class="login-card w-100">
+            <div class="text-center mb-4">
+                <img src="{% static 'core/img/logokaizo.png' %}" alt="Logo Mundo Kaizo" style="height: 60px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1));">
+                <h4 class="mt-4 fw-bold" style="color: #183a4e;">Primeiro Acesso</h4>
+                <p class="text-muted small">Digite o código de ativação do seu cartão</p>
+            </div>
+
+            <form method="post" action="{% url 'ativar_conta' %}">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    {{ form.codigo }}
+                    
+                    {% if form.codigo.errors %}
+                        <div class="text-danger small mt-2 fw-bold text-center">
+                            <i class="fas fa-exclamation-circle me-1"></i> {{ form.codigo.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-success w-100 btn-lg shadow-sm py-3" style="border-radius: 12px; font-weight: bold; letter-spacing: 1px;">
+                    VALIDAR CÓDIGO <i class="fas fa-arrow-right ms-2"></i>
+                </button>
+            </form>
+            
+            <div class="text-center mt-4 pt-4 border-top">
+                <p class="text-muted small mb-2">Ainda não tem um código? Procure sua secretaria.</p>
+                <a href="{% url 'login' %}" class="text-decoration-none fw-bold" style="color: #0d6efd; font-size: 0.9rem;">
+                    <i class="fas fa-arrow-left me-1"></i> Voltar para o Login
+                </a>
+            </div>
         </div>
 
-        <button type="submit" class="btn btn-success w-100 btn-lg">
-            VALIDAR CÓDIGO <i class="fas fa-check ms-2"></i>
-        </button>
-    </form>
-    
-    <div class="mt-4 border-top pt-3">
-        <small class="text-muted">Ainda não tem um código? Contate sua secretaria.</small> <br>
-        <a href="{% url 'login' %}" class="small">Voltar para Login</a>
     </div>
-</div>
-{% endblock %}
+
+</body>
+</html>
