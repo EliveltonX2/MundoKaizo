@@ -15,14 +15,19 @@ from .forms import *
 
 @login_required
 def estante_view(request):
-    user = request.user
-    livros = Livro.objects.filter(is_versao_professor=False)
     
-    # --- NOVO: LÓGICA DE BUSCA ---
-    query = request.GET.get('q') # Pega o que foi digitado no input name="q"
-    if query:
-        livros = livros.filter(titulo__icontains=query) # Filtra pelo título
-    # -----------------------------
+    if request.user.tipo == 'DEMO':
+        # Filtra SÓ os livros marcados como demonstração
+        livros = Livro.objects.filter(is_demo=True)
+    
+    else:
+        user = request.user
+        livros = Livro.objects.filter(is_versao_professor=False)
+        
+        query = request.GET.get('q') # Pega o que foi digitado no input name="q"
+        if query:
+            livros = livros.filter(titulo__icontains=query) # Filtra pelo título
+   
     
     context = {
         'livros': livros,
@@ -76,6 +81,10 @@ def visualizar_livro(request, livro_id):
     # Segurança
     if livro.is_versao_professor and request.user.tipo == 'ALUNO':
         return HttpResponseForbidden("Acesso restrito.")
+    
+    if request.user.tipo == 'DEMO' and not livro.is_demo:
+        messages.error(request, "Este livro é exclusivo para alunos matriculados e não está disponível na demonstração.")
+        return redirect('estante')
 
     # 1. Busca Páginas
     paginas_db = livro.paginas.all().order_by('numero')
@@ -402,3 +411,30 @@ def vincular_cartoes_view(request):
         form = VincularCartoesForm(professor=request.user)
 
     return render(request, 'core/vincular_cartoes.html', {'form': form})
+
+@login_required
+def criar_turma_view(request):
+    # Apenas Gestores e Admins podem criar turmas
+    if request.user.tipo not in ['GESTOR_LOCAL', 'ADMIN']:
+        messages.error(request, "Você não tem permissão para acessar esta página.")
+        return redirect('estante')
+
+    if request.method == 'POST':
+        # Passamos o request.user para o form aplicar a trava de segurança
+        form = TurmaForm(request.POST, gestor=request.user)
+        if form.is_valid():
+            turma = form.save()
+            messages.success(request, f"A turma '{turma.nome}' foi criada com sucesso na escola {turma.escola.nome}!")
+            # Redireciona de volta para a mesma página para ele criar outra se quiser
+            return redirect('criar_turma') 
+    else:
+        form = TurmaForm(gestor=request.user)
+
+    # Pegamos as turmas que já existem nas escolas desse gestor para mostrar numa listinha
+    turmas_existentes = Turma.objects.filter(escola__in=request.user.escolas.all()).order_by('escola__nome', 'nome')
+
+    contexto = {
+        'form': form,
+        'turmas_existentes': turmas_existentes
+    }
+    return render(request, 'core/criar_turma.html', contexto)

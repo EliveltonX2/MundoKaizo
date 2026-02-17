@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Turmas - Gestão Kaizo</title>
+    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-5">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="{% url 'estante' %}">
+                <i class="fas fa-arrow-left me-2"></i> Voltar à Estante
+            </a>
+            <span class="navbar-text text-white fw-bold">
+                Painel do Gestor
+            </span>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 900px;">
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="fas fa-check-circle me-2"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-5 mb-4">
+                <div class="card shadow-sm border-0 rounded-4 h-100">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold text-primary mb-3"><i class="fas fa-plus-circle me-2"></i> Nova Turma</h5>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-muted">Nome da Turma</label>
+                                {{ form.nome }}
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-muted">Escola Pertencente</label>
+                                {{ form.escola }}
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100 fw-bold rounded-pill">
+                                CRIAR TURMA
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-7 mb-4">
+                <div class="card shadow-sm border-0 rounded-4 h-100">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-list me-2"></i> Turmas Cadastradas</h5>
+                        
+                        {% if turmas_existentes %}
+                            <ul class="list-group list-group-flush">
+                                {% for turma in turmas_existentes %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0 border-bottom">
+                                        <div>
+                                            <span class="fw-bold text-dark">{{ turma.nome }}</span><br>
+                                            <small class="text-muted"><i class="fas fa-school me-1"></i> {{ turma.escola.nome }}</small>
+                                        </div>
+                                        <span class="badge bg-light text-secondary rounded-pill border">
+                                            {{ turma.user_set.count }} alunos
+                                        </span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <div class="text-center text-muted p-4">
+                                <i class="fas fa-folder-open fa-3x mb-3" style="opacity: 0.2;"></i>
+                                <p>Nenhuma turma cadastrada ainda.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</body>
+</html>

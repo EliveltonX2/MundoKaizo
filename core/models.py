@@ -11,6 +11,7 @@ class TokenCadastro(models.Model):
         ('ALUNO', 'Aluno'),
         ('PROFESSOR', 'Professor'),
         ('GESTOR_LOCAL', 'Gestor Escolar'),
+        ('DEMO', 'Conta de Demonstração'),
     )
 
     # O código curto para digitar (Ex: KZ-A9B2-X1Y2)
@@ -104,6 +105,7 @@ class User(AbstractUser):
 class Livro(models.Model):
     titulo = models.CharField(max_length=200)
     descricao = models.TextField(blank=True)
+    is_demo = models.BooleanField(default=False, help_text="Marque esta opção para liberar este livro para contas de demonstração.")
     capa = models.ImageField(upload_to='capas/', null=True, blank=True)
     is_versao_professor = models.BooleanField(default=False)
     

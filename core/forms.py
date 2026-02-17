@@ -58,3 +58,25 @@ class VincularCartoesForm(forms.Form):
         if professor:
             # O professor só pode vincular cartões para as turmas dele (ou da escola dele)
             self.fields['turma'].queryset = Turma.objects.filter(escola__in=professor.escolas.all())
+
+
+class TurmaForm(forms.ModelForm):
+    class Meta:
+        model = Turma
+        # Adapte estes campos caso seu modelo Turma tenha outros (ex: 'turno', 'ano')
+        fields = ['nome', 'escola'] 
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 6º Ano A - Matutino'}),
+            'escola': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        gestor = kwargs.pop('gestor', None)
+        super().__init__(*args, **kwargs)
+        
+        # Trava de Segurança: O gestor só pode criar turmas para as escolas DELE
+        if gestor and gestor.tipo == 'GESTOR_LOCAL':
+            self.fields['escola'].queryset = gestor.escolas.all()
+            # Se ele só tem uma escola, já deixa ela selecionada por padrão
+            if gestor.escolas.count() == 1:
+                self.fields['escola'].initial = gestor.escolas.first()

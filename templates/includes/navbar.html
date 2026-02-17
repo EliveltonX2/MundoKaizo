@@ -110,6 +110,14 @@
                     </a>
                 </li>
 
+                {% if user.tipo == 'GESTOR_LOCAL' or user.tipo == 'ADMIN' %}
+                    <li>
+                        <a class="dropdown-item" href="{% url 'criar_turma' %}">
+                            <i class="fas fa-chalkboard me-1"></i> Gerenciar Turmas
+                        </a>
+                    </li>
+                {% endif %}
+
                 {% endif %}
             </ul>
         </div>
