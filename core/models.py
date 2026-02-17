@@ -11,7 +11,6 @@ class TokenCadastro(models.Model):
         ('ALUNO', 'Aluno'),
         ('PROFESSOR', 'Professor'),
         ('GESTOR_LOCAL', 'Gestor Escolar'),
-        ('DEMO', 'Conta de Demonstração'),
     )
 
     # O código curto para digitar (Ex: KZ-A9B2-X1Y2)
@@ -75,6 +74,7 @@ class User(AbstractUser):
         GESTOR_LOCAL = 'GESTOR_LOCAL', 'Gestor Local'
         GESTOR_GERAL = 'GESTOR_GERAL', 'Gestor Geral'
         ADMIN = 'ADMIN', 'Administrador'
+        DEMO = 'DEMO', 'Conta de Demonstração'
 
     tipo = models.CharField(
         max_length=20, 
