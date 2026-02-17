@@ -16,6 +16,8 @@ from .forms import *
 @login_required
 def estante_view(request):
     
+    user = request.user
+
     if request.user.tipo == 'DEMO':
         # Filtra SÓ os livros marcados como demonstração
         livros = Livro.objects.filter(is_demo=True)
