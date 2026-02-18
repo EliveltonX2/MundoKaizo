@@ -1,70 +1,137 @@
-<div id="caixa-chat" style="height: 400px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px;">
-    {% for msg in historico %}
-    <div style="margin-bottom: 15px;">
-        <b>{% if msg.is_user %}Você:{% else %}Kai:{% endif %}</b>
-        <div style="margin-top: 5px;">{{ msg.html_texto|safe }}</div>
+{% load static %}
+<style>
+    /* Estilos Customizados da Kai */
+    .chat-container { height: calc(100vh - 150px); min-height: 500px; display: flex; }
+    .sidebar-chats { border-right: 1px solid #dee2e6; overflow-y: auto; height: 100%; background-color: #f8f9fa; }
+    .sessao-item { display: block; padding: 10px 15px; color: #333; text-decoration: none; border-bottom: 1px solid #eee; transition: background 0.2s; }
+    .sessao-item:hover, .sessao-item.active { background-color: #e9ecef; font-weight: bold; }
+    
+    .chat-area { display: flex; flex-direction: column; height: 100%; padding: 0; }
+    .mensagens-box { flex-grow: 1; overflow-y: auto; padding: 20px; background-color: #ffffff; display: flex; flex-direction: column; gap: 15px; }
+    
+    /* Balões de Mensagem */
+    .balao { max-width: 80%; padding: 12px 18px; border-radius: 15px; line-height: 1.5; font-size: 0.95rem; }
+    .balao-usuario { align-self: flex-end; background-color: #0d6efd; color: white; border-bottom-right-radius: 2px; }
+    .balao-ia { align-self: flex-start; background-color: #f1f3f5; color: #212529; border-bottom-left-radius: 2px; border: 1px solid #e9ecef; }
+    
+    .input-area { padding: 15px; background: #fff; border-top: 1px solid #dee2e6; }
+</style>
+
+<div class="container-fluid mt-3">
+    <div class="row chat-container shadow-sm border rounded">
+        
+        <div class="col-md-3 d-none d-md-block sidebar-chats p-0">
+            <div class="p-3 border-bottom text-center">
+                <a href="{% url 'kai_chat' %}" class="btn btn-outline-primary w-100">+ Nova Conversa</a>
+            </div>
+            {% for sessao in sessoes %}
+                <a href="?sessao={{ sessao.id }}" class="sessao-item {% if sessao_atual and sessao_atual.id == sessao.id %}active{% endif %}">
+                    💬 Chat de {{ sessao.criado_em|date:"d/m/Y" }}
+                </a>
+            {% empty %}
+                <p class="text-muted text-center mt-3 p-2"><small>Nenhuma conversa ainda.</small></p>
+            {% endfor %}
+        </div>
+
+        <div class="col-md-9 chat-area">
+            <div id="caixa-chat" class="mensagens-box">
+                {% if not historico %}
+                    <div class="text-center text-muted my-auto" id="msg-boas-vindas">
+                        <h4>Olá! Eu sou a Kai 👋</h4>
+                        <p>Como posso ajudar nas suas aulas hoje?</p>
+                    </div>
+                {% endif %}
+                
+                {% for msg in historico %}
+                    <div class="balao {% if msg.is_user %}balao-usuario{% else %}balao-ia{% endif %}">
+                        {% if not msg.is_user %}<b>🤖 Kai:</b><br>{% endif %}
+                        {{ msg.html_texto|safe }}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="input-area">
+                <div class="input-group">
+                    <input type="text" id="mensagem-input" class="form-control" placeholder="Pergunte algo para a Kai..." onkeypress="handleEnter(event)">
+                    <button class="btn btn-primary" onclick="enviarMensagem()">Enviar 🚀</button>
+                </div>
+            </div>
+        </div>
     </div>
-    {% endfor %}
 </div>
 
-<input type="text" id="mensagem-input" placeholder="Digite sua mensagem...">
-<button onclick="enviarMensagem()">Enviar</button>
-
 <script>
-// Precisamos do CSRF token para enviar o POST no Django
-const csrfToken = '{{ csrf_token }}';
+    const csrfToken = '{{ csrf_token }}';
+    // Armazena o ID da sessão atual. Se for nova, começa como null.
+    let sessaoAtualId = {% if sessao_atual %}{{ sessao_atual.id }}{% else %}null{% endif %};
 
-async function enviarMensagem() {
-    const input = document.getElementById('mensagem-input');
-    const caixaChat = document.getElementById('caixa-chat');
-    const texto = input.value;
-    
-    if (!texto) return; // Se o campo estiver vazio, não faz nada
+    // Permite enviar apertando a tecla 'Enter'
+    function handleEnter(event) {
+        if (event.key === "Enter") enviarMensagem();
+    }
 
-    // 1. Exibe a mensagem do usuário imediatamente
-    caixaChat.innerHTML += `
-        <div style="margin-bottom: 15px;">
-            <b>Você:</b> 
-            <div style="margin-top: 5px;">${texto}</div>
-        </div>`;
+    async function enviarMensagem() {
+        const input = document.getElementById('mensagem-input');
+        const caixaChat = document.getElementById('caixa-chat');
+        const boasVindas = document.getElementById('msg-boas-vindas');
+        const texto = input.value;
         
-    input.value = ''; // Limpa o campo
-    caixaChat.scrollTop = caixaChat.scrollHeight; // Rola para baixo
+        if (!texto) return;
 
-    try {
-        // 2. Envia a requisição para o Django
-        const response = await fetch('{% url "kai_chat" %}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({ mensagem: texto })
-        });
+        // Remove a mensagem de boas vindas, se existir
+        if (boasVindas) boasVindas.remove();
 
-        // 3. AQUI ESTÁ A VARIÁVEL DATA! Ela recebe a resposta do Python
-        const data = await response.json();
+        // Adiciona o balão do usuário na tela imediatamente
+        caixaChat.innerHTML += `
+            <div class="balao balao-usuario">
+                ${texto}
+            </div>`;
+            
+        input.value = ''; 
+        caixaChat.scrollTop = caixaChat.scrollHeight; 
 
-        // 4. Verifica se deu tudo certo
-        if (data.status === 'sucesso') {
-            // Exibe a resposta da Kai já formatada em HTML
-            caixaChat.innerHTML += `
-                <div style="margin-bottom: 15px;">
-                    <b>Kai:</b> 
-                    <div style="margin-top: 5px;">${data.resposta}</div>
-                </div>`;
-        } else {
-            // Se o servidor retornar um erro amigável
-            caixaChat.innerHTML += `<p style="color:red;"><b>Erro:</b> ${data.mensagem}</p>`;
+        try {
+            const response = await fetch('{% url "kai_chat" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ 
+                    mensagem: texto,
+                    sessao_id: sessaoAtualId 
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'sucesso') {
+                // Atualiza o ID da sessão se for a primeira mensagem de uma nova conversa
+                if (!sessaoAtualId && data.sessao_id) {
+                    sessaoAtualId = data.sessao_id;
+                    window.history.replaceState({}, '', `?sessao=${sessaoAtualId}`);
+                }
+
+                // Exibe o balão de resposta da Kai
+                caixaChat.innerHTML += `
+                    <div class="balao balao-ia">
+                        <b>🤖 Kai:</b><br>
+                        ${data.resposta}
+                    </div>`;
+            } else {
+                caixaChat.innerHTML += `<div class="balao balao-ia text-danger"><b>Erro:</b> ${data.mensagem}</div>`;
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            caixaChat.innerHTML += `<div class="balao balao-ia text-danger">Falha ao conectar.</div>`;
         }
         
-    } catch (error) {
-        // Se a requisição falhar completamente (ex: internet caiu)
-        console.error('Erro na requisição:', error);
-        caixaChat.innerHTML += `<p style="color:red;"><b>Erro:</b> Falha ao conectar com o servidor da Kai.</p>`;
+        caixaChat.scrollTop = caixaChat.scrollHeight; 
     }
-    
-    // Rola para baixo novamente após a IA responder
-    caixaChat.scrollTop = caixaChat.scrollHeight; 
-}
+
+    // Rola para o final da tela assim que a página carrega
+    window.onload = function() {
+        const caixa = document.getElementById('caixa-chat');
+        if(caixa) caixa.scrollTop = caixa.scrollHeight;
+    };
 </script>

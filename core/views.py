@@ -449,42 +449,71 @@ def criar_turma_view(request):
 
 @login_required
 def chat_view(request):
+    # Pega o ID da sessão da URL (para quando o usuário clica no menu lateral)
+    sessao_id = request.GET.get('sessao')
+
     if request.method == 'POST':
         try:
             dados = json.loads(request.body)
             texto_usuario = dados.get('mensagem')
+            sessao_post_id = dados.get('sessao_id') # Recebe o ID do JavaScript
 
-            # Pega ou cria a sessão
-            sessao, created = SessaoChat.objects.get_or_create(user=request.user)
+            # 1. Identifica a conversa atual ou cria uma nova se for o primeiro envio
+            if sessao_post_id:
+                sessao = SessaoChat.objects.get(id=sessao_post_id, user=request.user)
+            else:
+                sessao = SessaoChat.objects.create(user=request.user)
 
-            # Salva a mensagem do usuário
+            # 2. SISTEMA DE MEMÓRIA: Pega as últimas 10 mensagens
+            ultimas_mensagens = sessao.mensagens.all().order_by('-criado_em')[:10]
+            contexto_texto = ""
+            # Inverte a ordem para que o histórico fique cronológico para a IA ler
+            for msg in reversed(ultimas_mensagens):
+                quem = "Professor" if msg.is_user else "Kai"
+                contexto_texto += f"{quem}: {msg.texto}\n"
+
+            # 3. Salva a nova pergunta no banco
             Mensagem.objects.create(sessao=sessao, is_user=True, texto=texto_usuario)
 
-            # Manda para o Vertex AI
-            resposta_ia_texto = enviar_mensagem_para_ia(texto_usuario)
+            nome_professor = request.user.first_name if request.user.first_name else request.user.username
 
-            # Salva a resposta original da IA no banco
+            # 4. Envia para a IA passando o contexto do histórico
+            resposta_ia_texto = enviar_mensagem_para_ia(texto_usuario, contexto_texto, nome_professor)
+
+            # 5. Salva a resposta e converte para HTML (Markdown)
             Mensagem.objects.create(sessao=sessao, is_user=False, texto=resposta_ia_texto)
-
-            # ==========================================
-            # A MÁGICA ACONTECE AQUI:
-            # Converte o Markdown da IA para HTML, ativando quebras de linha (nl2br)
-            # ==========================================
             resposta_html = markdown.markdown(resposta_ia_texto, extensions=['nl2br'])
 
-            # Retorna o HTML já formatado para o JavaScript
-            return JsonResponse({'status': 'sucesso', 'resposta': resposta_html})
+            # Retorna a resposta e o ID da sessão para o JavaScript não se perder
+            return JsonResponse({
+                'status': 'sucesso', 
+                'resposta': resposta_html,
+                'sessao_id': sessao.id
+            })
 
         except Exception as e:
             return JsonResponse({'status': 'erro', 'mensagem': str(e)}, status=500)
 
-    # Lógica do GET (Quando o usuário entra na página)
-    sessao = SessaoChat.objects.filter(user=request.user).first()
-    historico = sessao.mensagens.all() if sessao else []
+    # --- LÓGICA DE CARREGAMENTO DA PÁGINA (GET) ---
     
-    # Formata todo o histórico para HTML antes de enviar para o template
+    # Busca todas as conversas antigas para montar o menu lateral
+    todas_sessoes = SessaoChat.objects.filter(user=request.user).order_by('-criado_em')
+    
+    # Define qual conversa deve ser exibida no meio da tela
+    sessao_atual = None
+    if sessao_id:
+        sessao_atual = SessaoChat.objects.filter(id=sessao_id, user=request.user).first()
+    elif todas_sessoes.exists():
+        sessao_atual = todas_sessoes.first()
+
+    # Prepara o histórico da conversa aberta
+    historico = sessao_atual.mensagens.all() if sessao_atual else []
     for msg in historico:
-        # Cria um atributo temporário chamado html_texto só para a exibição
         msg.html_texto = markdown.markdown(msg.texto, extensions=['nl2br'])
     
-    return render(request, 'core/chat.html', {'historico': historico})
+    context = {
+        'sessoes': todas_sessoes,
+        'sessao_atual': sessao_atual,
+        'historico': historico
+    }
+    return render(request, 'core/chat.html', context)

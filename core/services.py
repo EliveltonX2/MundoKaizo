@@ -125,31 +125,37 @@ def obter_credenciais_google():
         caminho_arquivo = os.path.join(settings.BASE_DIR, 'IGNORE', 'googleAcess.json')
         return service_account.Credentials.from_service_account_file(caminho_arquivo)
 
-def enviar_mensagem_para_ia(texto_usuario):
+def enviar_mensagem_para_ia(texto_usuario, contexto_historico="", nome_usuario="Professor"):
     credenciais = obter_credenciais_google()
     
-    # Inicializa o cliente de Busca e Conversação
+    # Mantido exatamente como o seu!
     client = discoveryengine.SearchServiceClient(credentials=credenciais)
-
-    # Configuração do Engine da Kai (Busca em SP)
-    # Certifique-se que o DATA_STORE_ID no settings.py seja 'biblioteca-exploradores-kaizo'
     serving_config = f"projects/{settings.VERTEX_PROJECT_ID}/locations/{settings.VERTEX_LOCATION}/collections/default_collection/dataStores/{settings.DATA_STORE_ID}/servingConfigs/default_search"
 
-    # AQUI ENTRA A PERSONA E O GROUNDING NOS PDFs
+    # Colocamos o 'f' minúsculo antes das aspas triplas para ativar a injeção da variável
+    preamble = f"""
+    Você é a Kai, a inteligência artificial oficial da Kaizo. 
+    Sua missão é ser a assistente pedagógica definitiva para professores.
+    
+    INFORMAÇÕES DO USUÁRIO ATUAL:
+    - Nome: {nome_usuario}
+
+    DIRETRIZES:
+    1. Seja vibrante, entusiasta e alegre. Trate o usuário pelo nome para criar conexão.
+    2. Use prioritariamente os PDFs da Coleção Exploradores e BNCC.
+    3. Se o usuário falar '7º ano', entenda como 'Livro 7'.
+    4. Entregue caminhos prontos e práticos para a sala de aula.
+
+    HISTÓRICO RECENTE DA CONVERSA:
+    {contexto_historico}
+    """
+
     content_search_spec = {
         "summary_spec": {
             "summary_result_count": 5,
-            "include_citations": False, # Oculta links do Bucket conforme pedido
+            "include_citations": False, 
             "model_prompt_spec": {
-                "preamble": """
-                Você é a Kai, a inteligência artificial oficial da Kaizo. 
-                Sua missão é ser a assistente pedagógica definitiva para professores.
-                DIRETRIZES:
-                1. Seja vibrante, entusiasta e alegre.
-                2. Use prioritariamente os PDFs da Coleção Exploradores e BNCC.
-                3. Se o usuário falar '7º ano', entenda como 'Livro 7'.
-                4. Entregue caminhos prontos e práticos para a sala de aula.
-                """
+                "preamble": preamble # Puxa o texto formatado acima
             },
             "model_spec": {
                 "version": "stable" 
@@ -157,15 +163,11 @@ def enviar_mensagem_para_ia(texto_usuario):
         }
     }
 
-    # Monta a requisição que une Busca + IA Generativa
     request = discoveryengine.SearchRequest(
         serving_config=serving_config,
         query=texto_usuario,
         content_search_spec=content_search_spec,
     )
 
-    # Executa a busca e retorna o resumo gerado
     response = client.search(request)
-    
-    # Retorna o texto gerado com base nos seus documentos
     return response.summary.summary_text
