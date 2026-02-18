@@ -2,6 +2,10 @@ from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 import os
 from django.conf import settings
+import json
+from google.oauth2 import service_account
+from google.cloud import discoveryengine_v1 as discoveryengine 
+
 
 def adicionar_watermark(arquivo_imagem, texto):
     try:
@@ -107,3 +111,61 @@ def adicionar_watermark(arquivo_imagem, texto):
         print(f"Erro no serviço de watermark: {e}")
         return None
     
+
+def obter_credenciais_google():
+    json_credentials = os.environ.get('GOOGLE_CREDENTIALS_JSON')
+    
+    if json_credentials:
+        # Ambiente de Produção (Render)
+        credenciais_dict = json.loads(json_credentials)
+        return service_account.Credentials.from_service_account_info(credenciais_dict)
+    else:
+        # Ambiente Local (Lê da pasta IGNORE)
+        # Atenção: coloque o nome exato do seu arquivo json aqui embaixo
+        caminho_arquivo = os.path.join(settings.BASE_DIR, 'IGNORE', 'googleAcess.json')
+        return service_account.Credentials.from_service_account_file(caminho_arquivo)
+
+def enviar_mensagem_para_ia(texto_usuario):
+    credenciais = obter_credenciais_google()
+    
+    # Inicializa o cliente de Busca e Conversação
+    client = discoveryengine.SearchServiceClient(credentials=credenciais)
+
+    # Configuração do Engine da Kai (Busca em SP)
+    # Certifique-se que o DATA_STORE_ID no settings.py seja 'biblioteca-exploradores-kaizo'
+    serving_config = f"projects/{settings.VERTEX_PROJECT_ID}/locations/{settings.VERTEX_LOCATION}/collections/default_collection/dataStores/{settings.DATA_STORE_ID}/servingConfigs/default_search"
+
+    # AQUI ENTRA A PERSONA E O GROUNDING NOS PDFs
+    content_search_spec = {
+        "summary_spec": {
+            "summary_result_count": 5,
+            "include_citations": False, # Oculta links do Bucket conforme pedido
+            "model_prompt_spec": {
+                "preamble": """
+                Você é a Kai, a inteligência artificial oficial da Kaizo. 
+                Sua missão é ser a assistente pedagógica definitiva para professores.
+                DIRETRIZES:
+                1. Seja vibrante, entusiasta e alegre.
+                2. Use prioritariamente os PDFs da Coleção Exploradores e BNCC.
+                3. Se o usuário falar '7º ano', entenda como 'Livro 7'.
+                4. Entregue caminhos prontos e práticos para a sala de aula.
+                """
+            },
+            "model_spec": {
+                "version": "stable" 
+            }
+        }
+    }
+
+    # Monta a requisição que une Busca + IA Generativa
+    request = discoveryengine.SearchRequest(
+        serving_config=serving_config,
+        query=texto_usuario,
+        content_search_spec=content_search_spec,
+    )
+
+    # Executa a busca e retorna o resumo gerado
+    response = client.search(request)
+    
+    # Retorna o texto gerado com base nos seus documentos
+    return response.summary.summary_text

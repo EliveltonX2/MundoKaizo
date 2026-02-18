@@ -4,6 +4,7 @@ __pycache__/
 *.pyc
 venv/
 env/
+IGNORE/
 
 # Django
 *.log
@@ -17,5 +18,6 @@ staticfiles/
 
 # Environment variables
 .env
+
 
 

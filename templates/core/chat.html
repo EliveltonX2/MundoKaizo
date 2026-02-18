@@ -1,0 +1,70 @@
+<div id="caixa-chat" style="height: 400px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px;">
+    {% for msg in historico %}
+    <div style="margin-bottom: 15px;">
+        <b>{% if msg.is_user %}Você:{% else %}Kai:{% endif %}</b>
+        <div style="margin-top: 5px;">{{ msg.html_texto|safe }}</div>
+    </div>
+    {% endfor %}
+</div>
+
+<input type="text" id="mensagem-input" placeholder="Digite sua mensagem...">
+<button onclick="enviarMensagem()">Enviar</button>
+
+<script>
+// Precisamos do CSRF token para enviar o POST no Django
+const csrfToken = '{{ csrf_token }}';
+
+async function enviarMensagem() {
+    const input = document.getElementById('mensagem-input');
+    const caixaChat = document.getElementById('caixa-chat');
+    const texto = input.value;
+    
+    if (!texto) return; // Se o campo estiver vazio, não faz nada
+
+    // 1. Exibe a mensagem do usuário imediatamente
+    caixaChat.innerHTML += `
+        <div style="margin-bottom: 15px;">
+            <b>Você:</b> 
+            <div style="margin-top: 5px;">${texto}</div>
+        </div>`;
+        
+    input.value = ''; // Limpa o campo
+    caixaChat.scrollTop = caixaChat.scrollHeight; // Rola para baixo
+
+    try {
+        // 2. Envia a requisição para o Django
+        const response = await fetch('{% url "kai_chat" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ mensagem: texto })
+        });
+
+        // 3. AQUI ESTÁ A VARIÁVEL DATA! Ela recebe a resposta do Python
+        const data = await response.json();
+
+        // 4. Verifica se deu tudo certo
+        if (data.status === 'sucesso') {
+            // Exibe a resposta da Kai já formatada em HTML
+            caixaChat.innerHTML += `
+                <div style="margin-bottom: 15px;">
+                    <b>Kai:</b> 
+                    <div style="margin-top: 5px;">${data.resposta}</div>
+                </div>`;
+        } else {
+            // Se o servidor retornar um erro amigável
+            caixaChat.innerHTML += `<p style="color:red;"><b>Erro:</b> ${data.mensagem}</p>`;
+        }
+        
+    } catch (error) {
+        // Se a requisição falhar completamente (ex: internet caiu)
+        console.error('Erro na requisição:', error);
+        caixaChat.innerHTML += `<p style="color:red;"><b>Erro:</b> Falha ao conectar com o servidor da Kai.</p>`;
+    }
+    
+    // Rola para baixo novamente após a IA responder
+    caixaChat.scrollTop = caixaChat.scrollHeight; 
+}
+</script>

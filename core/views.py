@@ -5,13 +5,17 @@ from django.contrib.auth.hashers import make_password
 from django.contrib import messages
 from django.core.cache import cache
 from django.core.files.storage import default_storage
-from .models import Livro, Pagina, User, VideoAula, Turma, TokenCadastro
+from .models import Livro, Pagina, User, VideoAula, Turma, TokenCadastro, SessaoChat, Mensagem
 from .services import adicionar_watermark
 from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
 from django.contrib.auth import login
 from .forms import *
+from .services import enviar_mensagem_para_ia
+import json
+import markdown
+
 
 @login_required
 def estante_view(request):
@@ -440,3 +444,47 @@ def criar_turma_view(request):
         'turmas_existentes': turmas_existentes
     }
     return render(request, 'core/criar_turma.html', contexto)
+
+
+
+@login_required
+def chat_view(request):
+    if request.method == 'POST':
+        try:
+            dados = json.loads(request.body)
+            texto_usuario = dados.get('mensagem')
+
+            # Pega ou cria a sessão
+            sessao, created = SessaoChat.objects.get_or_create(user=request.user)
+
+            # Salva a mensagem do usuário
+            Mensagem.objects.create(sessao=sessao, is_user=True, texto=texto_usuario)
+
+            # Manda para o Vertex AI
+            resposta_ia_texto = enviar_mensagem_para_ia(texto_usuario)
+
+            # Salva a resposta original da IA no banco
+            Mensagem.objects.create(sessao=sessao, is_user=False, texto=resposta_ia_texto)
+
+            # ==========================================
+            # A MÁGICA ACONTECE AQUI:
+            # Converte o Markdown da IA para HTML, ativando quebras de linha (nl2br)
+            # ==========================================
+            resposta_html = markdown.markdown(resposta_ia_texto, extensions=['nl2br'])
+
+            # Retorna o HTML já formatado para o JavaScript
+            return JsonResponse({'status': 'sucesso', 'resposta': resposta_html})
+
+        except Exception as e:
+            return JsonResponse({'status': 'erro', 'mensagem': str(e)}, status=500)
+
+    # Lógica do GET (Quando o usuário entra na página)
+    sessao = SessaoChat.objects.filter(user=request.user).first()
+    historico = sessao.mensagens.all() if sessao else []
+    
+    # Formata todo o histórico para HTML antes de enviar para o template
+    for msg in historico:
+        # Cria um atributo temporário chamado html_texto só para a exibição
+        msg.html_texto = markdown.markdown(msg.texto, extensions=['nl2br'])
+    
+    return render(request, 'core/chat.html', {'historico': historico})

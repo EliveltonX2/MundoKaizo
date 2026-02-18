@@ -21,7 +21,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-chave-padrao-desenvolvimento')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-chave-padrao-desenvolvimento') # Caminho para a chave do Google Cloud (para TTS)
+
+VERTEX_PROJECT_ID = "project-c21090df-b6b7-42c0-a29" 
+VERTEX_LOCATION = 'global'       
+DATA_STORE_ID = 'biblioteca-exploradores-kaizo_1771288710463'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
