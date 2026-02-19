@@ -132,49 +132,56 @@
 </nav>
 
 
-<div id="kai-popup-container" class="kai-floating-popup" style="display: none;">
-    
-    <div class="kai-speech-bubble">
-        <button onclick="fecharKaiPopup()" class="kai-close-btn" title="Fechar">
-            <i class="fas fa-times"></i>
-        </button>
+{% if request.resolver_match.url_name == 'estante' %}
+
+    <div id="kai-popup-container" class="kai-floating-popup" style="display: none;">
         
-        <p class="mb-2" style="color: #5e6e82; line-height: 1.4;">
-            <strong style="color: #2288c4;">Olá! Sou a Kai! 👋</strong><br>
-            Precisa de ideias novas para a sua aula de hoje? Vamos conversar!
-        </p>
-        
-        <a href="{% url 'kai_chat' %}" class="btn-morph w-100 mt-1" style="font-size: 0.8rem; padding: 6px 15px;">
-            Falar com a Kai 🚀
+        <div class="kai-speech-bubble">
+            <button onclick="fecharKaiPopup()" class="kai-close-btn" title="Fechar">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <p class="mb-2" style="color: #5e6e82; line-height: 1.4;">
+                <strong style="color: #2288c4;">Olá! Sou a Kai! 👋</strong><br>
+                Precisa de ideias novas para a sua aula de hoje? Vamos conversar!
+            </p>
+            
+            <a href="{% url 'kai_chat' %}" class="btn-morph w-100 mt-1 text-center text-decoration-none" style="font-size: 0.8rem; padding: 6px 15px;">
+                Falar com a Kai 🚀
+            </a>
+        </div>
+
+        <a href="{% url 'kai_chat' %}">
+            <img src="{% static 'core/img/kai.png' %}" alt="Kai" class="kai-mascote-img" style="animation: flutuarKai 3s ease-in-out infinite;">
         </a>
     </div>
 
-    <a href="{% url 'kai_chat' %}">
-        <img src="{% static 'core/img/kai.png' %}" alt="Kai" class="kai-mascote-img">
-    </a>
-</div>
+    <style>
+        @keyframes flutuarKai {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+    </style>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Como você quer que apareça SEMPRE na estante, tiramos a restrição de memória.
+            // Espera apenas 1.5 segundos para a animação da página terminar e a Kai "pular" na tela.
+            setTimeout(() => {
+                const popup = document.getElementById('kai-popup-container');
+                if (popup) {
+                    popup.style.display = 'flex';
+                }
+            }, 1500);
+        });
+
+        function fecharKaiPopup() {
+            // Esconde o popup apenas por agora (quando o usuário atualizar a página, ela volta)
+            document.getElementById('kai-popup-container').style.display = 'none';
+        }
+    </script>
+
+{% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // Verifica no armazenamento do navegador se o usuário já fechou a Kai hoje
-        const kaiJaFechada = sessionStorage.getItem('kaiPopupFechado');
-        
-        if (!kaiJaFechada) {
-            // Se ele ainda não fechou, esperamos 2 segundos após a página carregar para a Kai aparecer (fica mais natural)
-            setTimeout(() => {
-                document.getElementById('kai-popup-container').style.display = 'flex';
-            }, 2000);
-        }
-    });
-
-    function fecharKaiPopup() {
-        // Esconde o popup
-        document.getElementById('kai-popup-container').style.display = 'none';
-        
-        // Salva a informação para que ela não volte a aparecer enquanto a aba estiver aberta
-        sessionStorage.setItem('kaiPopupFechado', 'true');
-    }
-</script>
