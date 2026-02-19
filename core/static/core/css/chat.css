@@ -10,6 +10,8 @@
 
 .sidebar-chats { 
     width: 280px;
+    min-width: 280px; /* 1. Garante o tamanho mínimo */
+    flex-shrink: 0;   /* 2. PROÍBE o flexbox de esmagar a barra lateral */
     display: flex;
     flex-direction: column;
     border-right: 2px solid #d9e3f1;
@@ -34,7 +36,6 @@
 }
 
 .sessao-item.active { 
-    background-color: #d9e3f1; 
     color: #2288c4;
     font-weight: bold;
     box-shadow: inset 3px 3px 6px #b8c1cd, inset -3px -3px 6px #faffff;
@@ -42,6 +43,8 @@
 
 .chat-area { 
     flex-grow: 1;
+    min-width: 0; /* 3. Evita que textos muito grandes no chat quebrem o layout da tela */
+    max-width: 75vw;
     display: flex; 
     flex-direction: column; 
     height: 100%; 
@@ -56,7 +59,6 @@
     gap: 20px; 
     background-color: #f9fafb;
     border-radius: 15px;
-    box-shadow: inset 5px 5px 10px #b8c1cd, inset -5px -5px 10px #faffff;
     margin-bottom: 15px;
 }
 
@@ -73,7 +75,8 @@
     background-color: #2288c4; 
     color: #fff; 
     border-bottom-right-radius: 2px;
-    box-shadow: 5px 5px 10px #b8c1cd, -5px -5px 10px #faffff;
+    /*box-shadow: 5px 5px 10px #b8c1cd, -5px -5px 10px #faffff;
+    */
 }
 
 .balao-ia { 
@@ -81,7 +84,8 @@
     background-color: #ebebeb; 
     color: #5e6e82; 
     border-bottom-left-radius: 2px; 
-    box-shadow: 5px 5px 10px #b8c1cd, -5px -5px 10px #faffff;
+    /*box-shadow: 5px 5px 10px #b8c1cd, -5px -5px 10px #faffff;
+    */
 }
 
 .input-area { 
@@ -90,6 +94,19 @@
     align-items: center;
 }
 
+
+.btn-enviar{
+    height: 3rem;
+    width: 3rem;
+    border: none;
+    background-color: transparent;
+}
+.btn-enviar img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.2s;
+}
 /* Responsividade: Oculta a barra lateral em telas pequenas */
 @media (max-width: 768px) {
     .sidebar-chats { display: none; }

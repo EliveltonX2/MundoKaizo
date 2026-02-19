@@ -56,7 +56,10 @@ async function enviarMensagem() {
 
             caixaChat.innerHTML += `
                 <div class="balao balao-ia">
-                    <b style="color: #2288c4;">🤖 Kai:</b><br>
+                    <div style="display: flex; align-items: center; margin-bottom: 6px;">
+                        <img src="${kaiAvatarUrl}" alt="Kai" style="width: 24px; height: 24px; margin-right: 8px; object-fit: contain;">
+                        <b style="color: #2288c4;">Kai:</b>
+                    </div>
                     ${data.resposta}
                 </div>`;
         } else {

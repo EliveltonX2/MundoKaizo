@@ -84,7 +84,6 @@ body {
 .search-input:focus {
     outline: none;
     box-shadow: inset 5px 5px 10px #b8c1cd, inset -5px -5px 10px #faffff;
-    background: #d9e3f1;
 }
 
 /* --- DROPDOWNS --- */
@@ -197,6 +196,11 @@ body {
     color: #a94442;
 }
 
+.col-lg-3{
+    width: 20% !important;
+}
+
+
 /* --- Cards (Paineis) --- */
 .card-panel {
     background-color: #d9e3f1;
@@ -239,6 +243,16 @@ body {
     display: block;
     filter: drop-shadow(5px 5px 10px rgba(0,0,0,0.2));
     border-radius: 5px;
+}
+
+.title-wrapper{
+    height: 4rem;
+
+}
+.title-wrapper h5{
+    font-size: 1.1rem;
+    align-items: center;
+    justify-content: center;
 }
 
 /* --- Tabelas --- */

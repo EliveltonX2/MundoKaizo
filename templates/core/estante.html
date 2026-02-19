@@ -32,9 +32,11 @@
                             <span style="color: #999;">Sem Capa</span>
                         {% endif %}
                     </div>
-                    
-                    <h5 style="color: #151b22; font-size: 1.1rem;">{{ livro.titulo }}</h5>
-                    
+
+                    <div class="title-wrapper">
+                    <h5 class="bookTitle-card" style="color: #151b22;">{{ livro.titulo }}</h5>
+                    </div>
+
                     {% if livro.is_versao_professor %}
                         <span class="badge bg-warning text-dark mb-2" style="align-self: center;">Professor</span>
                     {% endif %}
