@@ -1,0 +1,96 @@
+/* core/static/core/css/chat.css */
+
+.chat-wrapper { 
+    /* Calcula a altura da tela menos a navbar (aprox 100px) e o padding */
+    height: calc(100vh - 120px); 
+    min-height: 500px;
+    display: flex; 
+    gap: 20px;
+}
+
+.sidebar-chats { 
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    border-right: 2px solid #d9e3f1;
+    padding-right: 15px;
+    overflow-y: auto;
+}
+
+.sessao-item { 
+    display: block; 
+    padding: 12px 15px; 
+    color: #5e6e82; 
+    text-decoration: none; 
+    border-radius: 10px;
+    margin-bottom: 8px;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.sessao-item:hover { 
+    background-color: #d9e3f1; 
+    color: #2288c4;
+}
+
+.sessao-item.active { 
+    background-color: #d9e3f1; 
+    color: #2288c4;
+    font-weight: bold;
+    box-shadow: inset 3px 3px 6px #b8c1cd, inset -3px -3px 6px #faffff;
+}
+
+.chat-area { 
+    flex-grow: 1;
+    display: flex; 
+    flex-direction: column; 
+    height: 100%; 
+}
+
+.mensagens-box { 
+    flex-grow: 1; 
+    overflow-y: auto; 
+    padding: 15px 20px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 20px; 
+    background-color: #f9fafb;
+    border-radius: 15px;
+    box-shadow: inset 5px 5px 10px #b8c1cd, inset -5px -5px 10px #faffff;
+    margin-bottom: 15px;
+}
+
+.balao { 
+    max-width: 85%; 
+    padding: 15px 20px; 
+    border-radius: 15px; 
+    line-height: 1.6; 
+    font-size: 0.95rem; 
+}
+
+.balao-usuario { 
+    align-self: flex-end; 
+    background-color: #2288c4; 
+    color: #fff; 
+    border-bottom-right-radius: 2px;
+    box-shadow: 5px 5px 10px #b8c1cd, -5px -5px 10px #faffff;
+}
+
+.balao-ia { 
+    align-self: flex-start; 
+    background-color: #ebebeb; 
+    color: #5e6e82; 
+    border-bottom-left-radius: 2px; 
+    box-shadow: 5px 5px 10px #b8c1cd, -5px -5px 10px #faffff;
+}
+
+.input-area { 
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+/* Responsividade: Oculta a barra lateral em telas pequenas */
+@media (max-width: 768px) {
+    .sidebar-chats { display: none; }
+}

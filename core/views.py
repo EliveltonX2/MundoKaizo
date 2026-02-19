@@ -203,8 +203,7 @@ def resetar_senha(request, user_id):
     return redirect('painel_gestao')
 
 
-# core/views.py
-from .models import VideoAula # Não esqueça de importar
+
 
 @login_required
 def lista_aulas_view(request, livro_id):
@@ -451,6 +450,7 @@ def criar_turma_view(request):
 def chat_view(request):
     # Pega o ID da sessão da URL (para quando o usuário clica no menu lateral)
     sessao_id = request.GET.get('sessao')
+    nova_conversa = request.GET.get('nova')
 
     if request.method == 'POST':
         try:
@@ -499,10 +499,12 @@ def chat_view(request):
     # Busca todas as conversas antigas para montar o menu lateral
     todas_sessoes = SessaoChat.objects.filter(user=request.user).order_by('-criado_em')
     
-    # Define qual conversa deve ser exibida no meio da tela
-    sessao_atual = None
-    if sessao_id:
+    if nova_conversa == 'true':
+        sessao_atual = None
+
+    elif sessao_id:
         sessao_atual = SessaoChat.objects.filter(id=sessao_id, user=request.user).first()
+        
     elif todas_sessoes.exists():
         sessao_atual = todas_sessoes.first()
 
