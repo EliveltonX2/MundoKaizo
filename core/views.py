@@ -498,6 +498,7 @@ def chat_view(request):
     
     # Busca todas as conversas antigas para montar o menu lateral
     todas_sessoes = SessaoChat.objects.filter(user=request.user).order_by('-criado_em')
+    sessao_atual = None
     
     if nova_conversa == 'true':
         sessao_atual = None
