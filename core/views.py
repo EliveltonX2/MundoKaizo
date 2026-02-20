@@ -21,18 +21,25 @@ import markdown
 def estante_view(request):
     
     user = request.user
+    query = request.GET.get('q')
 
     if request.user.tipo == 'DEMO':
         # Filtra SÓ os livros marcados como demonstração
         livros = Livro.objects.filter(is_demo=True)
+
+    elif request.user.tipo == 'ALUNO':
+        livros = Livro.objects.filter(is_versao_professor=False, is_demo=False)
+        #TODO: uma forma de filtrar apenas o livro do ano especifico do aluno.
+
+        
     
     else:
         user = request.user
         livros = Livro.objects.filter(is_versao_professor=False)
         
-        query = request.GET.get('q') # Pega o que foi digitado no input name="q"
         if query:
-            livros = livros.filter(titulo__icontains=query) # Filtra pelo título
+            livros = Livro.objects.filter(
+            Q(titulo__icontains=query) | Q(tags__icontains=query)).order_by('colecao__nome', 'titulo') # <-- Note que agora usamos colecao__nome
    
     
     context = {
@@ -311,7 +318,7 @@ def ativar_conta_view(request):
                 return redirect('ativar_conta')
         else:
             form = ValidarTokenForm()
-        return render(request, 'registration/ativar_codigo.html', {'form': form})
+        return render(request, 'core/ativar_codigo.html', {'form': form})
 
     # FASE 2: Preencher Dados
     token_id = request.session.get('token_id')

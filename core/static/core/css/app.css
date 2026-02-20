@@ -214,7 +214,7 @@ body {
     background-color: #ebebeb;
     border-radius: 15px;
     padding: 15px;
-    box-shadow: 10px 10px 10px #b8c1cd, -10px -10px 20px #faffff;
+    box-shadow: 5px 5px 5px #b8c1cd;
     transition: transform 0.2s;
     text-align: center;
     display: flex;
@@ -327,7 +327,7 @@ body {
     background-color: #f9fafb;
     /* Bordas arredondadas, mas a ponta inferior direita é reta para "apontar" pra mascote */
     border-radius: 20px 20px 0px 20px; 
-    box-shadow: 10px 10px 20px #b8c1cd, -10px -10px 20px #faffff; /* Sombras neumórficas do seu projeto */
+    box-shadow: 5px 5px 5px #b8c1cd;
 }
 
 /* Botão de Fechar no canto superior direito do balão */

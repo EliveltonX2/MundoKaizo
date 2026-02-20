@@ -101,13 +101,40 @@ class User(AbstractUser):
     def is_professor(self):
         return self.tipo == self.Tipos.PROFESSOR
 
+class Colecao(models.Model):
+    nome = models.CharField(max_length=100, unique=True, verbose_name="Nome da Coleção")
+
+    def __str__(self):
+        return self.nome
+    
+    class Meta:
+        verbose_name = "Coleção"
+        verbose_name_plural = "Coleções"
+
+
 # --- Livros ---
 class Livro(models.Model):
     titulo = models.CharField(max_length=200)
     descricao = models.TextField(blank=True)
+    tags = models.CharField(
+        max_length=255, 
+        blank=True, 
+        null=True, 
+        help_text="Digite as palavras-chave separadas por vírgula (ex: matemática, 7º ano, lógica)"
+    )
     is_demo = models.BooleanField(default=False, help_text="Marque esta opção para liberar este livro para contas de demonstração.")
     capa = models.ImageField(upload_to='capas/', null=True, blank=True)
     is_versao_professor = models.BooleanField(default=False)
+
+    colecao = models.ForeignKey(
+        Colecao, 
+        on_delete=models.SET_NULL, # Se a coleção for apagada, o livro não é apagado, só fica sem coleção
+        null=True, 
+        blank=True,
+        default=None, 
+        related_name='livros',
+        verbose_name="Coleção"
+    )
     
     versao_professor_relacionada = models.OneToOneField(
         'self', 
