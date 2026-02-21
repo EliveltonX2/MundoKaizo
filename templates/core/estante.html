@@ -16,7 +16,7 @@
 
     <div class="container mt-4">
         {% if is_gestor %}
-            <div style="margin: 1.5rem 0; border:none; color: #5e5e5e;">
+            <div style="margin-top:1.5rem; margin-bottom: .5rem; border:none; color: #5e5e5e;">
                 <i class="fas fa-info-circle me-2"></i> Painel de Gestão: Você está vendo todos os livros disponíveis.
             </div>
         {% endif %}
@@ -27,20 +27,20 @@
             {% for colecao in livros_por_colecao %}
 
                 <div class="colecao-section mt-5 mb-4">
-                    <h3 style="color: #2288c4; font-weight: 700; margin-bottom: 5px;">
+                    <h4 style="color: #5b626bff; font-weight: 400; margin-bottom: 0px;">
                         {% if colecao.grouper %}
                             {{ colecao.grouper.nome }}
                         {% else %}
                             Outros Manuais
                         {% endif %}
-                    </h3>
+                    </h4>
                     
-                    <hr style="border-top: 2px solid #b8c1cd; opacity: 0.5; margin-bottom: 20px;">
+                    <hr style="border-top: 2px solid #5b626bff; opacity: 0.5; margin-top: 5px; margin-bottom: 20px;">
 
                     <div class="row g-4">
                         
                         {% for livro in colecao.list %}
-                            <div class="col-md-3 col-sm-6">
+                            <div class="col-lg-3 col-sm-6">
                                 <div class="book-card">
                                     <div class="book-cover">
                                         <img src="{{ livro.capa.url }}" alt="{{ livro.titulo }}">
