@@ -126,7 +126,7 @@ class Livro(models.Model):
     capa = models.ImageField(upload_to='capas/', null=True, blank=True)
     is_versao_professor = models.BooleanField(default=False)
 
-    '''colecao = models.ForeignKey(
+    colecao = models.ForeignKey(
         Colecao, 
         on_delete=models.SET_NULL, # Se a coleção for apagada, o livro não é apagado, só fica sem coleção
         null=True, 
@@ -134,7 +134,7 @@ class Livro(models.Model):
         default=None, 
         related_name='livros',
         verbose_name="Coleção"
-    )'''
+    )
     
     versao_professor_relacionada = models.OneToOneField(
         'self', 
