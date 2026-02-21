@@ -2,7 +2,7 @@ from django.contrib import admin, messages
 from django.urls import path
 from django.shortcuts import render, redirect
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Cidade, Escola, Turma, Livro, Pagina,TokenCadastro
+from .models import User, Cidade, Escola, Turma, Livro, Pagina,TokenCadastro, Colecao
 from django import forms
 import uuid
 
@@ -28,7 +28,10 @@ admin.site.register(Cidade)
 admin.site.register(Escola)
 admin.site.register(Turma)
 
-
+@admin.register(Colecao)
+class ColecaoAdmin(admin.ModelAdmin):
+    list_display = ('nome',)
+    search_fields = ('nome',)
 
 # core/admin.py
 from .models import VideoAula # Adicione VideoAula na importação
