@@ -103,6 +103,12 @@ class User(AbstractUser):
 
 class Colecao(models.Model):
     nome = models.CharField(max_length=100, unique=True, verbose_name="Nome da Coleção")
+    
+    # NOVO CAMPO: Controla a ordem na tela (0, 1, 2, 3...)
+    ordem = models.IntegerField(
+        default=0, 
+        help_text="Define qual coleção aparece primeiro na estante (números menores aparecem antes)."
+    )
 
     def __str__(self):
         return self.nome
@@ -110,6 +116,8 @@ class Colecao(models.Model):
     class Meta:
         verbose_name = "Coleção"
         verbose_name_plural = "Coleções"
+        # Já deixa a coleção ordenada por padrão no banco de dados
+        ordering = ['ordem', 'nome']
 
 
 # --- Livros ---
@@ -126,14 +134,23 @@ class Livro(models.Model):
     capa = models.ImageField(upload_to='capas/', null=True, blank=True)
     is_versao_professor = models.BooleanField(default=False)
 
+    
     colecao = models.ForeignKey(
         Colecao, 
-        on_delete=models.SET_NULL, # Se a coleção for apagada, o livro não é apagado, só fica sem coleção
+        on_delete=models.SET_NULL, 
         null=True, 
-        blank=True,
-        default=None, 
+        blank=True, 
         related_name='livros',
         verbose_name="Coleção"
+    )
+    
+    
+
+    volume = models.PositiveIntegerField(
+        null=True, 
+        blank=True, 
+        verbose_name="Volume",
+        help_text="Número do volume (deixe em branco se for volume único)."
     )
     
     versao_professor_relacionada = models.OneToOneField(
@@ -146,6 +163,17 @@ class Livro(models.Model):
     )
     
     criado_em = models.DateTimeField(auto_now_add=True)
+    
+    
+    class Meta:
+        # AQUI ESTÁ A MÁGICA DA UNICIDADE:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['colecao', 'volume'], 
+                name='unique_volume_por_colecao'
+            )
+        ]
+    
 
     def __str__(self):
         tipo = "Prof" if self.is_versao_professor else "Aluno"

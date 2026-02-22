@@ -1,17 +1,17 @@
 /* core/static/core/css/chat.css */
 
 .chat-wrapper { 
-    /* Calcula a altura da tela menos a navbar (aprox 100px) e o padding */
-    height: calc(100vh - 120px); 
-    min-height: 500px;
+    /* 1. DVH é a unidade moderna que se ajusta quando o teclado do celular sobe! */
+    height: calc(100dvh - 120px); 
+    min-height: 400px;
     display: flex; 
     gap: 20px;
 }
 
 .sidebar-chats { 
     width: 280px;
-    min-width: 280px; /* 1. Garante o tamanho mínimo */
-    flex-shrink: 0;   /* 2. PROÍBE o flexbox de esmagar a barra lateral */
+    min-width: 280px; 
+    flex-shrink: 0; /* Garante que a barra lateral nunca seja esmagada */
     display: flex;
     flex-direction: column;
     border-right: 2px solid #d9e3f1;
@@ -30,21 +30,20 @@
     font-weight: 500;
 }
 
-.sessao-item:hover { 
+.sessao-item:hover, .sessao-item.active { 
     background-color: #d9e3f1; 
     color: #2288c4;
 }
 
 .sessao-item.active { 
-    color: #2288c4;
     font-weight: bold;
     box-shadow: inset 3px 3px 6px #b8c1cd, inset -3px -3px 6px #faffff;
 }
 
 .chat-area { 
     flex-grow: 1;
-    min-width: 0; /* 3. Evita que textos muito grandes no chat quebrem o layout da tela */
-    max-width: 75vw;
+    min-width: 0; /* Evita que balões longos quebrem a tela horizontalmente */
+    /* REMOVIDO o max-width: 75vw daqui, para ocupar todo o espaço no mobile */
     display: flex; 
     flex-direction: column; 
     height: 100%; 
@@ -59,7 +58,7 @@
     gap: 20px; 
     background-color: #f9fafb;
     border-radius: 15px;
-    margin-bottom: 15px;
+    margin-bottom: 10px; 
 }
 
 .balao { 
@@ -68,6 +67,7 @@
     border-radius: 15px; 
     line-height: 1.6; 
     font-size: 0.95rem; 
+    word-wrap: break-word; /* 2. Proteção para textos muito longos ou links */
 }
 
 .balao-usuario { 
@@ -75,8 +75,6 @@
     background-color: #2288c4; 
     color: #fff; 
     border-bottom-right-radius: 2px;
-    /*box-shadow: 5px 5px 10px #b8c1cd, -5px -5px 10px #faffff;
-    */
 }
 
 .balao-ia { 
@@ -84,30 +82,84 @@
     background-color: #ebebeb; 
     color: #5e6e82; 
     border-bottom-left-radius: 2px; 
-    /*box-shadow: 5px 5px 10px #b8c1cd, -5px -5px 10px #faffff;
-    */
 }
 
 .input-area { 
     display: flex;
     gap: 15px;
     align-items: center;
+    background: #fff; /* Fundo sólido para o rodapé */
+    padding: 5px 0;
 }
 
-
-.btn-enviar{
+.btn-enviar {
     height: 3rem;
     width: 3rem;
     border: none;
     background-color: transparent;
+    flex-shrink: 0; /* Impede o botão de espremer no celular */
 }
+
 .btn-enviar img {
     width: 100%;
     height: 100%;
     object-fit: contain;
     transition: transform 0.2s;
 }
-/* Responsividade: Oculta a barra lateral em telas pequenas */
+
+.btn-enviar:active img {
+    transform: scale(0.9);
+}
+
+
+/* =========================================
+   RESPONSIVIDADE: TABLETS
+   ========================================= */
+@media (max-width: 991px) {
+    .chat-wrapper { gap: 15px; }
+    .sidebar-chats { width: 220px; min-width: 220px; }
+    .balao { max-width: 90%; }
+}
+
+/* =========================================
+   RESPONSIVIDADE: SMARTPHONES
+   ========================================= */
 @media (max-width: 768px) {
-    .sidebar-chats { display: none; }
+    /* Como o Bootstrap Offcanvas vai gerenciar a sidebar, não precisamos mais dar display:none! */
+    .sidebar-chats {
+        width: 300px;
+        background-color: #f9fafb; /* Fundo do menu deslizante */
+        border-right: none;
+    }
+
+    .chat-wrapper {
+        gap: 0; /* Remove espaço inútil entre as divs */
+        height: calc(100dvh - 90px); /* Ajuste mais apertado para caber o teclado */
+    }
+
+    .mensagens-box {
+        padding: 10px; /* Menos margem para dar espaço à leitura */
+        gap: 15px; 
+    }
+
+    .balao {
+        max-width: 95%; /* Aproveita a tela quase toda */
+        padding: 12px 15px;
+        font-size: 0.9rem; 
+    }
+
+    .input-area {
+        gap: 10px;
+    }
+
+    .search-input {
+        padding: 12px 15px !important; 
+        /* 3. DICA DE OURO: 16px evita que o iPhone dê zoom automático ao focar no campo! */
+        font-size: 16px !important; 
+    }
+
+    .btn-enviar {
+        height: 2.5rem; /* Botão mais compacto para sobrar área de texto */
+        width: 2.5rem;
+    }
 }

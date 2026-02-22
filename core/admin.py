@@ -21,17 +21,19 @@ class PaginaInline(admin.TabularInline):
 @admin.register(Livro)
 class LivroAdmin(admin.ModelAdmin):
     inlines = [PaginaInline]
-    list_display = ('titulo', 'is_versao_professor', 'criado_em')
+    list_display = ('titulo', 'colecao', 'volume', 'is_versao_professor', 'criado_em')
+    list_editable = ('colecao', 'volume', 'is_versao_professor')
 
 # Registrar os outros modelos simples
 admin.site.register(Cidade)
 admin.site.register(Escola)
 admin.site.register(Turma)
 
+
 @admin.register(Colecao)
 class ColecaoAdmin(admin.ModelAdmin):
-    list_display = ('nome',)
-    search_fields = ('nome',)
+    list_display = ('nome', 'ordem')
+    search_fields = ('ordem',)
 
 # core/admin.py
 from .models import VideoAula # Adicione VideoAula na importação

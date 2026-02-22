@@ -39,9 +39,11 @@ def estante_view(request):
         
         if query:
             livros = Livro.objects.filter(
-            Q(titulo__icontains=query) | Q(tags__icontains=query)).order_by('colecao__nome', 'titulo') # <-- Note que agora usamos colecao__nome
+            Q(titulo__icontains=query) | Q(tags__icontains=query))
    
     
+    livros = livros.order_by('colecao__ordem', 'volume', 'titulo')
+
     context = {
         'livros': livros,
         'is_gestor': user.tipo in ['GESTOR_LOCAL', 'GESTOR_GERAL', 'ADMIN'] or user.tipo == 'PROFESSOR'
