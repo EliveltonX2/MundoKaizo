@@ -1,38 +1,60 @@
 /* core/static/core/css/chat.css */
 
-.chat-wrapper { 
-    /* 1. DVH é a unidade moderna que se ajusta quando o teclado do celular sobe! */
-    height: calc(100dvh - 120px); 
-    min-height: 400px;
-    display: flex; 
-    gap: 20px;
+:root {
+    /* Cores do Chat */
+    --chat-bg: #f9fafb;
+    --chat-border: #d9e3f1;
+    --msg-user-bg: #2288c4;
+    --msg-user-text: #ffffff;
+    --msg-ia-bg: #ebebeb;
+    --msg-ia-text: #5e6e82;
+    --msg-system: #5e6e82;
+    
+    /* Estrutura */
+    --radius-balao: 15px;
+    --transition-fast: all 0.2s ease;
 }
 
+/* --- TRAVA DE ROLAGEM GLOBAL --- */
+/* Isso proíbe que a página inteira crie uma barra de rolagem. 
+   Apenas as mensagens vão rolar! */
+body {
+    overflow: hidden; 
+}
+
+/* --- ESTRUTURA BASE (Mobile First) --- */
+.chat-wrapper { 
+    /* Altura dinâmica baseada na tela, descontando a navbar (~70px) */
+    height: calc(100dvh - 70px); 
+    display: flex; 
+    width: 100%;
+    padding: 10px 0; /* Respiro em cima e embaixo no celular */
+    gap: 0; 
+}
+
+/* --- SIDEBAR RESPONSIVA (Offcanvas no Celular) --- */
 .sidebar-chats { 
-    width: 280px;
-    min-width: 280px; 
-    flex-shrink: 0; /* Garante que a barra lateral nunca seja esmagada */
+    width: 300px;
+    background-color: var(--chat-bg);
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    border-right: 2px solid #d9e3f1;
-    padding-right: 15px;
-    overflow-y: auto;
 }
 
 .sessao-item { 
     display: block; 
     padding: 12px 15px; 
-    color: #5e6e82; 
+    color: var(--msg-system); 
     text-decoration: none; 
     border-radius: 10px;
     margin-bottom: 8px;
-    transition: all 0.2s;
+    transition: var(--transition-fast);
     font-weight: 500;
 }
 
 .sessao-item:hover, .sessao-item.active { 
-    background-color: #d9e3f1; 
-    color: #2288c4;
+    background-color: var(--chat-border); 
+    color: var(--msg-user-bg);
 }
 
 .sessao-item.active { 
@@ -40,126 +62,131 @@
     box-shadow: inset 3px 3px 6px #b8c1cd, inset -3px -3px 6px #faffff;
 }
 
+/* --- ÁREA PRINCIPAL DO CHAT --- */
 .chat-area { 
     flex-grow: 1;
-    min-width: 0; /* Evita que balões longos quebrem a tela horizontalmente */
-    /* REMOVIDO o max-width: 75vw daqui, para ocupar todo o espaço no mobile */
+    min-width: 0; 
     display: flex; 
     flex-direction: column; 
     height: 100%; 
+    overflow: hidden; /* Impede que o conteúdo vaze e quebre o layout */
 }
 
+/* A ÚNICA ÁREA QUE ROLA */
 .mensagens-box { 
     flex-grow: 1; 
     overflow-y: auto; 
-    padding: 15px 20px; 
+    padding: 10px; 
     display: flex; 
     flex-direction: column; 
-    gap: 20px; 
-    background-color: #f9fafb;
-    border-radius: 15px;
+    gap: 15px; 
+    background-color: var(--chat-bg);
+    border-radius: var(--radius-balao);
     margin-bottom: 10px; 
 }
 
+/* --- BALÕES DE MENSAGEM --- */
 .balao { 
-    max-width: 85%; 
-    padding: 15px 20px; 
-    border-radius: 15px; 
+    max-width: 95%; /* Aproveita quase toda a tela no celular */
+    padding: 12px 15px; 
+    border-radius: var(--radius-balao); 
     line-height: 1.6; 
     font-size: 0.95rem; 
-    word-wrap: break-word; /* 2. Proteção para textos muito longos ou links */
+    word-wrap: break-word; 
 }
 
 .balao-usuario { 
     align-self: flex-end; 
-    background-color: #2288c4; 
-    color: #fff; 
+    background-color: var(--msg-user-bg); 
+    color: var(--msg-user-text); 
     border-bottom-right-radius: 2px;
 }
 
 .balao-ia { 
     align-self: flex-start; 
-    background-color: #ebebeb; 
-    color: #5e6e82; 
+    background-color: var(--msg-ia-bg); 
+    color: var(--msg-ia-text); 
     border-bottom-left-radius: 2px; 
 }
 
+.msg-boas-vindas {
+    text-align: center;
+    color: var(--msg-system);
+    margin: auto 0;
+}
+
+.msg-boas-vindas h4 {
+    color: var(--msg-user-bg);
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+/* --- ÁREA DO INPUT (Travada no rodapé) --- */
 .input-area { 
     display: flex;
-    gap: 15px;
+    gap: 10px;
     align-items: center;
-    background: #fff; /* Fundo sólido para o rodapé */
+    background: transparent; 
     padding: 5px 0;
+    flex-shrink: 0; /* MÁGICA: Nunca deixa a caixa de texto ser esmagada */
+}
+
+.search-input {
+    flex-grow: 1;
+    padding: 12px 15px;
+    font-size: 16px; /* 16px obrigatório para iPhone não dar zoom automático! */
+    border-radius: 10px;
+    border: none;
+    box-shadow: inset 3px 3px 6px #b8c1cd, inset -3px -3px 6px #faffff;
+    outline: none;
 }
 
 .btn-enviar {
-    height: 3rem;
-    width: 3rem;
+    height: 2.8rem;
+    width: 2.8rem;
     border: none;
     background-color: transparent;
-    flex-shrink: 0; /* Impede o botão de espremer no celular */
+    flex-shrink: 0; 
 }
 
 .btn-enviar img {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    transition: transform 0.2s;
+    transition: var(--transition-fast);
 }
 
 .btn-enviar:active img {
     transform: scale(0.9);
 }
 
-
 /* =========================================
-   RESPONSIVIDADE: TABLETS
+   DESKTOP VIEW (A partir de 768px - Tablet/PC)
    ========================================= */
-@media (max-width: 991px) {
-    .chat-wrapper { gap: 15px; }
-    .sidebar-chats { width: 220px; min-width: 220px; }
-    .balao { max-width: 90%; }
-}
-
-/* =========================================
-   RESPONSIVIDADE: SMARTPHONES
-   ========================================= */
-@media (max-width: 768px) {
-    /* Como o Bootstrap Offcanvas vai gerenciar a sidebar, não precisamos mais dar display:none! */
-    .sidebar-chats {
-        width: 300px;
-        background-color: #f9fafb; /* Fundo do menu deslizante */
-        border-right: none;
+@media (min-width: 768px) {
+    .chat-wrapper { 
+        gap: 20px; 
+        padding: 15px 0;
     }
 
-    .chat-wrapper {
-        gap: 0; /* Remove espaço inútil entre as divs */
-        height: calc(100dvh - 90px); /* Ajuste mais apertado para caber o teclado */
+    .sidebar-chats {
+        width: 280px;
+        background-color: transparent;
+        border-right: 2px solid var(--chat-border);
+        padding-right: 15px;
     }
 
     .mensagens-box {
-        padding: 10px; /* Menos margem para dar espaço à leitura */
-        gap: 15px; 
+        padding: 15px 20px;
+        gap: 20px;
     }
 
     .balao {
-        max-width: 95%; /* Aproveita a tela quase toda */
-        padding: 12px 15px;
-        font-size: 0.9rem; 
+        max-width: 85%; /* Balões não precisam ir de ponta a ponta no PC */
+        padding: 15px 20px;
     }
 
     .input-area {
-        gap: 10px;
-    }
-
-    .search-input {
-        padding: 12px 15px !important; 
-        /* 3. DICA DE OURO: 16px evita que o iPhone dê zoom automático ao focar no campo! */
-        font-size: 16px !important; 
-    }
-
-    .btn-enviar {
-        height: 2.5rem; /* Botão mais compacto para sobrar área de texto */
-        width: 2.5rem;
+        gap: 15px;
     }
 }

@@ -1,0 +1,316 @@
+/* core/static/core/css/navbar.css */
+
+:root {
+    /* Cores Globais da Navbar */
+    --nav-bg: #2288c4;
+    --nav-text: #ffffff;
+    --nav-btn-hover-bg: #f9fafb;
+    --nav-btn-hover-text: #2288c4;
+    
+    /* Sombras Neumorphism e UI */
+    --nav-shadow: 0 10px 20px -10px rgba(184, 193, 205, 0.5);
+    --search-bg: #f9fafb;
+    --search-text: #5e6e82;
+    --search-shadow: inset 3px 3px 6px #b8c1cd, inset -3px -3px 6px #faffff;
+    --search-shadow-focus: inset 5px 5px 10px #b8c1cd, inset -5px -5px 10px #faffff;
+    
+    /* Estrutura */
+    --radius-sm: 10px;
+    --transition-fast: all 0.2s ease;
+}
+/* =========================================
+   TELAS ULTRA ESTREITAS (iPhone 14, SE, etc)
+   ========================================= */
+@media (max-width: 400px) {
+    .navbar-logo {
+        height: 22px; /* Logo mais compacta ainda */
+    }
+    
+    .btn-nav {
+        padding: 6px 10px; /* Diminui um pouco as "gordurinhas" dos botões laterais para dar respiro */
+        font-size: 0.85rem;
+    }
+    
+    .navbar-left, .navbar-right {
+        gap: 6px; /* Aproxima os botões para sobrar espaço no meio */
+    }
+}
+
+/* =========================================
+   ESTRUTURA BASE (Celular - Mobile First)
+   ========================================= */
+   
+.navbar-wrapper {
+    display: flex;
+    flex-wrap: wrap; /* Permite que a barra de busca caia para a linha de baixo no celular */
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    background-color: var(--nav-bg);
+    box-shadow: var(--nav-shadow);
+    position: relative;
+    z-index: 1000;
+    margin-bottom: 20px;
+}
+
+/* --- ORDEM NO CELULAR --- */
+.navbar-left {
+    order: 1; /* Fica no topo à esquerda */
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.navbar-right {
+    order: 2; /* Fica no topo à direita */
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.navbar-center {
+    order: 3; /* Cai para a linha de baixo */
+    width: 100%;
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+}
+
+/* --- LOGO E TÍTULO --- */
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--nav-text);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: var(--transition-fast);
+}
+
+.navbar-brand:hover {
+    color: #f0f0f0;
+}
+
+.navbar-logo {
+    height: 28px; /* Tamanho Mobile */
+    width: auto;
+    object-fit: contain;
+    transition: var(--transition-fast);
+}
+
+/* --- BOTÕES DA NAVBAR --- */
+.btn-nav {
+    background: transparent;
+    color: var(--nav-text);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 8px 15px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    text-decoration: none;
+}
+
+.btn-nav:hover {
+    background-color: var(--nav-btn-hover-bg);
+    color: var(--nav-btn-hover-text);
+}
+
+.hide-mobile {
+    display: none; /* Oculta textos auxiliares no celular para economizar espaço */
+}
+
+/* --- BUSCA E PAGINAÇÃO --- */
+.search-form {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.search-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--search-text);
+    pointer-events: none;
+}
+
+.search-input {
+    width: 100%;
+    padding: 8px 10px 8px 40px;
+    border-radius: var(--radius-sm);
+    background: var(--search-bg);
+    border: none;
+    box-shadow: var(--search-shadow);
+    color: var(--search-text);
+    transition: var(--transition-fast);
+    outline: none;
+}
+
+.search-input:focus {
+    box-shadow: var(--search-shadow-focus);
+}
+
+.page-navigator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.page-navigator .search-input {
+    width: 70px;
+    padding: 8px; /* Override do padding da busca */
+    text-align: center;
+}
+
+.page-label {
+    color: var(--nav-text);
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+/* --- DROPDOWNS (Mantendo as lógicas do Bootstrap, mas com nosso estilo) --- */
+.nav-dropdown-menu {
+    background-color: var(--nav-bg);
+    border: none;
+    border-radius: 15px;
+    padding: 10px;
+    margin-top: 15px !important;
+    box-shadow: 0px 10px 20px rgba(0,0,0,0.2);
+}
+
+.nav-dropdown-menu .dropdown-item {
+    border-radius: var(--radius-sm);
+    color: var(--nav-text);
+    font-weight: 500;
+    padding: 10px 15px;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    transition: var(--transition-fast);
+}
+
+.nav-dropdown-menu .dropdown-item:hover {
+    background-color: var(--nav-btn-hover-bg);
+    color: var(--nav-btn-hover-text);
+}
+
+.icon-margin { margin-right: 10px; }
+.kai-menu-icon { width: 1.5rem; height: 1.5rem; object-fit: contain; margin-right: 10px; }
+
+/* --- POPUP FLUTUANTE DA KAI (Mobile First) --- */
+.kai-floating-popup {
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    z-index: 9999;
+    animation: slideUpKai 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.kai-mascote-img {
+    width: 80px; 
+    height: auto;
+    cursor: pointer;
+    filter: drop-shadow(5px 5px 10px rgba(184, 193, 205, 0.6));
+    transition: var(--transition-fast);
+    animation: flutuarKai 3s ease-in-out infinite;
+}
+
+.kai-mascote-img:hover {
+    transform: scale(1.08) rotate(-5deg);
+}
+
+.kai-speech-bubble {
+    position: relative;
+    padding: 12px;
+    max-width: 200px;
+    font-size: 0.85rem;
+    background-color: var(--search-bg);
+    border-radius: 20px 20px 0px 20px; 
+    box-shadow: 5px 5px 5px #b8c1cd;
+}
+
+.kai-close-btn {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #99aab5;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: var(--transition-fast);
+}
+.kai-close-btn:hover { color: #d9534f; }
+
+@keyframes slideUpKai {
+    from { opacity: 0; transform: translateY(100px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes flutuarKai {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+/* =========================================
+   DESKTOP VIEW (A partir de 768px - Tablet/PC)
+   ========================================= */
+@media (min-width: 768px) {
+    .navbar-wrapper {
+        flex-wrap: nowrap; /* Trava tudo na mesma linha */
+        padding: 15px 30px;
+    }
+
+    .navbar-center {
+        order: 2; /* Volta para o meio da barra */
+        width: auto;
+        flex: 1; 
+        margin-top: 0;
+    }
+
+    .navbar-right {
+        order: 3; /* Vai para o final da barra */
+    }
+
+    .navbar-logo {
+        height: 25px; /* Fica mais elegante e compacta no PC */
+    }
+    
+    .navbar-brand:hover .navbar-logo {
+        transform: scale(1.05);
+    }
+
+    .hide-mobile {
+        display: inline; /* Mostra os textos "Olá, Fulano" e "Pág." */
+    }
+
+    /* Popup da Kai cresce no PC */
+    .kai-floating-popup {
+        bottom: 30px;
+        right: 30px;
+        gap: 15px;
+    }
+    .kai-mascote-img { width: 120px; }
+    .kai-speech-bubble {
+        max-width: 260px;
+        padding: 15px 20px 20px 20px;
+        font-size: 1rem;
+    }
+}

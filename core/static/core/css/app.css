@@ -196,10 +196,6 @@ body {
     color: #a94442;
 }
 
-.col-lg-3{
-    width: 18rem !important;
-}
-
 
 /* --- Cards (Paineis) --- */
 .card-panel {
@@ -207,52 +203,6 @@ body {
     border-radius: 20px;
     padding: 30px;
     box-shadow: 20px 20px 60px #b8c1cd, -20px -20px 60px #faffff;
-}
-
-/* --- Cards de Livros --- */
-.book-card {
-    background-color: #ebebeb;
-    border-radius: 15px;
-    padding: 15px;
-    box-shadow: 5px 5px 5px #b8c1cd;
-    transition: transform 0.2s;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-.book-card:hover { transform: translateY(-5px); }
-
-.book-cover {
-    width: 100%;
-    height: auto;
-    min-height: 200px;
-    background-color: #ecf0f3;
-    border-radius: 10px;
-    box-shadow: inset 5px 5px 10px #b8c1cd, inset -5px -5px 10px #faffff;
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-.book-cover img {
-    width: 100%;
-    height: auto;
-    object-fit: cover;
-    display: block;
-    filter: drop-shadow(5px 5px 10px rgba(0,0,0,0.2));
-    border-radius: 5px;
-}
-
-.title-wrapper{
-    height: 4rem;
-
-}
-.title-wrapper h5{
-    font-size: 1.1rem;
-    align-items: center;
-    justify-content: center;
 }
 
 /* --- Tabelas --- */

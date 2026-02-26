@@ -3,9 +3,10 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/mkz.svg' %}">
     <title>{{ livro.titulo }} - MundoKaizo</title>
+    
     <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -15,9 +16,9 @@
 <body>
 
     <div id="globalLoader" class="global-loader-overlay">
-        <div class="d-flex flex-column align-items-center bg-white p-4 rounded-4 shadow-lg">
-            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-            <span class="mt-3 fw-bold text-muted" style="letter-spacing: 1px;">CARREGANDO LIVRO...</span>
+        <div style="display:flex; flex-direction:column; align-items:center; background:white; padding:2rem; border-radius:1rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem; margin-bottom: 1rem;" role="status"></div>
+            <span style="font-weight: bold; color: #5b626b; letter-spacing: 1px;">MONTANDO LIVRO...</span>
         </div>
     </div>
 
@@ -27,40 +28,43 @@
     <div class="main-stage" id="stage">
         <div class="movable-layer" id="movable">
             <div id="flipbook">
-
                 {% for item in paginas_estruturadas %}
                     <div class="page">
-                        <img src="{% url 'pagina_imagem' livro.id item.conteudo.numero %}" 
+                        <img {% if forloop.counter <= 4 %}
+                                src="{% url 'pagina_imagem' livro.id item.conteudo.numero %}"
+                             {% else %}
+                                data-src="{% url 'pagina_imagem' livro.id item.conteudo.numero %}"
+                             {% endif %}
                              alt="Página {{ item.conteudo.numero }}" 
-                             class="pagina-livro"
-                             {% if forloop.counter > 2 %}loading="lazy"{% endif %}>
+                             class="pagina-livro">
                     </div>
                 {% empty %}
                     <div class="page"><p style="text-align:center; padding-top:50%;">Vazio</p></div>
                 {% endfor %}
-
             </div>
         </div>
 
         <div class="controls-bar">
-            <button class="ctrl-btn" id="prevBtn" title="Anterior"><i class="fas fa-chevron-left"></i></button>
+            <button class="ctrl-btn" id="prevBtn" title="Página Anterior"><i class="fas fa-chevron-left"></i></button>
             <div class="separator"></div>
-            <button class="ctrl-btn" id="zoomOut"><i class="fas fa-minus"></i></button>
-            <button class="ctrl-btn" id="zoomReset">1x</button>
-            <button class="ctrl-btn" id="zoomIn"><i class="fas fa-plus"></i></button>
+            
+            <button class="ctrl-btn" id="zoomOut" title="Diminuir"><i class="fas fa-search-minus"></i></button>
+            <button class="ctrl-btn" id="zoomReset" title="Tamanho Original">1x</button>
+            <button class="ctrl-btn" id="zoomIn" title="Aumentar"><i class="fas fa-search-plus"></i></button>
+            
             <div class="separator"></div>
-            <button class="ctrl-btn" id="panToggle" title="Arrastar" disabled><i class="fas fa-hand-paper"></i></button>
+            <button class="ctrl-btn" id="panToggle" title="Modo Arrastar (Ative o Zoom primeiro)" disabled><i class="fas fa-hand-paper"></i></button>
             
             {% if is_staff_school %}
                 <div class="separator" id="videoSeparator" style="display: none;"></div>
-                <a href="#" target="_blank" class="ctrl-btn video-btn-wide" id="videoBtn" title="Assistir Videoaula desta página">
+                <a href="#" target="_blank" class="ctrl-btn video-btn-wide" id="videoBtn" title="Assistir Videoaula">
                     <i class="fas fa-play-circle fa-lg"></i>
-                    <span>VIDEOAULA</span>
+                    <span>AULA</span>
                 </a>
             {% endif %}
             
             <div class="separator"></div>
-            <button class="ctrl-btn" id="nextBtn" title="Próximo"><i class="fas fa-chevron-right"></i></button>
+            <button class="ctrl-btn" id="nextBtn" title="Próxima Página"><i class="fas fa-chevron-right"></i></button>
         </div>
     </div>
 

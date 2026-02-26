@@ -3,82 +3,84 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/mkz.svg' %}">
     <title>Estante - MundoKaizo</title>
+    
     <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <link rel="stylesheet" href="{% static 'core/css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'core/css/estante.css' %}">
 
 </head>
 <body>
 
     {% include 'includes/navbar.html' with show_search=True search_placeholder="Filtrar livros..." %}
 
-    <div class="container mt-4">
+    <div class="estante-container">
         {% if is_gestor %}
-            <div style="margin-top:1.5rem; margin-bottom: .5rem; border:none; color: #5e5e5e;">
-                <i class="fas fa-info-circle me-2"></i> Painel de Gestão: Você está vendo todos os livros disponíveis.
+            <div class="alert-gestor">
+                <i class="fas fa-info-circle"></i> Painel de Gestão: Você está vendo todos os livros disponíveis.
             </div>
         {% endif %}
 
-        <div class="row g-4">
-            {% regroup livros by colecao as livros_por_colecao %}
+        {% regroup livros by colecao as livros_por_colecao %}
 
-            {% for colecao in livros_por_colecao %}
+        {% for colecao in livros_por_colecao %}
+            <div class="colecao-section">
+                <h4 class="colecao-title">
+                    {% if colecao.grouper %}
+                        {{ colecao.grouper.nome }}
+                    {% else %}
+                        Outros Manuais
+                    {% endif %}
+                </h4>
+                
+                <hr class="colecao-divider">
 
-                <div class="colecao-section mt-5 mb-4">
-                    <h4 style="color: #5b626bff; font-weight: 400; margin-bottom: 0px;">
-                        {% if colecao.grouper %}
-                            {{ colecao.grouper.nome }}
-                        {% else %}
-                            Outros Manuais
-                        {% endif %}
-                    </h4>
+                <div class="books-grid">
                     
-                    <hr style="border-top: 2px solid #5b626bff; opacity: 0.5; margin-top: 5px; margin-bottom: 20px;">
-
-                    <div class="row g-4">
-                        
-                        {% for livro in colecao.list %}
-                            <div class="col-lg-3 col-sm-6">
-                                <div class="book-card">
-                                    <div class="book-cover">
-                                        <img src="{{ livro.capa.url }}" alt="{{ livro.titulo }}">
-                                    </div>
-
-                                    <div class="title-wrapper">
-                                    <h5 class="bookTitle-card" style="color: #151b22;">{{ livro.titulo }}</h5>
-                                    </div>
-
-                                    {% if livro.is_versao_professor %}
-                                        <span class="badge bg-warning text-dark mb-2" style="align-self: center;">Professor</span>
-                                    {% endif %}
-
-                                    <a href="{% url 'ler_livro' livro.id %}" class="btn-morph mt-2">LER LIVRO</a>
-                                    <a href="{% url 'lista_aulas' livro.id %}" class="btn-morph mt-2" style="font-size: 0.8rem;">
-                                        <i class="fas fa-play-circle"></i> VIDEOAULAS
-                                    </a>
-                                    {% if is_gestor or request.user.tipo == 'PROFESSOR' %}
-                                        {% if livro.versao_professor_relacionada %}
-                                            <a href="{% url 'ler_livro' livro.versao_professor_relacionada.id %}" 
-                                            class="btn-morph mt-2" 
-                                            style="font-size: 0.75rem; color: #fff; background-color: #5e6e82; border: 1px solid #5e6e82;">
-                                            <i class="fas fa-chalkboard-teacher"></i> VERSÃO PROFESSOR
-                                            </a>
-                                        {% endif %}
-                                    {% endif %}
-
-                                </div>
+                    {% for livro in colecao.list %}
+                        <div class="book-card">
+                            <div class="book-cover">
+                                <img src="{{ livro.capa.url }}" alt="{{ livro.titulo }}">
                             </div>
-                        {% endfor %}
-                    </div>
+
+                            <div class="title-wrapper">
+                                <h5 class="book-title">{{ livro.titulo }}</h5>
+                            </div>
+
+                            {% if livro.is_versao_professor %}
+                                <span class="badge-professor">Professor</span>
+                            {% endif %}
+
+                            <div class="card-actions">
+                                <a href="{% url 'ler_livro' livro.id %}" class="btn-card">LER LIVRO</a>
+                                
+                                <a href="{% url 'lista_aulas' livro.id %}" class="btn-card">
+                                    <i class="fas fa-play-circle"></i> VIDEOAULAS
+                                </a>
+                                
+                                {% if is_gestor or request.user.tipo == 'PROFESSOR' %}
+                                    {% if livro.versao_professor_relacionada %}
+                                        <a href="{% url 'ler_livro' livro.versao_professor_relacionada.id %}" class="btn-card btn-card-secondary">
+                                            <i class="fas fa-chalkboard-teacher"></i> VERSÃO PROFESSOR
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+
+                        </div>
+                    {% endfor %}
                 </div>
-            {% empty %}
-                <div class="text-center text-muted mt-5">
-                    <p>Nenhum livro encontrado na estante.</p>
-                </div>
-            {% endfor %}
-        </div>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                <p>Nenhum livro encontrado na estante.</p>
+            </div>
+        {% endfor %}
     </div>
 </body>
 </html>

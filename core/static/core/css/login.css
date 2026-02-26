@@ -1,162 +1,238 @@
 /* core/static/core/css/login.css */
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap');
 
-/* Reset e Fundo */
+/* --- VARIÁVEIS CSS (Design System) --- */
+:root {
+    --bg-main: #f9fafb;
+    --text-dark: #183a4e;
+    --text-muted: #6c757d;
+    --primary-color: #0d6efd;
+    --primary-hover: #0b5ed7;
+    --secondary-color: #0097b2;
+    --secondary-hover: #007a8c;
+    
+    /* Cores Neumorphism */
+    --shadow-dark: rgba(0, 0, 0, 0.08);
+    --shadow-light: rgba(0, 0, 0, 0.05);
+    --input-shadow-focus: 0px 0px 3px 3px rgba(55, 94, 148, 0.3), inset -10px -10px 10px rgba(255, 255, 255, 0.8);
+    
+    /* Estrutura */
+    --radius-card: 25px;
+    --radius-input: 12px;
+    --transition-default: all 0.3s ease;
+}
+
+/* --- RESET BÁSICO --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 body {
-    /* Um fundo gradiente sutil para dar profundidade */
-    background-color: #f9fafb;
+    background-color: var(--bg-main);
     font-family: 'Montserrat', sans-serif;
     min-height: 100vh;
-    margin: 0;
     display: flex;
-    align-items: center; /* Centraliza verticalmente */
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dark);
 }
 
-/* Wrapper Principal - O Flexbox que segura tudo */
+/* --- ESTRUTURA MOBILE FIRST (Celular é o padrão) --- */
 .main-wrapper {
     width: 100%;
-    max-width: 1200px; /* Largura máxima do conjunto */
-    margin: 0 auto;
-    padding: 30px;
+    max-width: 1200px;
+    padding: 20px;
     display: flex;
-    flex-direction: row; /* Lado a lado no PC */
-    align-items: center; /* Alinha os centros verticais */
-    justify-content: center; /* Centraliza horizontalmente */
-    gap: 60px; /* O ESPAÇO entre a logo e o card (o deslocamento que você pediu) */
+    flex-direction: column; /* Empilhado no celular */
+    align-items: center;
+    gap: 40px;
 }
 
-/* --- SEÇÃO DA ESQUERDA: LOGO --- */
+/* Logo */
 .logo-section {
-    flex: 1; /* Ocupa espaço flexível */
+    width: 100%;
     display: flex;
-    justify-content: flex-end; /* Alinha a logo à direita do seu bloco, aproximando do card */
-    max-width: 450px; /* Limita a largura da área da logo */
+    justify-content: center;
 }
 
 .main-logo {
     width: 100%;
-    max-width: 380px; /* Tamanho máximo da logo no PC */
+    max-width: 220px; /* Menor no celular */
     height: auto;
-    /* Uma sombra suave na logo para ela "descolar" do fundo */
     filter: drop-shadow(0 15px 25px rgba(0,0,0,0.15));
-    transition: transform 0.3s ease;
+    transition: var(--transition-default);
 }
 
-.main-logo:hover {
-    transform: scale(1.03); /* Efeito sutil ao passar o mouse */
-}
-
-/* --- SEÇÃO DA DIREITA: CARD DE LOGIN --- */
+/* Card de Login */
 .login-card-section {
-    flex: 1; /* Ocupa espaço flexível */
-    max-width: 450px; /* Largura fixa ideal para o card de formulário */
+    width: 100%;
+    max-width: 400px;
 }
 
 .login-card {
     background: #ffffff;
-    padding: 45px;
-    border-radius: 25px; /* Bordas bem arredondadas */
-    /* A sombra agora fica SÓ no card, não no conjunto todo */
-    box-shadow: 4px 6px 4px 3px rgba(0, 0, 0, 0.08), 0 5px 15px rgba(0, 0, 0, 0.05);
+    padding: 30px 25px;
+    border-radius: var(--radius-card);
+    box-shadow: 4px 6px 4px 3px var(--shadow-dark), 0 5px 15px var(--shadow-light);
 }
 
-/* --- Ajustes Finos do Formulário --- */
-.form-control:focus {
-    box-shadow: none; /* Remove o shadow padrão do bootstrap */
-    background-color: #fff !important; /* Fica branco ao focar */
-}
-.input-group{
-    box-shadow: 0px 0px 3px 3px rgba(55, 94, 148, .3), inset -10px -10px 10px rgba(255, 255, 255, .8) !important;
-}
-.input-group:focus-within .input-group-text {
-      background-color: #fff !important;
-      color: #0d6efd !important; /* Ícone fica azul no foco */
-}
-.input-group-text, .form-control {
-    transition: all 0.3s ease;
+.login-title {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
 }
 
-.btn_login{
-    background-color: #0d6efd;
-    border-color: #0d6efd;
-    border-radius: 12px; 
-    font-weight: bold; 
-    letter-spacing: 1px; 
-    color: #fff
-}
-.btn_login:hover{
-    background-color: #0b5ed7;
-    border-color: #0b5ed7;
-    color: #fff;
+/* --- COMPONENTES DO FORMULÁRIO (Sem Bootstrap) --- */
+.form-group {
+    margin-bottom: 1.2rem;
 }
 
-.btn_login_ativar_card{
-    background-color: #0097b2;
-    box-shadow: none;
-}
-.btn_login_ativar_card:hover{
-    background-color: #007a8c;
-    color: #fff;
-    border-color: #007a8c;
-    box-shadow: none;
+.form-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+    padding-left: 0.5rem;
 }
 
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    background-color: #f8f9fa;
+    border-radius: var(--radius-input);
+    transition: var(--transition-default);
+    padding: 0 15px;
+}
 
-/* --- MODO MOBILE (Responsividade) --- */
-/* Usando 992px (tablets/laptops pequenos) para quebrar o layout mais cedo */
-@media (max-width: 992px) {
+.input-wrapper i {
+    color: var(--text-muted);
+    transition: var(--transition-default);
+}
+
+.input-field {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 15px 10px;
+    font-size: 1rem;
+    font-family: inherit;
+    color: var(--text-dark);
+    outline: none;
+}
+
+/* Efeito de Foco (Neumorphism) */
+.input-wrapper:focus-within {
+    background-color: #ffffff;
+    box-shadow: var(--input-shadow-focus);
+}
+
+.input-wrapper:focus-within i {
+    color: var(--primary-color);
+}
+
+/* --- BOTÕES --- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 15px;
+    border-radius: var(--radius-input);
+    border: none;
+    font-weight: 700;
+    font-family: inherit;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: var(--transition-default);
+    text-decoration: none;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: #ffffff;
+    margin-top: 10px;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+}
+
+.btn-activation {
+    background-color: transparent;
+    border: 2px solid var(--secondary-color);
+    color: var(--secondary-color);
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.btn-activation:hover {
+    background-color: var(--secondary-color);
+    color: #ffffff;
+}
+
+.link-muted {
+    display: block;
+    text-align: center;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: var(--transition-default);
+}
+
+.link-muted:hover {
+    color: var(--primary-color);
+}
+
+/* Imagem de Canto */
+.corner-image {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    width: 70px;
+    height: auto;
+    z-index: 1000;
+    opacity: 0.9;
+}
+
+/* =========================================
+   DESKTOP VIEW (Media Query)
+   ========================================= */
+@media (min-width: 992px) {
     .main-wrapper {
-        flex-direction: column; /* Empilha: Logo em cima, Card embaixo */
-        gap: 40px; /* Espaço menor entre eles no celular */
-        padding: 20px;
-        justify-content: center;
+        flex-direction: row; /* Coloca lado a lado */
+        padding: 30px;
+        gap: 60px;
     }
 
     .logo-section {
-        justify-content: center; /* Centraliza a logo no celular */
-        max-width: 100%;
-        margin-bottom: 10px;
+        flex: 1;
+        justify-content: flex-end; /* Encosta no card */
     }
 
     .main-logo {
-        max-width: 220px; /* Logo menor no celular */
+        max-width: 380px;
+    }
+
+    .main-logo:hover {
+        transform: scale(1.03);
     }
 
     .login-card-section {
-        width: 100%;
-        max-width: 400px; /* Card na largura total disponível (respeitando o max) */
+        flex: 1;
+        max-width: 450px;
     }
 
     .login-card {
-        padding: 30px 25px; /* Menos espaçamento interno no card mobile */
+        padding: 45px;
     }
-}
 
-
-
-.corner-image {
-    position: fixed;  /* O segredo: fixa em relação à janela do navegador */
-    bottom: 20px;     /* Distância do fundo */
-    right: 20px;      /* Distância da direita */
-    
-    width: 100px;     /* Tamanho da imagem (ajuste conforme necessário) */
-    height: auto;     /* Mantém a proporção */
-    
-    z-index: 1000;    /* Garante que fique por cima de tudo */
-    
-    /* Opcional: Efeito de transparência para ficar sutil */
-    opacity: 0.9;
-    
-    /* Opcional: Uma transição suave se quiser adicionar efeito de hover depois */
-    transition: all 0.3s ease;
-}
-
-/* AJUSTE PARA CELULAR (Responsividade) */
-/* No celular, a tela é pequena, então vamos diminuir a imagem e aproximar do canto */
-@media (max-width: 576px) {
     .corner-image {
-        width: 70px;   /* Fica menorzinha no celular */
-        bottom: 10px;  /* Mais perto da borda */
-        right: 10px;
+        width: 100px;
+        bottom: 20px;
+        right: 20px;
     }
 }

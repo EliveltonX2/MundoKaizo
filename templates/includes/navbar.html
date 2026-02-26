@@ -1,77 +1,62 @@
 {% load static %}
-<nav class="navbar-custom">
-    <div class="d-flex align-items-center gap-3">
+
+<link rel="stylesheet" href="{% static 'core/css/navbar.css' %}">
+
+<nav class="navbar-wrapper">
+    <div class="navbar-left">
         {% if back_url %}
-            <a href="{{ back_url }}" class="btn-morph-navbar" style="padding: 8px 12px;" title="Voltar">
+            <a href="{{ back_url }}" class="btn-nav" title="Voltar">
                 <i class="fas fa-arrow-left"></i>
             </a>
         {% endif %}
 
-        <a href="{% url 'estante' %}" class="navbar-brand d-flex align-items-center">
+        <a href="{% url 'estante' %}" class="navbar-brand">
             {% if custom_title %}
                 {{ custom_title }}
             {% else %}
                 <img src="{% static 'core/img/logokaizo2.png' %}" alt="Mundo Kaizo" class="navbar-logo">
             {% endif %}
         </a>
-        
     </div>
 
     <div class="navbar-center">
-        
         {% if show_page_navigator %}
-        <div class="d-flex align-items-center justify-content-center gap-2">
-            <span class="text-muted small fw-bold d-none d-sm-inline" style="color: #f9fafb !important;">Pág.</span>
-            
-            <input type="number" 
-                   id="pageInput" 
-                   class="form-control search-input text-center" 
-                   style="width: 70px; padding: 5px;" 
-                   value="1" 
-                   min="1">
-            
-            <span class="text-muted small fw-bold" style="color: #f9fafb !important;">/ <span id="totalPages">--</span></span>
-            
-            <button id="goPageBtn" class="btn-morph-navbar ms-2" style="padding: 5px 12px;" title="Ir para página">
-                <i class="fas fa-arrow-right"></i>
-            </button>
-        </div>
-
-        {% elif show_search %}
-        <form method="GET" action="." class="d-flex w-100 justify-content-center">
-            <div class="search-wrapper">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" 
-                       name="q" 
-                       class="form-control search-input" 
-                       placeholder="{{ search_placeholder|default:'Buscar...' }}" 
-                       value="{{ request.GET.q|default:'' }}">
+            <div class="page-navigator">
+                <span class="page-label hide-mobile">Pág.</span>
+                <input type="number" id="pageInput" class="search-input" value="1" min="1">
+                <span class="page-label">/ <span id="totalPages">--</span></span>
+                <button id="goPageBtn" class="btn-nav ms-2" title="Ir para página">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
             </div>
-        </form>
+        {% elif show_search %}
+            <form method="GET" action="." class="search-form">
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" name="q" class="search-input" placeholder="{{ search_placeholder|default:'Buscar...' }}" value="{{ request.GET.q|default:'' }}">
+                </div>
+            </form>
         {% endif %}
-        
     </div>
 
-    <div class="navbar-right d-flex gap-3 align-items-center">
+    <div class="navbar-right">
         
         <div class="dropdown">
-            <button class="btn-morph-navbar dropdown-toggle px-3" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fas fa-user-circle me-md-2"></i>
-                <span class="d-none d-md-inline">Olá, {{ request.user.username }}</span>
+            <button class="btn-nav dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-user-circle"></i>
+                <span class="hide-mobile">Olá, {{ request.user.username }}</span>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end morph-dropdown" aria-labelledby="userDropdown">
-                
+            <ul class="dropdown-menu nav-dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                 <li>
                     <a class="dropdown-item" href="{% url 'alterar_senha' %}">
-                        <i class="fas fa-key me-2"></i> Alterar Senha
+                        <i class="fas fa-key icon-margin"></i> Alterar Senha
                     </a>
                 </li>
-                
                 <li>
-                    <form action="{% url 'logout' %}" method="post" class="d-block w-100">
+                    <form action="{% url 'logout' %}" method="post" style="margin: 0;">
                         {% csrf_token %}
-                        <button type="submit" class="dropdown-item ">
-                            <i class="fas fa-sign-out-alt me-2"></i> Sair
+                        <button type="submit" class="dropdown-item" style="width: 100%; border: none; background: transparent; text-align: left;">
+                            <i class="fas fa-sign-out-alt icon-margin"></i> Sair
                         </button>
                     </form>
                 </li>
@@ -79,51 +64,44 @@
         </div>
 
         <div class="dropdown">
-            <button class="btn-morph-navbar dropdown-toggle px-3" type="button" id="navDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <button class="btn-nav dropdown-toggle" type="button" id="navDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="fas fa-bars"></i>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end morph-dropdown" aria-labelledby="navDropdown">
-                
+            <ul class="dropdown-menu nav-dropdown-menu dropdown-menu-end" aria-labelledby="navDropdown">
                 <li>
                     <a class="dropdown-item" href="{% url 'estante' %}">
-                        <i class="fas fa-book me-2"></i> Livros
+                        <i class="fas fa-book icon-margin"></i> Livros
                     </a>
                 </li>
                 <li>
                     <a class="dropdown-item" href="{% url 'galeria_videos' %}">
-                        <i class="fas fa-video me-2"></i> Vídeos
+                        <i class="fas fa-video icon-margin"></i> Vídeos
                     </a>
                 </li>
                 
                 {% if request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_GERAL' or request.user.tipo == 'ADMIN' %}
-                
-                
-                <li>
-                    <a class="dropdown-item" href="{% url 'painel_gestao' %}">
-                        <i class="fas fa-cogs me-2"></i> Painel de Controle
-                    </a>
-                </li>
-
-                <li>
-                    <a class="dropdown-item" href="{% url 'vincular_cartoes' %}">
-                        <i class="fas fa-id-card me-1"></i> Vincular Cartões
-                    </a>
-                </li>
-
-                {% if user.tipo == 'GESTOR_LOCAL' or user.tipo == 'ADMIN' %}
                     <li>
-                        <a class="dropdown-item" href="{% url 'criar_turma' %}">
-                            <i class="fas fa-chalkboard me-1"></i> Gerenciar Turmas
+                        <a class="dropdown-item" href="{% url 'painel_gestao' %}">
+                            <i class="fas fa-cogs icon-margin"></i> Painel de Controle
                         </a>
                     </li>
-                {% endif %}
-
-                <li>
-                    <a class="dropdown-item" href="{% url 'kai_chat' %}">
-                        <img src="{% static 'core/img/kai.png' %}" alt="Kai" style="width: 1.5rem; height: 1.5rem; object-fit: contain; margin-right: 8px;"> Falar com a Kai
-                    </a>
-                </li>
-
+                    <li>
+                        <a class="dropdown-item" href="{% url 'vincular_cartoes' %}">
+                            <i class="fas fa-id-card icon-margin"></i> Vincular Cartões
+                        </a>
+                    </li>
+                    {% if user.tipo == 'GESTOR_LOCAL' or user.tipo == 'ADMIN' %}
+                        <li>
+                            <a class="dropdown-item" href="{% url 'criar_turma' %}">
+                                <i class="fas fa-chalkboard icon-margin"></i> Gerenciar Turmas
+                            </a>
+                        </li>
+                    {% endif %}
+                    <li>
+                        <a class="dropdown-item" href="{% url 'kai_chat' %}">
+                            <img src="{% static 'core/img/kai.png' %}" alt="Kai" class="kai-menu-icon"> Falar com a Kai
+                        </a>
+                    </li>
                 {% endif %}
             </ul>
         </div>
@@ -131,57 +109,39 @@
     </div>
 </nav>
 
-
 {% if request.resolver_match.url_name == 'estante' %}
-
     <div id="kai-popup-container" class="kai-floating-popup" style="display: none;">
         
         <div class="kai-speech-bubble">
             <button onclick="fecharKaiPopup()" class="kai-close-btn" title="Fechar">
                 <i class="fas fa-times"></i>
             </button>
-            
-            <p class="mb-2" style="color: #5e6e82; line-height: 1.4;">
-                <strong style="color: #2288c4;">Olá! Sou a Kai! 👋</strong><br>
+            <p style="margin-bottom: 8px; color: var(--search-text); line-height: 1.4;">
+                <strong style="color: var(--nav-bg);">Olá! Sou a Kai! 👋</strong><br>
                 Precisa de ideias novas para a sua aula de hoje? Vamos conversar!
             </p>
-            
-            <a href="{% url 'kai_chat' %}" class="btn-morph w-100 mt-1 text-center text-decoration-none" style="font-size: 0.8rem; padding: 6px 15px;">
+            <a href="{% url 'kai_chat' %}" class="btn-nav" style="width: 100%; font-size: 0.8rem; background: var(--nav-bg);">
                 Falar com a Kai 🚀
             </a>
         </div>
 
         <a href="{% url 'kai_chat' %}">
-            <img src="{% static 'core/img/kai.png' %}" alt="Kai" class="kai-mascote-img" style="animation: flutuarKai 3s ease-in-out infinite;">
+            <img src="{% static 'core/img/kai.png' %}" alt="Kai" class="kai-mascote-img">
         </a>
     </div>
 
-    <style>
-        @keyframes flutuarKai {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
-        }
-    </style>
-
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Como você quer que apareça SEMPRE na estante, tiramos a restrição de memória.
-            // Espera apenas 1.5 segundos para a animação da página terminar e a Kai "pular" na tela.
             setTimeout(() => {
                 const popup = document.getElementById('kai-popup-container');
-                if (popup) {
-                    popup.style.display = 'flex';
-                }
+                if (popup) popup.style.display = 'flex';
             }, 1500);
         });
 
         function fecharKaiPopup() {
-            // Esconde o popup apenas por agora (quando o usuário atualizar a página, ela volta)
             document.getElementById('kai-popup-container').style.display = 'none';
         }
     </script>
-
 {% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

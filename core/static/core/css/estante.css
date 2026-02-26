@@ -1,0 +1,189 @@
+/* core/static/core/css/estante.css */
+
+:root {
+    --card-bg: #ebebeb;
+    --card-shadow: 5px 5px 5px #b8c1cd;
+    --card-shadow-hover: 8px 8px 10px #b8c1cd;
+    --cover-bg: #ecf0f3;
+    --cover-shadow: inset 5px 5px 10px #b8c1cd, inset -5px -5px 10px #faffff;
+    
+    --text-dark: #151b22;
+    --text-muted: #5b626b;
+    --badge-bg: #ffc107;
+    --badge-text: #212529;
+    
+    --radius-card: 15px;
+    --radius-cover: 10px;
+    --transition-fast: all 0.2s ease;
+}
+
+/* --- ESTRUTURA PRINCIPAL --- */
+.estante-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.alert-gestor {
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: #5e5e5e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* --- COLEÇÕES --- */
+.colecao-section {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+.colecao-title {
+    color: var(--text-muted);
+    font-weight: 400;
+    font-size: 1.3rem;
+    margin-bottom: 0;
+}
+
+.colecao-divider {
+    border: none;
+    border-top: 2px solid var(--text-muted);
+    opacity: 0.5;
+    margin-top: 5px;
+    margin-bottom: 20px;
+}
+
+/* --- MÁGICA DO GRID RESPONSIVO (Mobile First) --- */
+.books-grid {
+    display: grid;
+    gap: 20px;
+    /* CELULAR: Cria 1 coluna no centro, com largura máxima de 300px para o card não esticar bizarramente */
+    grid-template-columns: minmax(auto, 300px);
+    justify-content: center;
+}
+
+/* --- CARD DO LIVRO --- */
+.book-card {
+    background-color: var(--card-bg);
+    border-radius: var(--radius-card);
+    padding: 15px;
+    box-shadow: var(--card-shadow);
+    transition: var(--transition-fast);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Garante que todos na mesma linha tenham a mesma altura */
+}
+
+.book-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--card-shadow-hover);
+}
+
+.book-cover {
+    width: 100%;
+    min-height: 200px;
+    background-color: var(--cover-bg);
+    border-radius: var(--radius-cover);
+    box-shadow: var(--cover-shadow);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 10px;
+}
+
+.book-cover img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(5px 5px 10px rgba(0,0,0,0.2));
+    border-radius: 5px;
+}
+
+.title-wrapper {
+    min-height: 3.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.book-title {
+    color: var(--text-dark);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.badge-professor {
+    align-self: center;
+    background-color: var(--badge-bg);
+    color: var(--badge-text);
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    display: inline-block;
+}
+
+/* --- BOTÕES DO CARD --- */
+.card-actions {
+    margin-top: auto; /* Empurra os botões sempre para o fundo do card, alinhando tudo */
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.btn-card {
+    border-radius: 10px;
+    background: #2288c4;
+    color: #ffffff;
+    padding: 8px 15px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: var(--transition-fast);
+    border: none;
+    cursor: pointer;
+}
+
+.btn-card:hover {
+    background: #5e6e82;
+    color: #ffffff;
+}
+
+.btn-card-secondary {
+    background-color: #5e6e82;
+    font-size: 0.75rem;
+}
+
+.btn-card-secondary:hover {
+    background-color: #4a5768;
+}
+
+.empty-state {
+    text-align: center;
+    color: var(--text-muted);
+    margin-top: 3rem;
+}
+
+/* =========================================
+   DESKTOP VIEW (Tablets e PCs)
+   ========================================= */
+@media (min-width: 576px) {
+    .books-grid {
+        /* Cria colunas automáticas (mínimo de 220px cada). 
+           Alinha tudo à esquerda (start) quando a tela cresce! */
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        justify-content: start;
+    }
+}
