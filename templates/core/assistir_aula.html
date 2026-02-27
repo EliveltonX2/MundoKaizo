@@ -3,7 +3,11 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/mkz.svg' %}">
+    <link rel="icon" type="image/png" href="{% static 'core/ico/favicon/favicon-96x96.png' %}" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="{% static 'core/ico/favicon/favicon.svg' %}" />
+    <link rel="shortcut icon" href="{% static 'core/ico/favicon/favicon.ico' %}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'core/ico/favicon/apple-touch-icon.png' %}" />
+    <link rel="manifest" href="{% static 'core/ico/favicon/site.webmanifest' %}" />
     <title>{{ aula_atual.titulo }} - MundoKaizo</title>
     <meta name="referrer" content="strict-origin-when-cross-origin">
     
@@ -61,20 +65,21 @@
 
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4 style="color: #5e6e82; margin: 0;">{{ aula_atual.titulo }}</h4>
-                
-                <div>
-                    {% if aula_anterior %}
+                <!--
+                    <div>
+                        {% if aula_anterior %}
                         <a href="{% url 'assistir_aula' aula_anterior.id %}" class="btn-morph" title="Aula Anterior">
                             <i class="fas fa-step-backward"></i>
                         </a>
-                    {% endif %}
-                    
-                    {% if proxima_aula %}
+                        {% endif %}
+                        
+                        {% if proxima_aula %}
                         <a href="{% url 'assistir_aula' proxima_aula.id %}" class="btn-morph ms-2" title="Próxima Aula">
                             <i class="fas fa-step-forward"></i>
                         </a>
-                    {% endif %}
-                </div>
+                        {% endif %}
+                    </div>
+                -->
             </div>
             
             <div class="card-panel">

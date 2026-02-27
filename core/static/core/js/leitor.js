@@ -33,24 +33,27 @@ window.onload = function() {
         if (imagensPendentes === 0) esconderLoader();
     }
 
-    // --- CONFIGURAÇÃO DO PAGEFLIP (Inteligência Stretch Nativa) ---
+    // --- CONFIGURAÇÃO DO PAGEFLIP (Cálculo Extremamente Flexível) ---
     const pageFlipElement = document.getElementById('flipbook');
     const movableLayer = document.getElementById('movable');
     const stage = document.getElementById('stage');
 
+    // A MÁGICA DE ENQUADRAMENTO: Reduzimos os tamanhos mínimos para quase zero.
+    // Assim, o "autoSize: true" tem liberdade total para encolher o livro e caber 
+    // em qualquer tela de celular, sem nunca vazar para os lados.
     const pageFlip = new St.PageFlip(pageFlipElement, {
-        width: 420,  // Proporção exata de largura
-        height: 594, // Proporção exata de altura
-        size: 'fixed', // A MÁGICA 1: Mantém a proporção de folha A4 intacta
-        autoSize: true, // A MÁGICA 2: Dá um "Zoom" inteligente para caber na tela sem distorcer
-        minWidth: 300,
-        maxWidth: 1000,
-        minHeight: 400,
-        maxHeight: 1500,
+        width: 420,  
+        height: 594, 
+        size: 'fixed', 
+        autoSize: true, 
+        minWidth: 50,    // <--- CÁLCULO LIVRE: Permite encolher infinitamente
+        maxWidth: 2000,
+        minHeight: 50,   // <--- CÁLCULO LIVRE: Permite encolher infinitamente
+        maxHeight: 2500,
         maxShadowOpacity: 0.5,
         showCover: true,
         mobileScrollSupport: false, 
-        usePortrait: true // Mantém a inteligência de 1 pág no celular e 2 no PC
+        usePortrait: true 
     });
 
     pageFlipElement.style.display = 'block';
@@ -58,31 +61,48 @@ window.onload = function() {
 
     // --- SISTEMA DE PRÉ-CARREGAMENTO INTELIGENTE ---
     function preloadPages(currentIndex) {
-        // Pega de 2 páginas antes até 3 páginas depois da atual
         const startIndex = Math.max(0, currentIndex - 2);
         const endIndex = Math.min(imagens.length - 1, currentIndex + 3);
 
         for (let i = startIndex; i <= endIndex; i++) {
             let img = imagens[i];
-            // Se a imagem tem o data-src, significa que ainda não foi carregada
             if (img && img.hasAttribute('data-src')) {
-                img.src = img.getAttribute('data-src'); // Aciona o download invisível
-                img.removeAttribute('data-src'); // Remove para não baixar duas vezes
+                img.src = img.getAttribute('data-src'); 
+                img.removeAttribute('data-src'); 
             }
         }
     }
-    
-    // Roda uma vez no início para garantir as páginas ao redor da capa
     preloadPages(0);
 
-    // Espera a biblioteca terminar de calcular o "autoSize" antes de mostrar
+    // MANTÉM A PROTEÇÃO CONTRA O BUG DO PULO: Só mostra o livro após o cálculo.
     pageFlip.on('init', () => {
         setTimeout(() => {
             pageFlipElement.style.opacity = '1';
         }, 50);
     });
 
-    // --- CONTROLES DE ZOOM E PAN (Agora entende Touch do Celular!) ---
+    // --- LÓGICA DE ESCONDER/MOSTRAR BARRA ---
+    const toggleBtn = document.getElementById('toggleToolbarBtn');
+    const controlsWrapper = document.getElementById('controlsWrapper');
+    const toggleIcon = document.getElementById('toggleToolbarIcon');
+    let toolbarVisible = true;
+
+    toggleBtn.onclick = () => {
+        toolbarVisible = !toolbarVisible;
+        if(toolbarVisible) {
+            controlsWrapper.classList.remove('hidden');
+            toggleBtn.classList.remove('btn-hidden-state');
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            controlsWrapper.classList.add('hidden');
+            toggleBtn.classList.add('btn-hidden-state');
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    };
+
+    // --- CONTROLES DE ZOOM E PAN ---
     let currentScale = 1;
     let translateX = 0;
     let translateY = 0;
@@ -104,7 +124,6 @@ window.onload = function() {
             isPanMode = false;
             panBtn.classList.remove('active');
             stage.style.cursor = 'default';
-            // Devolve o controle para virar as páginas com o dedo/mouse
             pageFlipElement.style.pointerEvents = 'auto'; 
             translateX = 0;
             translateY = 0;
@@ -121,7 +140,6 @@ window.onload = function() {
         if (isPanMode) {
             panBtn.classList.add('active');
             stage.style.cursor = 'grab';
-            // BLOQUEIA O PAGEFLIP: Evita virar a página sem querer enquanto você passeia pela imagem no Zoom!
             pageFlipElement.style.pointerEvents = 'none'; 
         } else {
             panBtn.classList.remove('active');
@@ -130,7 +148,6 @@ window.onload = function() {
         }
     };
 
-    // FUNÇÕES UNIFICADAS PARA MOUSE E TOUCH (DEDO)
     const handleDragStart = (e) => {
         if (!isPanMode) return;
         isDragging = true;
@@ -143,7 +160,7 @@ window.onload = function() {
 
     const handleDragMove = (e) => {
         if (!isDragging || !isPanMode) return;
-        e.preventDefault(); // Impede a tela do celular de rolar
+        e.preventDefault(); 
         let clientX = e.touches ? e.touches[0].clientX : e.clientX;
         let clientY = e.touches ? e.touches[0].clientY : e.clientY;
         translateX = clientX - startX;
@@ -157,17 +174,13 @@ window.onload = function() {
         stage.style.cursor = 'grab';
     };
 
-    // Eventos Mouse
     stage.addEventListener('mousedown', handleDragStart);
     stage.addEventListener('mousemove', handleDragMove);
     stage.addEventListener('mouseup', handleDragEnd);
     stage.addEventListener('mouseleave', handleDragEnd);
-
-    // Eventos Touch (Celular)
     stage.addEventListener('touchstart', handleDragStart, { passive: false });
     stage.addEventListener('touchmove', handleDragMove, { passive: false });
     stage.addEventListener('touchend', handleDragEnd);
-
 
     // --- LÓGICA DO VÍDEO CONTEXTUAL ---
     const videoBtn = document.getElementById('videoBtn');
@@ -175,14 +188,11 @@ window.onload = function() {
 
     function checkVideoAvailability() {
         if (!videoBtn) return; 
-
         const currentIndex = pageFlip.getCurrentPageIndex(); 
         const paginaEsquerda = currentIndex + 1;
         const mapa = window.mapaVideos || {};
-        
         let urlVideo = mapa[paginaEsquerda];
 
-        // Se o modo retrato está inativo (vendo 2 páginas), checa a da direita tbm
         if (pageFlip.getOrientation() === 'landscape' && currentIndex > 0) {
             const paginaDireita = currentIndex + 2;
             if (!urlVideo && mapa[paginaDireita]) {
@@ -218,12 +228,9 @@ window.onload = function() {
         pageInput.value = pageFlip.getCurrentPageIndex() + 1;
     }
 
-    // EVENTO FLIP: Acionado toda vez que uma página é virada
     pageFlip.on('flip', (e) => {
         checkVideoAvailability(); 
         updatePageInput();        
-        
-        // A MÁGICA DO PRELOAD ACONTECE AQUI AGORA (seguro e com o "e" correto!)
         if (e && e.data !== undefined) {
             preloadPages(e.data);
         }

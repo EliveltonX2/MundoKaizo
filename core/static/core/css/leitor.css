@@ -8,13 +8,13 @@
     --shadow-light: #faffff;
     --shadow-dark: #b8c1cd;
     --separator: #b8c1cd;
-    --btn-size: 45px; /* Botões um pouco maiores no celular para o dedo acertar mais fácil */
+    --btn-size: 40px; 
 }
 
 body {
     background-color: var(--bg-reader);
     height: 100vh;
-    height: 100dvh; /* Evita a barra de endereço do celular cortar o conteúdo */
+    height: 100dvh; 
     margin: 0;
     display: flex;
     flex-direction: column;
@@ -35,23 +35,21 @@ body {
 
 /* --- PALCO PRINCIPAL --- */
 .main-stage {
-    flex: 1;
+    flex-grow: 1; /* Ocupa todo o espaço restante abaixo da navbar */
     width: 100%;
     position: relative;
     overflow: hidden;
-    /* REMOVIDO: display: flex, justify-content, align-items e padding-bottom */
+    display: flex;
+    justify-content: center;
+    align-items: center;
     cursor: default;
     touch-action: none; 
 }
 
-/* CAMADA MÓVEL: Blindada contra tremedeiras do Flexbox */
+/* CAMADA MÓVEL: Rigorosamente 100% da tela disponível, impedindo o livro de vazar */
 .movable-layer {
-    position: absolute;
-    top: 15px;
-    bottom: 85px; 
-    left: 15px;   
-    right: 15px;  
-    /* Usamos Flexbox aqui DENTRO para centralizar o livro perfeitamente */
+    width: 100%;
+    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -61,7 +59,6 @@ body {
 
 /* O LIVRO */
 #flipbook {
-    /* REMOVIDO o width e height 100%. A biblioteca vai injetar o tamanho exato aqui! */
     display: none;
     opacity: 0; 
     transition: opacity 0.5s ease; 
@@ -71,10 +68,8 @@ body {
 .page { 
     background-color: white; 
     overflow: hidden; 
-    /* REMOVIDO o width e height 100% daqui também! */
     box-shadow: 0 0 10px rgba(0,0,0,0.1); 
 }
-
 .page img { 
     width: 100%; 
     height: 100%; 
@@ -83,27 +78,45 @@ body {
     user-select: none; 
 }
 
-/* --- BARRA DE CONTROLES --- */
-.controls-bar {
+/* --- DOCK FLUTUANTE ESTILO GEMINI --- */
+.controls-wrapper {
     position: absolute;
-    bottom: 15px;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 20px;
+    left: 0;
+    right: 0;
     display: flex;
-    flex-wrap: wrap; /* Permite quebrar linha em telas super estreitas */
     justify-content: center;
-    gap: 8px;
-    padding: 10px 15px;
-    background-color: rgba(249, 250, 251, 0.85);
-    backdrop-filter: blur(10px);
-    border-radius: 15px;
-    box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+    pointer-events: none; /* Deixa o clique passar pelas laterais vazias */
     z-index: 2000;
-    width: 95%;
-    max-width: 500px;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
 }
 
-.separator { width: 1px; height: 25px; background: var(--separator); margin: auto 2px; }
+.controls-wrapper.hidden {
+    transform: translateY(150px);
+    opacity: 0;
+}
+
+.controls-bar {
+    pointer-events: auto; /* Reativa o clique apenas na barra */
+    display: flex;
+    flex-wrap: nowrap; /* NUNCA quebra em duas linhas */
+    overflow-x: auto; /* Permite rolar horizontalmente se a tela for minúscula */
+    align-items: center;
+    gap: 8px;
+    padding: 8px 15px;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 30px; /* Formato Pílula */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    border: 1px solid var(--separator);
+    max-width: 95%;
+}
+
+/* Esconde a barra de rolagem visual da pílula, mas mantém o scroll funcional */
+.controls-bar::-webkit-scrollbar { display: none; }
+.controls-bar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.separator { width: 1px; height: 25px; background: var(--separator); margin: auto 2px; flex-shrink: 0; }
 
 /* Botões Circulares */
 .ctrl-btn {
@@ -112,20 +125,18 @@ body {
     border-radius: 50%;
     border: none;
     background: var(--ctrl-bg);
-    box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
     color: var(--ctrl-text);
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     transition: all 0.2s;
     font-size: 1rem;
     font-weight: bold;
+    flex-shrink: 0;
 }
+.ctrl-btn:hover { background: #5e6e82; }
+.ctrl-btn.active { background: #d9534f; color: white; }
+.ctrl-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.ctrl-btn:active { box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light); }
-.ctrl-btn.active { color: #007bff; box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light); }
-.ctrl-btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
-
-/* Botão de Vídeo (Pílula) */
 .video-btn-wide {
     width: auto !important;
     padding: 0 15px;
@@ -133,22 +144,34 @@ body {
     gap: 6px;
     font-size: 0.75rem;
     color: #d9534f !important; 
-    box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light) !important;
+    background: transparent;
+    border: 1px solid #d9534f;
     display: none; 
     align-items: center; justify-content: center;
     text-decoration: none;
     font-weight: bold;
+    flex-shrink: 0;
 }
+.video-btn-wide:hover { background: #d9534f; color: white !important; }
 
-/* =========================================
-   DESKTOP VIEW (Tablets e PCs)
-   ========================================= */
-@media (min-width: 768px) {
-    .controls-bar {
-        width: auto;
-        padding: 10px 20px;
-        gap: 15px;
-        bottom: 20px;
-    }
-    .video-btn-wide { font-size: 0.85rem; padding: 0 20px; }
+/* --- BOTÃO DE ESCONDER/MOSTRAR BARRA --- */
+.btn-toggle-toolbar {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-color: var(--ctrl-bg);
+    color: white;
+    border: none;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    z-index: 2001;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
 }
+.btn-toggle-toolbar:hover { transform: scale(1.05); }
+.btn-toggle-toolbar.btn-hidden-state { background-color: #5e6e82; }

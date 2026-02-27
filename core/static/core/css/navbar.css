@@ -121,6 +121,13 @@
     color: var(--nav-btn-hover-text);
 }
 
+.btn-inativo {
+    opacity: 0.5 !important; /* Deixa o botão meio transparente */
+    pointer-events: none !important; /* A MÁGICA: Impede o clique, o hover e não deixa abrir links */
+    cursor: not-allowed !important; /* Mostra o cursor de "proibido" */
+    filter: grayscale(80%); /* Tira um pouco da cor para dar aspecto de "desligado" */
+}
+
 .hide-mobile {
     display: none; /* Oculta textos auxiliares no celular para economizar espaço */
 }

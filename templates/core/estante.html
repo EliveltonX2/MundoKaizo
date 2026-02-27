@@ -4,7 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/mkz.svg' %}">
+    <link rel="icon" type="image/png" href="{% static 'core/ico/favicon/favicon-96x96.png' %}" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="{% static 'core/ico/favicon/favicon.svg' %}" />
+    <link rel="shortcut icon" href="{% static 'core/ico/favicon/favicon.ico' %}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'core/ico/favicon/apple-touch-icon.png' %}" />
+    <link rel="manifest" href="{% static 'core/ico/favicon/site.webmanifest' %}" />
     <title>Estante - MundoKaizo</title>
     
     <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
@@ -58,9 +62,11 @@
                             <div class="card-actions">
                                 <a href="{% url 'ler_livro' livro.id %}" class="btn-card">LER LIVRO</a>
                                 
-                                <a href="{% url 'lista_aulas' livro.id %}" class="btn-card">
-                                    <i class="fas fa-play-circle"></i> VIDEOAULAS
-                                </a>
+                                <!--
+                                    <a href="{% url 'lista_aulas' livro.id %}" class="btn-card">
+                                        <i class="fas fa-play-circle"></i> VIDEOAULAS
+                                    </a>
+                                -->
                                 
                                 {% if is_gestor or request.user.tipo == 'PROFESSOR' %}
                                     {% if livro.versao_professor_relacionada %}

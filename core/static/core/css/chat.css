@@ -55,7 +55,7 @@ body {
 .sessao-link {
     color: var(--msg-system);
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 300;
     flex-grow: 1;
     white-space: nowrap;
     overflow: hidden;
@@ -64,7 +64,7 @@ body {
 
 .sessao-wrapper:hover .sessao-link, .sessao-wrapper.active .sessao-link {
     color: var(--msg-user-bg);
-    font-weight: bold;
+    
 }
 
 .btn-opcoes-chat {
