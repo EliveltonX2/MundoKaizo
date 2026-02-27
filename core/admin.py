@@ -22,7 +22,7 @@ class PaginaInline(admin.TabularInline):
 class LivroAdmin(admin.ModelAdmin):
     inlines = [PaginaInline]
     list_display = ('titulo', 'colecao', 'volume', 'is_versao_professor', 'criado_em')
-    list_editable = ('colecao', 'volume', 'is_versao_professor')
+    list_editable = ('colecao', 'volume', 'is_versao_professor','is_demo')
 
 # Registrar os outros modelos simples
 admin.site.register(Cidade)
