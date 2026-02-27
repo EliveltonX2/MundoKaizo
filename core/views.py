@@ -474,12 +474,15 @@ def chat_view(request):
                 sessao = SessaoChat.objects.create(user=request.user)
 
             # 2. SISTEMA DE MEMÓRIA: Pega as últimas 10 mensagens
-            ultimas_mensagens = sessao.mensagens.all().order_by('-criado_em')[:10]
+            ultimas_mensagens = sessao.mensagens.all().order_by('-criado_em')[:12]
             contexto_texto = ""
             # Inverte a ordem para que o histórico fique cronológico para a IA ler
             for msg in reversed(ultimas_mensagens):
                 quem = "Professor" if msg.is_user else "Kai"
+
+
                 contexto_texto += f"{quem}: {msg.texto}\n"
+                
 
             # 3. Salva a nova pergunta no banco
             Mensagem.objects.create(sessao=sessao, is_user=True, texto=texto_usuario)
@@ -487,7 +490,7 @@ def chat_view(request):
             nome_professor = request.user.first_name if request.user.first_name else request.user.username
 
             # 4. Envia para a IA passando o contexto do histórico
-            resposta_ia_texto = enviar_mensagem_para_ia(texto_usuario, contexto_texto, nome_professor)
+            resposta_ia_texto = enviar_mensagem_para_ia(texto_usuario, contexto_texto, nome_professor, request.user.tipo)
 
             # 5. Salva a resposta e converte para HTML (Markdown)
             Mensagem.objects.create(sessao=sessao, is_user=False, texto=resposta_ia_texto)
@@ -529,3 +532,31 @@ def chat_view(request):
         'historico': historico
     }
     return render(request, 'core/chat.html', context)
+
+@login_required
+def renomear_chat(request, sessao_id):
+    if request.method == 'POST':
+        try:
+            dados = json.loads(request.body)
+            novo_titulo = dados.get('titulo')
+            
+            # Busca a sessão garantindo que pertence ao usuário logado
+            sessao = SessaoChat.objects.get(id=sessao_id, user=request.user)
+            sessao.titulo = novo_titulo
+            sessao.save()
+            
+            return JsonResponse({'status': 'sucesso'})
+        except Exception as e:
+            return JsonResponse({'status': 'erro', 'mensagem': str(e)}, status=400)
+    return JsonResponse({'status': 'metodo_invalido'}, status=405)
+
+@login_required
+def deletar_chat(request, sessao_id):
+    if request.method == 'POST':
+        try:
+            sessao = SessaoChat.objects.get(id=sessao_id, user=request.user)
+            sessao.delete()
+            return JsonResponse({'status': 'sucesso'})
+        except Exception as e:
+            return JsonResponse({'status': 'erro', 'mensagem': str(e)}, status=400)
+    return JsonResponse({'status': 'metodo_invalido'}, status=405)

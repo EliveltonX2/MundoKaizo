@@ -269,17 +269,6 @@ body {
     transform: scale(1.08) rotate(-5deg); /* Dá uma mexidinha ao passar o mouse */
 }
 
-/* O Balão de Fala */
-.kai-speech-bubble {
-    position: relative;
-    padding: 15px 20px 20px 20px;
-    max-width: 260px;
-    background-color: #f9fafb;
-    /* Bordas arredondadas, mas a ponta inferior direita é reta para "apontar" pra mascote */
-    border-radius: 20px 20px 0px 20px; 
-    box-shadow: 5px 5px 5px #b8c1cd;
-}
-
 /* Botão de Fechar no canto superior direito do balão */
 .kai-close-btn {
     position: absolute;
@@ -313,10 +302,5 @@ body {
     }
     .kai-mascote-img {
         width: 80px; 
-    }
-    .kai-speech-bubble {
-        max-width: 200px;
-        padding: 12px;
-        font-size: 0.85rem;
     }
 }

@@ -85,23 +85,10 @@
 .book-cover {
     width: 100%;
     min-height: 200px;
-    background-color: var(--cover-bg);
     border-radius: var(--radius-cover);
-    box-shadow: var(--cover-shadow);
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    padding: 10px;
-}
-
-.book-cover img {
-    width: 100%;
     height: auto;
     object-fit: contain;
-    filter: drop-shadow(5px 5px 10px rgba(0,0,0,0.2));
-    border-radius: 5px;
+    overflow: hidden;
 }
 
 .title-wrapper {

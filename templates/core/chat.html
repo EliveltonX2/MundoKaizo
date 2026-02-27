@@ -31,7 +31,7 @@
                 
                 <div class="offcanvas-body flex-column p-0">
                     <div class="mb-3 px-3 px-md-0">
-                        <a href="{% url 'kai_chat' %}?nova=true" class="btn-morph w-100 text-center text-decoration-none">
+                        <a href="{% url 'kai_chat' %}?nova=true" class="btn-morph w-100 text-center text-decoration-none" style="padding: 10px;">
                             + Nova Conversa
                         </a>
                     </div>
@@ -40,9 +40,35 @@
                     
                     <div class="px-3 px-md-0 w-100">
                         {% for sessao in sessoes %}
-                            <a href="?sessao={{ sessao.id }}" class="sessao-item {% if sessao_atual and sessao_atual.id == sessao.id %}active{% endif %}">
-                                💬 Chat de {{ sessao.criado_em|date:"d/m/Y" }}
-                            </a>
+                            <div class="sessao-wrapper {% if sessao_atual and sessao_atual.id == sessao.id %}active{% endif %}">
+                                <a href="?sessao={{ sessao.id }}" class="sessao-link" title="{{ sessao.titulo|default:'Nova Conversa' }}">
+                                    💬 
+                                    {% if sessao.titulo %}
+                                        {{ sessao.titulo }}
+                                    {% else %}
+                                        Chat de {{ sessao.criado_em|date:"d/m/Y" }}
+                                    {% endif %}
+                                </a>
+
+                                <div class="dropdown">
+                                    <button class="btn-opcoes-chat" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 12px; border: none;">
+                                        <li>
+                                            <a class="dropdown-item" href="#" onclick="abrirModalRenomear({{ sessao.id }}, '{% if sessao.titulo %}{{ sessao.titulo }}{% else %}Chat de {{ sessao.criado_em|date:"d/m/Y" }}{% endif %}')">
+                                                <i class="fas fa-pen me-2" style="color: #2288c4;"></i> Renomear
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="#" onclick="abrirModalDeletar({{ sessao.id }})">
+                                                <i class="fas fa-trash me-2"></i> Excluir Chat
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
                         {% empty %}
                             <p class="text-muted text-center mt-3 p-2" style="font-size: 0.85rem;">Nenhuma conversa ainda.</p>
                         {% endfor %}
@@ -59,33 +85,84 @@
                 </div>
 
                 <div id="caixa-chat" class="mensagens-box">
-                    {% if not historico %}
-                        <div class="msg-boas-vindas" id="msg-boas-vindas">
-                            <h4>Olá! Eu sou a Kai 👋</h4>
-                            <p>Como posso ajudar nas suas aulas hoje?</p>
-                        </div>
-                    {% endif %}
-                    
-                    {% for msg in historico %}
-                        <div class="balao {% if msg.is_user %}balao-usuario{% else %}balao-ia{% endif %}">
-                            {% if not msg.is_user %}
-                                <b style="color: var(--msg-user-bg);">
-                                    <img src="{% static 'core/img/kai.png' %}" alt="Kai" style="width: 2rem; height: 2rem; object-fit: contain; margin-right: 8px;"> Kai:
-                                </b><br>
-                            {% endif %}
-                            {{ msg.html_texto|safe }}
-                        </div>
-                    {% endfor %}
+                    <div class="mensagens-content" id="mensagens-content">
+                        {% if not historico %}
+                            <div class="msg-boas-vindas" id="msg-boas-vindas">
+                                <img src="{% static 'core/img/kai.png' %}" alt="Kai" style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 15px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1));">
+                                <h4>Olá! Eu sou a Kai 👋</h4>
+                                <p>Como posso ajudar nas suas aulas hoje?</p>
+                            </div>
+                        {% endif %}
+                        
+                        {% for msg in historico %}
+                            <div class="balao {% if msg.is_user %}balao-usuario{% else %}balao-ia{% endif %}">
+                                {% if not msg.is_user %}
+                                    <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                        <img src="{% static 'core/img/kai.png' %}" alt="Kai" style="width: 24px; height: 24px; object-fit: contain; margin-right: 8px;">
+                                        <b style="color: #2288c4;">Kai:</b>
+                                    </div>
+                                {% endif %}
+                                {{ msg.html_texto|safe }}
+                            </div>
+                        {% endfor %}
+                    </div>
                 </div>
 
-                <div class="input-area">
-                    <input type="text" id="mensagem-input" class="search-input" placeholder="Pergunte algo para a Kai..." onkeypress="handleEnter(event)">
-                    <button class="btn-enviar" onclick="enviarMensagem()">
-                        <img src="{% static 'core/ico/enviar-correio.png' %}" alt="Enviar">
-                    </button>
+                <button id="btnScrollBottom" class="btn-scroll-bottom" onclick="rolarChatParaFim()">
+                    <i class="fas fa-arrow-down"></i>
+                </button>
+
+                <div class="floating-input-container" style="bottom: 10px;">
+                    <div class="input-wrapper-column">
+                        <div class="input-area">
+                            <input type="text" id="mensagem-input" class="search-input" placeholder="Pergunte algo para a Kai..." onkeypress="handleEnter(event)">
+                            <button class="btn-enviar" onclick="enviarMensagem()">
+                                <img src="{% static 'core/ico/enviar-correio.png' %}" alt="Enviar">
+                            </button>
+                        </div>
+                        
+                        <div class="disclaimer-text">
+                            A Kai é uma IA e pode cometer erros. Considere verificar informações importantes.
+                        </div>
+                    </div>
                 </div>
             </div>
             
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalRenomear" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content" style="border-radius: 15px; border: none;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" style="color: #2288c4;">Renomear Chat</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="inputRenomearId">
+                    <input type="text" id="inputRenomearNome" class="form-control" style="border-radius: 10px; background-color: #f9fafb;" placeholder="Novo nome...">
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-morph w-100" onclick="salvarNovoNome()">Salvar Nome</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalDeletar" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content" style="border-radius: 15px; border: none;">
+                <div class="modal-body text-center p-4">
+                    <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                    <h5 class="fw-bold text-dark">Excluir conversa?</h5>
+                    <p class="text-muted small mb-4">Esta ação não pode ser desfeita. Todo o histórico da Kai será perdido.</p>
+                    <input type="hidden" id="inputDeletarId">
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-light w-50" data-bs-dismiss="modal" style="border-radius: 10px;">Cancelar</button>
+                        <button type="button" class="btn btn-danger w-50" onclick="confirmarDelecao()" style="border-radius: 10px; font-weight: bold;">Excluir</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -96,27 +173,17 @@
         let sessaoAtualId = {% if sessao_atual %}{{ sessao_atual.id }}{% else %}null{% endif %};
     </script>
     
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
     <script>
         function rolarChatParaFim() {
             const caixaChat = document.getElementById('caixa-chat');
             if(caixaChat) {
-                // Joga a barra de rolagem lá para a altura máxima do conteúdo
                 caixaChat.scrollTop = caixaChat.scrollHeight;
             }
         }
-
-        // Executa assim que a página carregar todo o HTML
         document.addEventListener('DOMContentLoaded', function() {
             rolarChatParaFim();
-            
-            // Um pequeno delay garante que rolará caso tenha imagens carregando
             setTimeout(rolarChatParaFim, 200);
         });
-
-        // *Dica: Lembre-se de colocar um 'rolarChatParaFim();' dentro da sua função
-        // enviarMensagem() (lá no seu chat.js) logo após adicionar a mensagem na tela!
     </script>
 
     <script src="{% static 'core/js/chat.js' %}"></script>

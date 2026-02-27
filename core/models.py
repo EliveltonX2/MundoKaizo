@@ -259,6 +259,7 @@ class VideoAula(models.Model):
 class SessaoChat(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     criado_em = models.DateTimeField(auto_now_add=True)
+    titulo = models.CharField(max_length=100, blank=True, null=True)
     
     def __str__(self):
         return f"Chat de {self.user.username} em {self.criado_em.strftime('%d/%m/%Y')}"

@@ -1,38 +1,30 @@
 /* core/static/core/css/chat.css */
 
 :root {
-    /* Cores do Chat */
     --chat-bg: #f9fafb;
     --chat-border: #d9e3f1;
     --msg-user-bg: #2288c4;
     --msg-user-text: #ffffff;
-    --msg-ia-bg: #ebebeb;
+    --msg-ia-bg: transparent; /* Gemini Style: Sem fundo para a IA */
     --msg-ia-text: #5e6e82;
     --msg-system: #5e6e82;
-    
-    /* Estrutura */
     --radius-balao: 15px;
     --transition-fast: all 0.2s ease;
 }
 
-/* --- TRAVA DE ROLAGEM GLOBAL --- */
-/* Isso proíbe que a página inteira crie uma barra de rolagem. 
-   Apenas as mensagens vão rolar! */
 body {
     overflow: hidden; 
 }
 
-/* --- ESTRUTURA BASE (Mobile First) --- */
 .chat-wrapper { 
-    /* Altura dinâmica baseada na tela, descontando a navbar (~70px) */
     height: calc(100dvh - 70px); 
     display: flex; 
     width: 100%;
-    padding: 10px 0; /* Respiro em cima e embaixo no celular */
+    padding: 10px 0; 
     gap: 0; 
 }
 
-/* --- SIDEBAR RESPONSIVA (Offcanvas no Celular) --- */
+/* --- SIDEBAR RESPONSIVA --- */
 .sidebar-chats { 
     width: 300px;
     background-color: var(--chat-bg);
@@ -41,26 +33,49 @@ body {
     flex-direction: column;
 }
 
-.sessao-item { 
-    display: block; 
-    padding: 12px 15px; 
-    color: var(--msg-system); 
-    text-decoration: none; 
+/* --- ITENS DO HISTÓRICO COM 3 PONTINHOS --- */
+.sessao-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 15px;
     border-radius: 10px;
     margin-bottom: 8px;
     transition: var(--transition-fast);
-    font-weight: 500;
 }
 
-.sessao-item:hover, .sessao-item.active { 
-    background-color: var(--chat-border); 
-    color: var(--msg-user-bg);
+.sessao-wrapper:hover, .sessao-wrapper.active {
+    background-color: var(--chat-border);
 }
 
-.sessao-item.active { 
-    font-weight: bold;
+.sessao-wrapper.active {
     box-shadow: inset 3px 3px 6px #b8c1cd, inset -3px -3px 6px #faffff;
 }
+
+.sessao-link {
+    color: var(--msg-system);
+    text-decoration: none;
+    font-weight: 500;
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; 
+}
+
+.sessao-wrapper:hover .sessao-link, .sessao-wrapper.active .sessao-link {
+    color: var(--msg-user-bg);
+    font-weight: bold;
+}
+
+.btn-opcoes-chat {
+    color: #99aab5;
+    background: transparent;
+    border: none;
+    padding: 5px;
+    border-radius: 5px;
+    transition: var(--transition-fast);
+}
+.btn-opcoes-chat:hover { color: var(--msg-user-bg); }
 
 /* --- ÁREA PRINCIPAL DO CHAT --- */
 .chat-area { 
@@ -69,44 +84,53 @@ body {
     display: flex; 
     flex-direction: column; 
     height: 100%; 
-    overflow: hidden; /* Impede que o conteúdo vaze e quebre o layout */
+    overflow: hidden; 
+    position: relative; /* FUNDAMENTAL para ancorar o input flutuante */
 }
 
-/* A ÚNICA ÁREA QUE ROLA */
+/* Área que efetivamente rola */
 .mensagens-box { 
     flex-grow: 1; 
     overflow-y: auto; 
-    padding: 10px; 
     display: flex; 
     flex-direction: column; 
-    gap: 15px; 
-    background-color: var(--chat-bg);
-    border-radius: var(--radius-balao);
-    margin-bottom: 10px; 
+    align-items: center; /* Centraliza as mensagens (Gemini Style) */
+    padding: 20px 10px; 
+}
+
+/* Limitador de largura para leitura confortável */
+.mensagens-content {
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-bottom: 100px; /* Respiro para não esconder atrás da caixa flutuante */
 }
 
 /* --- BALÕES DE MENSAGEM --- */
 .balao { 
-    max-width: 95%; /* Aproveita quase toda a tela no celular */
-    padding: 12px 15px; 
-    border-radius: var(--radius-balao); 
+    max-width: 90%; 
+    padding: 12px 18px; 
     line-height: 1.6; 
-    font-size: 0.95rem; 
+    font-size: 1rem; 
     word-wrap: break-word; 
 }
 
 .balao-usuario { 
     align-self: flex-end; 
-    background-color: var(--msg-user-bg); 
-    color: var(--msg-user-text); 
-    border-bottom-right-radius: 2px;
+    background-color: var(--chat-border); 
+    color: #151b22; 
+    border-radius: 20px 20px 4px 20px;
 }
 
 .balao-ia { 
     align-self: flex-start; 
     background-color: var(--msg-ia-bg); 
     color: var(--msg-ia-text); 
-    border-bottom-left-radius: 2px; 
+    border-radius: var(--radius-balao);
+    max-width: 100%;
+    padding: 12px 0; /* Menos padding lateral pois não tem caixa de cor */
 }
 
 .msg-boas-vindas {
@@ -115,78 +139,149 @@ body {
     margin: auto 0;
 }
 
-.msg-boas-vindas h4 {
-    color: var(--msg-user-bg);
-    font-weight: 700;
-    margin-bottom: 5px;
+/* --- INPUT FLUTUANTE (GEMINI STYLE) --- */
+.floating-input-container {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    padding: 0 15px;
+    pointer-events: none; /* Deixa o clique passar pelas laterais vazias */
 }
 
-/* --- ÁREA DO INPUT (Travada no rodapé) --- */
 .input-area { 
+    pointer-events: auto; /* Reativa o clique apenas na caixa */
+    width: 100%;
+    max-width: 800px;
+    background-color: #ffffff;
+    border-radius: 10px; /* Estilo pílula */
+    padding: 8px 10px 8px 20px;
     display: flex;
-    gap: 10px;
     align-items: center;
-    background: transparent; 
-    padding: 5px 0;
-    flex-shrink: 0; /* MÁGICA: Nunca deixa a caixa de texto ser esmagada */
+    gap: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1); /* Sombra elegante */
+    border: 1px solid var(--chat-border);
 }
 
 .search-input {
     flex-grow: 1;
-    padding: 12px 15px;
-    font-size: 16px; /* 16px obrigatório para iPhone não dar zoom automático! */
-    border-radius: 10px;
+    font-size: 16px;
     border: none;
-    box-shadow: inset 3px 3px 6px #b8c1cd, inset -3px -3px 6px #faffff;
+    background: transparent;
     outline: none;
+    color: #151b22;
 }
 
 .btn-enviar {
     height: 2.8rem;
     width: 2.8rem;
     border: none;
-    background-color: transparent;
+    background-color: var(--chat-border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0; 
-}
-
-.btn-enviar img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
     transition: var(--transition-fast);
 }
 
-.btn-enviar:active img {
-    transform: scale(0.9);
+.btn-enviar img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    transition: transform 0.2s;
 }
 
+.btn-enviar:hover { background-color: #b8c1cd; }
+.btn-enviar:active img { transform: scale(0.9); }
+
 /* =========================================
-   DESKTOP VIEW (A partir de 768px - Tablet/PC)
+   DESKTOP VIEW
    ========================================= */
 @media (min-width: 768px) {
-    .chat-wrapper { 
-        gap: 20px; 
-        padding: 15px 0;
-    }
-
+    .chat-wrapper { gap: 20px; padding: 15px 0; }
     .sidebar-chats {
         width: 280px;
         background-color: transparent;
         border-right: 2px solid var(--chat-border);
         padding-right: 15px;
     }
+}
 
-    .mensagens-box {
-        padding: 15px 20px;
-        gap: 20px;
-    }
+/* =========================================
+   NOVAS FUNCIONALIDADES (Scroll, Pensando, Aviso)
+   ========================================= */
 
-    .balao {
-        max-width: 85%; /* Balões não precisam ir de ponta a ponta no PC */
-        padding: 15px 20px;
-    }
+/* Texto de Aviso (Disclaimer) abaixo do input */
+.disclaimer-text {
+    font-size: 0.75rem;
+    color: #99aab5;
+    margin-top: 8px;
+    text-align: center;
+    font-weight: 500;
+}
 
-    .input-area {
-        gap: 15px;
-    }
+/* Envolve o input e o aviso na mesma coluna */
+.input-wrapper-column {
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: auto; /* Reativa o clique nessa área */
+}
+
+/* Botão de "Voltar pro Fim" */
+.btn-scroll-bottom {
+    position: absolute;
+    bottom: 110px; /* Fica posicionado logo acima da caixa de mensagem flutuante */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.95);
+    border: 1px solid var(--chat-border);
+    color: var(--msg-system);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    cursor: pointer;
+    z-index: 99;
+    display: none; /* Fica escondido por padrão, o JS vai mostrar */
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-fast);
+}
+
+.btn-scroll-bottom:hover {
+    background-color: var(--chat-bg);
+    color: var(--msg-user-bg);
+}
+
+/* Animação das Bolinhas (Kai Pensando) */
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--msg-system);
+    font-size: 0.95rem;
+    padding: 10px 0;
+}
+
+.typing-indicator .dot {
+    width: 6px;
+    height: 6px;
+    background-color: var(--msg-system);
+    border-radius: 50%;
+    animation: blink 1.4s infinite both;
+}
+
+.typing-indicator .dot:nth-child(1) { animation-delay: 0s; }
+.typing-indicator .dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator .dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes blink {
+    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1.2); }
 }

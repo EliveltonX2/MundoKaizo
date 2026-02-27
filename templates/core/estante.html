@@ -44,10 +44,9 @@
                     
                     {% for livro in colecao.list %}
                         <div class="book-card">
-                            <div class="book-cover">
-                                <img src="{{ livro.capa.url }}" alt="{{ livro.titulo }}">
-                            </div>
-
+                            
+                            <img class="book-cover" src="{{ livro.capa.url }}" alt="{{ livro.titulo }}">
+                         
                             <div class="title-wrapper">
                                 <h5 class="book-title">{{ livro.titulo }}</h5>
                             </div>

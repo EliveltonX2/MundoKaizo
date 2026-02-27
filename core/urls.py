@@ -34,7 +34,10 @@ urlpatterns = [
     path('api/turmas/<int:escola_id>/', views.api_turmas_por_escola, name='api_turmas'),
     path('gestao/vincular-cartoes/', views.vincular_cartoes_view, name='vincular_cartoes'),
     path('gestao/nova-turma/', views.criar_turma_view, name='criar_turma'),
+    
     path('kai/', views.chat_view, name='kai_chat'),
+    path('kai/renomear/<int:sessao_id>/', views.renomear_chat, name='renomear_chat'),
+    path('kai/deletar/<int:sessao_id>/', views.deletar_chat, name='deletar_chat'),
 ]
 
 if settings.DEBUG:
