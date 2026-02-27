@@ -59,15 +59,15 @@
                                     <button class="btn-opcoes-chat" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 12px; border: none;">
+                                    <ul class="dropdown-menu" style="border-radius: 10px; border: none;">
                                         <li>
-                                            <a class="dropdown-item" href="#" onclick="abrirModalRenomear({{ sessao.id }}, '{% if sessao.titulo %}{{ sessao.titulo }}{% else %}Chat de {{ sessao.criado_em|date:"d/m/Y" }}{% endif %}')">
-                                                <i class="fas fa-pen me-2" style="color: #2288c4;"></i> Renomear
+                                            <a class="dropdown-item-2" style="" href="#" onclick="abrirModalRenomear({{ sessao.id }}, '{% if sessao.titulo %}{{ sessao.titulo }}{% else %}Chat de {{ sessao.criado_em|date:"d/m/Y" }}{% endif %}')">
+                                                <i class="fas fa-pen me-2" style="color: #2288c4;"></i> <i style="color: #2288c4;"> Renomear </i>
                                             </a>
                                         </li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
-                                            <a class="dropdown-item text-danger" href="#" onclick="abrirModalDeletar({{ sessao.id }})">
+                                            <a class="dropdown-item-2 text-danger" href="#" onclick="abrirModalDeletar({{ sessao.id }})">
                                                 <i class="fas fa-trash me-2"></i> Excluir Chat
                                             </a>
                                         </li>

@@ -112,6 +112,13 @@ body {
     margin-bottom: 5px;
 }
 
+.dropdown-item-2 {
+    border-radius: 10px;
+    color: #007bff;
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
 .dropdown-item:hover {
     background-color: #d9e3f1;
     color: #007bff;
