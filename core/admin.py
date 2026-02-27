@@ -21,7 +21,7 @@ class PaginaInline(admin.TabularInline):
 @admin.register(Livro)
 class LivroAdmin(admin.ModelAdmin):
     inlines = [PaginaInline]
-    list_display = ('titulo', 'colecao', 'volume', 'is_versao_professor', 'criado_em')
+    list_display = ('titulo', 'colecao', 'volume', 'is_versao_professor', 'is_demo', 'criado_em')
     list_editable = ('colecao', 'volume', 'is_versao_professor','is_demo')
 
 # Registrar os outros modelos simples
