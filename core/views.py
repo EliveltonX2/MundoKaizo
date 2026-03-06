@@ -595,7 +595,7 @@ def atualizar_localizacao_gps(request):
             
             if cidade and estado:
                 # Colocamos um emoji de pino para você saber no Admin que essa info veio do GPS (alta precisão)
-                localizacao_exata = f"📍 {cidade}, {estado} (GPS)"
+                localizacao_exata = f"📍 {cidade}, {estado} (GPS) [{lat}, {lon}]"
                 
                 # Atualiza o registro no banco de dados!
                 from .models import RegistroAcessoDemo
