@@ -4,6 +4,7 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.templatetags.static import static
+from django.utils import timezone
 
 # --- Estrutura Geográfica e Institucional ---
 class TokenCadastro(models.Model):
@@ -273,3 +274,22 @@ class Mensagem(models.Model):
 
     class Meta:
         ordering = ['criado_em'] # Garante que as mensagens fiquem na ordem certa
+        
+
+class RegistroAcessoDemo(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='acessos_demo')
+    ip = models.GenericIPAddressField(null=True, blank=True)
+    localizacao = models.CharField(max_length=255, blank=True, null=True)
+    dispositivo = models.CharField(max_length=255, blank=True, null=True)
+    data_login = models.DateTimeField(auto_now_add=True)
+    ultima_atividade = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Acesso de {self.user.username} em {self.data_login.strftime('%d/%m/%Y %H:%M')}"
+
+    @property
+    def tempo_navegacao_minutos(self):
+        # Calcula a diferença entre o login e a última página que ele clicou
+        diferenca = self.ultima_atividade - self.data_login
+        minutos = int(diferenca.total_seconds() / 60)
+        return minutos

@@ -2,7 +2,7 @@ from django.contrib import admin, messages
 from django.urls import path
 from django.shortcuts import render, redirect
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Cidade, Escola, Turma, Livro, Pagina,TokenCadastro, Colecao
+from .models import User, Cidade, Escola, Turma, Livro, Pagina,TokenCadastro, Colecao, RegistroAcessoDemo
 from django import forms
 import uuid
 
@@ -111,3 +111,37 @@ class TokenCadastroAdmin(admin.ModelAdmin):
             'title': "Gerar Lote de Cartões"
         }
         return render(request, 'admin/gerar_tokens.html', context)
+    
+
+@admin.register(RegistroAcessoDemo)
+class RegistroAcessoDemoAdmin(admin.ModelAdmin):
+    # As colunas que vão aparecer na tabela
+    list_display = ('user', 'data_login', 'tempo_navegacao', 'localizacao', 'dispositivo_curto')
+    
+    # Filtros laterais para você achar rápido se ele logou em dias diferentes
+    list_filter = ('data_login', 'user')
+    
+    # Barra de pesquisa
+    search_fields = ('user__username', 'ip', 'localizacao')
+    
+    # Impede que alguém altere os dados de rastreio manualmente
+    readonly_fields = ('user', 'ip', 'localizacao', 'dispositivo', 'data_login', 'ultima_atividade', 'tempo_navegacao_minutos')
+
+    # Deixa o texto do celular/PC menorzinho para não quebrar a tabela
+    def dispositivo_curto(self, obj):
+        if obj.dispositivo:
+            return obj.dispositivo[:50] + "..." if len(obj.dispositivo) > 50 else obj.dispositivo
+        return "Desconhecido"
+    dispositivo_curto.short_description = 'Dispositivo'
+
+    # Mostra o tempo já com o "min" escrito do lado
+    def tempo_navegacao(self, obj):
+        minutos = obj.tempo_navegacao_minutos
+        if minutos == 0:
+            return "Menos de 1 min"
+        return f"{minutos} min"
+    tempo_navegacao.short_description = 'Tempo Gasto'
+    
+    # Impede de adicionar acessos manualmente (só o sistema pode fazer isso)
+    def has_add_permission(self, request):
+        return False
