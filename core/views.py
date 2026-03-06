@@ -15,6 +15,8 @@ from .forms import *
 from .services import enviar_mensagem_para_ia
 import json
 import markdown
+import requests # Certifique-se de que o 'requests' está importado no topo do arquivo
+from django.views.decorators.http import require_POST
 
 
 @login_required
@@ -560,3 +562,48 @@ def deletar_chat(request, sessao_id):
         except Exception as e:
             return JsonResponse({'status': 'erro', 'mensagem': str(e)}, status=400)
     return JsonResponse({'status': 'metodo_invalido'}, status=405)
+
+
+@login_required
+@require_POST
+def atualizar_localizacao_gps(request):
+    # Ignora se não for conta DEMO
+    if request.user.tipo != 'DEMO':
+        return JsonResponse({'status': 'ignorado'})
+    
+    # Pega a sessão atual de navegação que o middleware e o signal criaram
+    registro_id = request.session.get('registro_acesso_demo_id')
+    if not registro_id:
+        return JsonResponse({'status': 'sem_sessao'})
+        
+    try:
+        dados = json.loads(request.body)
+        lat = dados.get('latitude')
+        lon = dados.get('longitude')
+        
+        if lat and lon:
+            # Usamos a API gratuita do OpenStreetMap (Nominatim) para converter Lat/Lon em Cidade
+            url = f"https://nominatim.openstreetmap.org/reverse?lat={lat}&lon={lon}&format=json"
+            # O OpenStreetMap exige um User-Agent para não bloquear a requisição
+            headers = {'User-Agent': 'MundoKaizoApp/1.0'}
+            
+            resp = requests.get(url, headers=headers, timeout=5).json()
+            
+            address = resp.get('address', {})
+            cidade = address.get('city', address.get('town', address.get('village', '')))
+            estado = address.get('state', '')
+            
+            if cidade and estado:
+                # Colocamos um emoji de pino para você saber no Admin que essa info veio do GPS (alta precisão)
+                localizacao_exata = f"📍 {cidade}, {estado} (GPS)"
+                
+                # Atualiza o registro no banco de dados!
+                from .models import RegistroAcessoDemo
+                RegistroAcessoDemo.objects.filter(id=registro_id).update(localizacao=localizacao_exata)
+                
+                return JsonResponse({'status': 'sucesso', 'local': localizacao_exata})
+                
+    except Exception as e:
+        print(f"Erro ao converter GPS: {e}")
+        
+    return JsonResponse({'status': 'erro'})

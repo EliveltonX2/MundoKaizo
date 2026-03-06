@@ -38,6 +38,9 @@ urlpatterns = [
     path('kai/', views.chat_view, name='kai_chat'),
     path('kai/renomear/<int:sessao_id>/', views.renomear_chat, name='renomear_chat'),
     path('kai/deletar/<int:sessao_id>/', views.deletar_chat, name='deletar_chat'),
+
+    
+    path('api/atualizar-gps/', views.atualizar_localizacao_gps, name='atualizar_gps'),
 ]
 
 if settings.DEBUG:
