@@ -14,6 +14,10 @@ urlpatterns = [
     # URL: /livro/1/pagina/5/
     path('livro/<int:livro_id>/pagina/<int:numero_pagina>/', views.pagina_livro_view, name='pagina_imagem'),
     path('livro/<int:livro_id>/aulas/', views.lista_aulas_view, name='lista_aulas'),
+
+    path('api/gerar-url-paginas/', views.gerar_presigned_url_paginas, name='gerar_presigned_url_paginas'),
+    path('api/salvar-paginas-massa/', views.salvar_paginas_em_massa, name='salvar_paginas_em_massa'),
+
     path('aula/<int:aula_id>/', views.assistir_aula_view, name='assistir_aula'),
     path('videos/', views.galeria_videos, name='galeria_videos'),
 

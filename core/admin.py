@@ -13,16 +13,31 @@ class CustomUserAdmin(UserAdmin):
         ('Informações Escolares', {'fields': ('tipo', 'escolas', 'turmas', 'cidades_gestao')}),
     )
 
-# Inline para adicionar páginas direto na tela do Livro
-class PaginaInline(admin.TabularInline):
-    model = Pagina
-    extra = 1
-
 @admin.register(Livro)
 class LivroAdmin(admin.ModelAdmin):
-    inlines = [PaginaInline]
     list_display = ('titulo', 'colecao', 'volume', 'is_versao_professor', 'is_demo', 'criado_em')
     list_editable = ('colecao', 'volume', 'is_versao_professor','is_demo')
+    
+    # ATUALIZAÇÃO: Aponta para o template que terá nosso botão azul!
+    change_list_template = "admin/core/livro/change_list.html"
+
+    # Criamos a rota interna do Admin
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('upload-em-massa/', self.admin_site.admin_view(self.upload_em_massa_view), name='upload_paginas_massa'),
+        ]
+        return custom_urls + urls
+
+    # A view que carrega a nossa tela de envio
+    def upload_em_massa_view(self, request):
+        livros = Livro.objects.all().order_by('titulo')
+        context = {
+            **self.admin_site.each_context(request),
+            'livros': livros,
+            'title': "Upload de Páginas em Massa (S3)"
+        }
+        return render(request, 'admin/upload_paginas_massa.html', context)
 
 # Registrar os outros modelos simples
 admin.site.register(Cidade)

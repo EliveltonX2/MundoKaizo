@@ -19,8 +19,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 import json
 import markdown
 import requests
-import boto3
-import uuid
+import datetime
 
 
 @login_required
@@ -729,3 +728,85 @@ def jogar_view(request, jogo_id):
     # Busca o jogo ou retorna página 404 se não existir
     jogo = get_object_or_404(Jogo, id=jogo_id, ativo=True)
     return render(request, 'core/jogar.html', {'jogo': jogo})
+
+
+@login_required
+def gerar_presigned_url_paginas(request):
+    if not (request.user.is_superuser or request.user.is_staff or getattr(request.user, 'tipo', '') in ['GESTOR_GERAL', 'ADMIN']):
+        return JsonResponse({'erro': 'Sem permissão.'}, status=403)
+
+    nome_arquivo = request.GET.get('file_name')
+    tipo_arquivo = request.GET.get('file_type') or 'image/webp'
+
+    if not nome_arquivo:
+        return JsonResponse({'erro': 'Faltam parâmetros'}, status=400)
+
+    # 1. Imitamos o "upload_to='livros_source/%Y/%m/'" do Django
+    hoje = datetime.date.today()
+    caminho_relativo = f"livros_source/{hoje.strftime('%Y')}/{hoje.strftime('%m')}/{nome_arquivo}"
+
+    # 2. O Pulo do Gato: A AWS precisa saber da pasta raiz (mundokaizo_media)
+    aws_location = getattr(settings, 'AWS_LOCATION', '')
+    if aws_location:
+        caminho_s3_real = f"{aws_location}/{caminho_relativo}"
+    else:
+        caminho_s3_real = caminho_relativo
+
+    try:
+        import boto3
+        chave_acesso = getattr(settings, 'AWS_ACCESS_KEY_ID', None)
+        chave_secreta = getattr(settings, 'AWS_SECRET_ACCESS_KEY', None)
+        regiao = getattr(settings, 'AWS_S3_REGION_NAME', getattr(settings, 'AWS_REGION', 'us-east-1'))
+        bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
+
+        s3_client = boto3.client(
+            's3', aws_access_key_id=chave_acesso, aws_secret_access_key=chave_secreta, region_name=regiao
+        )
+
+        presigned_post = s3_client.generate_presigned_post(
+            Bucket=bucket,
+            Key=caminho_s3_real, # Vai para a Amazon COM o prefixo
+            Fields={"Content-Type": tipo_arquivo},
+            Conditions=[{"Content-Type": tipo_arquivo}],
+            ExpiresIn=3600
+        )
+        
+        # Devolvemos a URL da AWS e também o caminho curto para o JS guardar!
+        return JsonResponse({
+            'presigned_post': presigned_post,
+            'caminho_relativo_db': caminho_relativo 
+        })
+
+    except Exception as e:
+        return JsonResponse({'erro': f'Erro interno: {str(e)}'}, status=500)
+
+
+@login_required
+@require_POST
+def salvar_paginas_em_massa(request):
+    """ Recebe a lista de caminhos do JS e cria as páginas no PostgreSQL """
+    dados = json.loads(request.body)
+    livro_id = dados.get('livro_id')
+    arquivos_enviados = dados.get('arquivos') # Lista de caminhos relativos
+    
+    livro = get_object_or_404(Livro, id=livro_id)
+    
+    # Descobre qual é a última página atual para continuar a numeração
+    ultima_pagina = livro.paginas.order_by('numero').last()
+    proximo_numero = ultima_pagina.numero + 1 if ultima_pagina else 1
+    
+    paginas_para_salvar = []
+    
+    # Cria os objetos na memória
+    for caminho in arquivos_enviados:
+        paginas_para_salvar.append(Pagina(
+            livro=livro,
+            numero=proximo_numero,
+            imagem_original=caminho # Passamos a string limpa direto para o ImageField!
+        ))
+        proximo_numero += 1
+        
+    # Salva todos de uma vezada só no PostgreSQL (Ultra rápido)
+    Pagina.objects.bulk_create(paginas_para_salvar)
+    
+    return JsonResponse({'status': 'sucesso', 'total_salvas': len(paginas_para_salvar)})

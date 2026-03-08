@@ -120,9 +120,10 @@ AWS_S3_OBJECT_PARAMETERS = {
 
 # 4. Onde salvar dentro do Bucket?
 AWS_LOCATION = 'mundokaizo_media' # <--- ISSO CRIA UMA PASTA SÓ PARA ESSE PROJETO
+USE_S3_LOCAL = os.environ.get('USE_S3_LOCAL', 'False') == 'True'
 
 # 5. Dizer ao Django para usar o S3 apenas para Media
-if 'RENDER' in os.environ:
+if 'RENDER' in os.environ or USE_S3_LOCAL:
     STORAGES = {
         "default": {
             "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
@@ -175,13 +176,6 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-
-# Mídia Protegida (Livros e Páginas)
-# Não colocaremos MEDIA_URL público para os livros, para evitar acesso direto.
-PROTECTED_MEDIA_ROOT = [os.path.join(BASE_DIR, 'protected_media')]
-
-
-#DAQUI PRA BAIXO E NOVO!
 
 #Onde esta o app dos usuarios
 AUTH_USER_MODEL = 'core.User'

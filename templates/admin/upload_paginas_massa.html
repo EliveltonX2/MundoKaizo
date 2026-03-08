@@ -1,0 +1,98 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 20px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+    <h1 style="color: #2288c4; margin-bottom: 20px;">📚 Upload de Páginas em Massa (S3)</h1>
+    <p>Selecione o livro e adicione todas as imagens das páginas de uma vez. O sistema enviará direto para a Amazon e organizará a numeração automaticamente no banco.</p>
+
+    <div style="margin-top: 20px;">
+        <label style="font-weight: bold;">Selecione o Livro Destino:</label><br>
+        <select id="livroSelecionado" style="width: 100%; padding: 10px; margin-bottom: 20px;">
+            <option value="">-- Escolha um Livro --</option>
+            {% for livro in livros %}
+                <option value="{{ livro.id }}">{{ livro.titulo }} {% if livro.is_versao_professor %}(Professor){% endif %}</option>
+            {% endfor %}
+        </select>
+
+        <label style="font-weight: bold;">Selecione as Imagens (Múltipla Seleção):</label><br>
+        <input type="file" id="paginasFiles" multiple accept="image/webp, image/jpeg, image/png" style="margin-bottom: 20px; width: 100%; padding: 10px; border: 1px dashed #ccc;">
+
+        <button id="btnUploadPaginas" style="background: #2288c4; color: white; padding: 12px 25px; border: none; font-weight: bold; width: 100%; cursor: pointer;">
+            Iniciar Envio de Páginas
+        </button>
+    </div>
+
+    <div id="progressoArea" style="margin-top: 30px; display: none;">
+        <b>Enviando imagens...</b> <span id="contador">0/0</span>
+        <div style="width: 100%; background: #eee; height: 20px; border-radius: 10px; margin-top: 10px;">
+            <div id="barraProgresso" style="width: 0%; background: #28a745; height: 100%; transition: width 0.2s;"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const csrfToken = '{{ csrf_token }}';
+
+    document.getElementById('btnUploadPaginas').addEventListener('click', async function() {
+        const livroId = document.getElementById('livroSelecionado').value;
+        const inputFiles = document.getElementById('paginasFiles');
+        
+        if (!livroId) return alert("Selecione um livro!");
+        if (inputFiles.files.length === 0) return alert("Selecione pelo menos uma imagem.");
+
+        this.disabled = true;
+        this.innerText = "Enviando para a AWS...";
+        document.getElementById('progressoArea').style.display = 'block';
+
+        // Converte para Array e ordena pelo nome do arquivo (para a paginação ficar certa)
+        let arquivos = Array.from(inputFiles.files);
+        arquivos.sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
+
+        let caminhosSalvosNoBanco = [];
+        let enviados = 0;
+        const total = arquivos.length;
+
+        for (const arquivo of arquivos) {
+            try {
+                // 1. Pede a permissão e o caminho de banco de dados
+                const respDjango = await fetch(`/api/gerar-url-paginas/?file_name=${encodeURIComponent(arquivo.name)}&file_type=${encodeURIComponent(arquivo.type)}`);
+                const dadosUrl = await respDjango.json();
+
+                // 2. Monta o pacote pra AWS
+                const formData = new FormData();
+                for (const key in dadosUrl.presigned_post.fields) {
+                    formData.append(key, dadosUrl.presigned_post.fields[key]);
+                }
+                formData.append('file', arquivo);
+
+                // 3. Envia direto pro S3
+                await fetch(dadosUrl.presigned_post.url, { method: 'POST', body: formData });
+
+                // Guarda o caminho relativo (ex: livros_source/2026/03/foto.webp) que será mandado pro BD
+                caminhosSalvosNoBanco.push(dadosUrl.caminho_relativo_db);
+
+                enviados++;
+                document.getElementById('contador').innerText = `${enviados}/${total}`;
+                document.getElementById('barraProgresso').style.width = `${(enviados / total) * 100}%`;
+
+            } catch (erro) {
+                alert(`Erro no arquivo ${arquivo.name}. Cancelando restantes.`);
+                return;
+            }
+        }
+
+        // 4. Manda o Django salvar tudo no PostgreSQL
+        document.getElementById('contador').innerText = "Salvando no Banco de Dados...";
+        const respFinal = await fetch('/api/salvar-paginas-massa/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify({ livro_id: livroId, arquivos: caminhosSalvosNoBanco })
+        });
+
+        if (respFinal.ok) {
+            alert("Páginas adicionadas com sucesso!");
+            window.location.href = `/admin/core/livro/${livroId}/change/`;
+        }
+    });
+</script>
+{% endblock %}
