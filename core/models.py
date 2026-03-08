@@ -293,3 +293,21 @@ class RegistroAcessoDemo(models.Model):
         diferenca = self.ultima_atividade - self.data_login
         minutos = int(diferenca.total_seconds() / 60)
         return minutos
+
+class Jogo(models.Model):
+    titulo = models.CharField(max_length=200)
+    descricao = models.TextField(blank=True, null=True)
+    # Aqui não usamos um FileField, pois o upload não passa pelo Django!
+    # Apenas salvamos o caminho onde o "index.html" do jogo ficou salvo no S3.
+    caminho_s3 = models.CharField(max_length=500, help_text="Caminho base do jogo no S3")
+    capa = models.ImageField(upload_to='capas_jogos/', blank=True, null=True)
+    ativo = models.BooleanField(default=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.titulo
+    
+    @property
+    def url_jogar(self):
+        # Retorna a URL completa para montar o iframe no Frontend
+        return f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{self.caminho_s3}/index.html"

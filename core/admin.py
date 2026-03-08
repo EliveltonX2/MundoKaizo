@@ -2,7 +2,7 @@ from django.contrib import admin, messages
 from django.urls import path
 from django.shortcuts import render, redirect
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Cidade, Escola, Turma, Livro, Pagina,TokenCadastro, Colecao, RegistroAcessoDemo
+from .models import User, Cidade, Escola, Turma, Livro, Pagina,TokenCadastro, Colecao, RegistroAcessoDemo, Jogo
 from django import forms
 import uuid
 
@@ -145,3 +145,12 @@ class RegistroAcessoDemoAdmin(admin.ModelAdmin):
     # Impede de adicionar acessos manualmente (só o sistema pode fazer isso)
     def has_add_permission(self, request):
         return False
+    
+@admin.register(Jogo)
+class JogoAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'caminho_s3', 'ativo', 'criado_em')
+    search_fields = ('titulo', 'caminho_s3')
+    list_filter = ('ativo', 'criado_em')
+    
+    # Isso deixa o campo caminho_s3 como leitura, já que o nosso JS é quem vai preencher isso!
+    readonly_fields = ('caminho_s3',)

@@ -41,6 +41,12 @@ urlpatterns = [
 
     
     path('api/atualizar-gps/', views.atualizar_localizacao_gps, name='atualizar_gps'),
+
+    path('api/gerar-url-upload/', views.gerar_presigned_url_view, name='gerar_presigned_url'),
+    path('api/salvar-jogo/', views.salvar_registro_jogo, name='salvar_registro_jogo'),
+    path('ferramentas/upload-jogos/', views.upload_jogos_view, name='upload_jogos'),
+    path('jogos/', views.jogos_list_view, name='jogos'),
+    path('jogos/<int:jogo_id>/', views.jogar_view, name='jogar'),
 ]
 
 if settings.DEBUG:

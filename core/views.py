@@ -5,7 +5,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib import messages
 from django.core.cache import cache
 from django.core.files.storage import default_storage
-from .models import Livro, Pagina, User, VideoAula, Turma, TokenCadastro, SessaoChat, Mensagem
+from .models import Livro, Pagina, User, VideoAula, Turma, TokenCadastro, SessaoChat, Mensagem, Jogo
 from .services import adicionar_watermark
 from django.db.models import Q
 from django.urls import reverse
@@ -13,10 +13,14 @@ from django.utils import timezone
 from django.contrib.auth import login
 from .forms import *
 from .services import enviar_mensagem_para_ia
+from django.views.decorators.http import require_POST
+from django.conf import settings
+from django.contrib.admin.views.decorators import staff_member_required
 import json
 import markdown
-import requests # Certifique-se de que o 'requests' está importado no topo do arquivo
-from django.views.decorators.http import require_POST
+import requests
+import boto3
+import uuid
 
 
 @login_required
@@ -607,3 +611,121 @@ def atualizar_localizacao_gps(request):
         print(f"Erro ao converter GPS: {e}")
         
     return JsonResponse({'status': 'erro'})
+
+@login_required
+def gerar_presigned_url_view(request):
+    # A trava de segurança
+    if not (request.user.is_superuser or request.user.is_staff or getattr(request.user, 'tipo', '') in ['GESTOR_GERAL', 'ADMIN']):
+        return JsonResponse({'erro': 'Sem permissão.'}, status=403)
+
+    nome_arquivo = request.GET.get('file_name')
+    tipo_arquivo = request.GET.get('file_type') or 'application/octet-stream'
+    pasta_jogo = request.GET.get('pasta_jogo')
+
+    if not nome_arquivo or not pasta_jogo:
+        return JsonResponse({'erro': 'Faltam parâmetros'}, status=400)
+
+    # --- O DETETIVE DA UNITY (Arruma a compressão e os tipos de arquivo) ---
+    content_encoding = None
+    
+    # 1. Arruma o tipo principal (WASM e JS)
+    if '.wasm' in nome_arquivo:
+        tipo_arquivo = 'application/wasm'
+    elif '.js' in nome_arquivo:
+        tipo_arquivo = 'application/javascript'
+
+    # 2. Descobre se está comprimido com Brotli (.br) ou Gzip (.gz)
+    if nome_arquivo.endswith('.br'):
+        content_encoding = 'br'
+    elif nome_arquivo.endswith('.gz'):
+        content_encoding = 'gzip'
+    # ------------------------------------------------------------------------
+
+    caminho_s3 = f"jogos_web/{pasta_jogo}/{nome_arquivo}"
+
+    try:
+        import boto3
+        from django.conf import settings
+        
+        chave_acesso = getattr(settings, 'AWS_ACCESS_KEY_ID', None)
+        chave_secreta = getattr(settings, 'AWS_SECRET_ACCESS_KEY', None)
+        regiao = getattr(settings, 'AWS_S3_REGION_NAME', getattr(settings, 'AWS_REGION', 'us-east-1'))
+        bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
+
+        if not bucket:
+            return JsonResponse({'erro': 'Bucket não configurado no settings.py'}, status=500)
+
+        s3_client = boto3.client(
+            's3',
+            aws_access_key_id=chave_acesso,
+            aws_secret_access_key=chave_secreta,
+            region_name=regiao
+        )
+
+        # Montamos as regras base para a Amazon
+        fields = {"Content-Type": tipo_arquivo}
+        conditions = [{"Content-Type": tipo_arquivo}]
+
+        # Se for um arquivo compactado, ADICIONA A ORDEM DE DESCOMPACTAÇÃO para a AWS!
+        if content_encoding:
+            fields["Content-Encoding"] = content_encoding
+            conditions.append({"Content-Encoding": content_encoding})
+
+        presigned_post = s3_client.generate_presigned_post(
+            Bucket=bucket,
+            Key=caminho_s3,
+            Fields=fields,
+            Conditions=conditions,
+            ExpiresIn=3600
+        )
+        return JsonResponse(presigned_post)
+
+    except Exception as e:
+        import traceback
+        print("\n" + "="*50)
+        print("🚨 ERRO GRAVE AO GERAR PRESIGNED URL 🚨")
+        traceback.print_exc()
+        print("="*50 + "\n")
+        return JsonResponse({'erro': f'Erro interno: {str(e)}'}, status=500)
+
+@login_required
+def salvar_registro_jogo(request):
+    """ Chamado pelo JS após terminar o upload de todos os arquivos """
+    if request.method == 'POST':
+        import json
+        dados = json.loads(request.body)
+        
+        # Cria o registro no banco de dados
+        from .models import Jogo
+        jogo = Jogo.objects.create(
+            titulo=dados.get('titulo'),
+            descricao=dados.get('descricao'),
+            caminho_s3=f"jogos_web/{dados.get('pasta_jogo')}"
+        )
+        return JsonResponse({'status': 'sucesso', 'jogo_id': jogo.id})
+    
+
+@staff_member_required
+def upload_jogos_view(request):
+    # Essa view só pode ser acessada por quem tem o is_staff=True (quem acessa o admin)
+    return render(request, 'core/upload_jogos.html')
+
+@login_required
+def jogos_list_view(request):
+    # Captura o que o usuário digitou na barra de busca (se houver)
+    query = request.GET.get('q', '')
+    
+    # Traz apenas os jogos que estão com a caixinha "Ativo" marcada no painel Admin
+    jogos = Jogo.objects.filter(ativo=True).order_by('-criado_em')
+    
+    if query:
+        # Filtra pelo título ignorando maiúsculas/minúsculas (icontains)
+        jogos = jogos.filter(titulo__icontains=query)
+        
+    return render(request, 'core/jogos.html', {'jogos': jogos, 'query': query})
+
+@login_required
+def jogar_view(request, jogo_id):
+    # Busca o jogo ou retorna página 404 se não existir
+    jogo = get_object_or_404(Jogo, id=jogo_id, ativo=True)
+    return render(request, 'core/jogar.html', {'jogo': jogo})
