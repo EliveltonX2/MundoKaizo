@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/mkz.svg' %}">
-    <title>Arcade - MundoKaizo</title>
+    <title>MiniGames - MundoKaizo</title>
     
     <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -14,7 +14,7 @@
 <body style="background-color: #f9fafb; min-height: 100vh; display: flex; flex-direction: column;">
 
     {% url 'estante' as estante_url %}
-    {% include 'includes/navbar.html' with back_url=estante_url custom_title="Arcade Kaizo" show_search=True search_action='jogos' search_placeholder="Buscar jogo..." current_query=query %}
+    {% include 'includes/navbar.html' with back_url=estante_url custom_title="MiniGames Kaizo" show_search=True search_action='jogos' search_placeholder="Buscar jogo..." current_query=query %}
 
     <div class="container" style="flex: 1; padding-top: 30px; padding-bottom: 50px;">
         
