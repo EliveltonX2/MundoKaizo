@@ -810,3 +810,79 @@ def salvar_paginas_em_massa(request):
     Pagina.objects.bulk_create(paginas_para_salvar)
     
     return JsonResponse({'status': 'sucesso', 'total_salvas': len(paginas_para_salvar)})
+
+from .models import EstatisticasUsuario, SessaoJogo
+from django.utils import timezone
+import datetime
+
+@login_required
+@require_POST
+def api_salvar_sessao_jogo(request):
+    try:
+        dados = json.loads(request.body)
+        jogo_id = dados.get('jogo_id')
+        pontuacao = float(dados.get('pontuacao', 0))
+        tempo_jogo = float(dados.get('tempo_jogo', 0))
+        codigo_habilidade = dados.get('codigo_habilidade', '')
+
+        jogo = get_object_or_404(Jogo, id=jogo_id)
+        
+        # Cria a sessão do jogo
+        SessaoJogo.objects.create(
+            user=request.user,
+            jogo=jogo,
+            pontuacao=pontuacao,
+            tempo_jogo=tempo_jogo,
+            codigo_habilidade=codigo_habilidade
+        )
+
+        # Atualiza ou cria as estatísticas do usuário
+        estatisticas, created = EstatisticasUsuario.objects.get_or_create(user=request.user)
+
+        # Atualiza ofensiva de dias
+        hoje = timezone.localdate()
+        if estatisticas.ultima_jogada != hoje:
+            if estatisticas.ultima_jogada == hoje - datetime.timedelta(days=1):
+                estatisticas.dias_ofensiva += 1
+            else:
+                estatisticas.dias_ofensiva = 1
+            
+            if estatisticas.dias_ofensiva > estatisticas.maior_ofensiva:
+                estatisticas.maior_ofensiva = estatisticas.dias_ofensiva
+            
+            estatisticas.ultima_jogada = hoje
+
+        # Atualiza pontuação por habilidade
+        if codigo_habilidade:
+            habilidades = estatisticas.pontuacao_habilidades or {}
+            # Se já tem pontuação, fazemos uma média simples para não inflacionar infinitamente, ou apenas soma.
+            # O mais comum é somar a pontuação de XP, mas como o usuário mencionou "média", 
+            # vamos somar as pontuações para compor a geral depois.
+            # Vamos assumir que salva a maior pontuação daquela habilidade.
+            pontuacao_atual = habilidades.get(codigo_habilidade, 0)
+            if pontuacao > pontuacao_atual:
+                habilidades[codigo_habilidade] = pontuacao
+            estatisticas.pontuacao_habilidades = habilidades
+
+            # Atualiza pontuação geral (média de todas as habilidades jogadas)
+            valores = list(habilidades.values())
+            if valores:
+                estatisticas.pontuacao_geral = sum(valores) / len(valores)
+
+        estatisticas.save()
+
+        return JsonResponse({'status': 'sucesso'})
+    except Exception as e:
+        return JsonResponse({'status': 'erro', 'mensagem': str(e)}, status=400)
+
+
+@login_required
+def estatisticas_view(request):
+    estatisticas, created = EstatisticasUsuario.objects.get_or_create(user=request.user)
+    sessoes = request.user.sessoes_jogos.all().order_by('-criado_em')
+    
+    context = {
+        'estatisticas': estatisticas,
+        'sessoes': sessoes,
+    }
+    return render(request, 'core/estatisticas.html', context)

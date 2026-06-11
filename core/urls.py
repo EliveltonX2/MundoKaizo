@@ -51,6 +51,9 @@ urlpatterns = [
     path('ferramentas/upload-jogos/', views.upload_jogos_view, name='upload_jogos'),
     path('jogos/', views.jogos_list_view, name='jogos'),
     path('jogos/<int:jogo_id>/', views.jogar_view, name='jogar'),
+    
+    path('api/jogo/salvar-sessao/', views.api_salvar_sessao_jogo, name='api_salvar_sessao_jogo'),
+    path('estatisticas/', views.estatisticas_view, name='estatisticas'),
 ]
 
 if settings.DEBUG:

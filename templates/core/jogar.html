@@ -67,6 +67,28 @@
                 wrapper.msRequestFullscreen();
             }
         }
+
+        window.addEventListener('message', function(event) {
+            const data = event.data;
+            if (data && data.type === 'GAME_REPORT') {
+                fetch("{% url 'api_salvar_sessao_jogo' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        jogo_id: '{{ jogo.id }}',
+                        pontuacao: data.score,
+                        codigo_habilidade: data.skill_code,
+                        tempo_jogo: data.play_time
+                    })
+                })
+                .then(res => res.json())
+                .then(res => console.log('Relatório do jogo salvo:', res))
+                .catch(err => console.error('Erro ao salvar relatório do jogo:', err));
+            }
+        });
     </script>
 </body>
 </html>

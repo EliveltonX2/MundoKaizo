@@ -311,3 +311,28 @@ class Jogo(models.Model):
     def url_jogar(self):
         # Retorna a URL completa para montar o iframe no Frontend
         return f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{self.caminho_s3}/index.html"
+
+
+class EstatisticasUsuario(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='estatisticas')
+    pontuacao_geral = models.FloatField(default=0.0)
+    # Ex: {"EF01CO01": 150, "EF02CO02": 200}
+    pontuacao_habilidades = models.JSONField(default=dict, blank=True)
+    dias_ofensiva = models.IntegerField(default=0)
+    maior_ofensiva = models.IntegerField(default=0)
+    ultima_jogada = models.DateField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Estatísticas de {self.user.username}"
+
+
+class SessaoJogo(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessoes_jogos')
+    jogo = models.ForeignKey(Jogo, on_delete=models.CASCADE, related_name='sessoes')
+    pontuacao = models.FloatField(default=0.0)
+    tempo_jogo = models.FloatField(default=0.0) # Em segundos
+    codigo_habilidade = models.CharField(max_length=50, blank=True, null=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} jogou {self.jogo.titulo} - {self.pontuacao} pts"
