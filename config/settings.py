@@ -35,7 +35,7 @@ VERTEX_LOCATION = 'global'
 DATA_STORE_ID = 'biblioteca-exploradores-kaizo_1771288710463'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['*'] # Permite que o Render acesse o site
 
