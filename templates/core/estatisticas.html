@@ -1,93 +1,119 @@
-{% extends 'base.html' %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
 
-{% block content %}
-<div class="container mt-4">
-    <h2><i class="fas fa-chart-bar text-warning"></i> Estatísticas de {{ user.first_name|default:user.username }}</h2>
-    
-    <div class="row mt-4">
-        <div class="col-md-4 mb-3">
-            <div class="card bg-primary text-white h-100">
-                <div class="card-body text-center">
-                    <h5 class="card-title">Pontuação Geral</h5>
-                    <h2 class="display-4">{{ estatisticas.pontuacao_geral|floatformat:1 }}</h2>
-                    <p class="mb-0"><i class="fas fa-star"></i> Média de Habilidades</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="card bg-success text-white h-100">
-                <div class="card-body text-center">
-                    <h5 class="card-title">Ofensiva Atual</h5>
-                    <h2 class="display-4">{{ estatisticas.dias_ofensiva }} <i class="fas fa-fire"></i></h2>
-                    <p class="mb-0">Dias Seguidos</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="card bg-info text-white h-100">
-                <div class="card-body text-center">
-                    <h5 class="card-title">Maior Ofensiva</h5>
-                    <h2 class="display-4">{{ estatisticas.maior_ofensiva }} <i class="fas fa-trophy"></i></h2>
-                    <p class="mb-0">Seu Recorde</p>
-                </div>
-            </div>
-        </div>
-    </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/mkz.svg' %}">
+    <title>MiniGames - MundoKaizo</title>
 
-    <div class="row mt-4">
-        <div class="col-md-6 mb-4">
-            <div class="card bg-dark text-white h-100">
-                <div class="card-header bg-secondary">
-                    <h4 class="mb-0">Desempenho por Habilidade (BNCC)</h4>
+    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/css/app.css' %}">
+</head>
+
+<body style="background-color: #f9fafb; min-height: 100vh; display: flex; flex-direction: column;">
+
+    {% url 'estante' as estante_url %}
+    {% include 'includes/navbar.html' with back_url=estante_url custom_title="Estatísticas" show_search=False %}
+
+    {% block content %}
+    <div class="container mt-4">
+        <h2><i class="fas fa-chart-bar text-warning"></i> Estatísticas de {{ user.first_name|default:user.username }}
+        </h2>
+
+        <div class="row mt-4">
+            <div class="col-md-4 mb-3">
+                <div class="card bg-primary text-white h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Pontuação Geral</h5>
+                        <h2 class="display-4">{{ estatisticas.pontuacao_geral|floatformat:1 }}</h2>
+                        <p class="mb-0"><i class="fas fa-star"></i> Média de Habilidades</p>
+                    </div>
                 </div>
-                <div class="card-body">
-                    {% if estatisticas.pontuacao_habilidades %}
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card bg-success text-white h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Ofensiva Atual</h5>
+                        <h2 class="display-4">{{ estatisticas.dias_ofensiva }} <i class="fas fa-fire"></i></h2>
+                        <p class="mb-0">Dias Seguidos</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card bg-info text-white h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Maior Ofensiva</h5>
+                        <h2 class="display-4">{{ estatisticas.maior_ofensiva }} <i class="fas fa-trophy"></i></h2>
+                        <p class="mb-0">Seu Recorde</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6 mb-4">
+                <div class="card bg-dark text-white h-100">
+                    <div class="card-header bg-secondary">
+                        <h4 class="mb-0">Desempenho por Habilidade (BNCC)</h4>
+                    </div>
+                    <div class="card-body">
+                        {% if estatisticas.pontuacao_habilidades %}
                         <ul class="list-group list-group-flush" style="border-radius: 10px; overflow: hidden;">
                             {% for hab, pont in estatisticas.pontuacao_habilidades.items %}
-                                <li class="list-group-item bg-dark text-white d-flex justify-content-between align-items-center" style="border-color: #333;">
-                                    <strong>{{ hab }}</strong>
-                                    <span class="badge bg-primary rounded-pill">{{ pont|floatformat:1 }} pts</span>
-                                </li>
+                            <li class="list-group-item bg-dark text-white d-flex justify-content-between align-items-center"
+                                style="border-color: #333;">
+                                <strong>{{ hab }}</strong>
+                                <span class="badge bg-primary rounded-pill">{{ pont|floatformat:1 }} pts</span>
+                            </li>
                             {% endfor %}
                         </ul>
-                    {% else %}
+                        {% else %}
                         <p class="text-muted">Você ainda não jogou nenhum jogo com habilidades registradas.</p>
-                    {% endif %}
+                        {% endif %}
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="col-md-6 mb-4">
-            <div class="card bg-dark text-white h-100">
-                <div class="card-header bg-secondary">
-                    <h4 class="mb-0">Histórico de Jogos</h4>
-                </div>
-                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-                    {% if sessoes %}
+
+            <div class="col-md-6 mb-4">
+                <div class="card bg-dark text-white h-100">
+                    <div class="card-header bg-secondary">
+                        <h4 class="mb-0">Histórico de Jogos</h4>
+                    </div>
+                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                        {% if sessoes %}
                         <div class="list-group">
                             {% for sessao in sessoes %}
-                                <div class="list-group-item bg-dark text-white border-secondary mb-2" style="border-radius: 8px;">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h5 class="mb-1 text-info">{{ sessao.jogo.titulo }}</h5>
-                                        <small class="text-muted">{{ sessao.criado_em|date:"d/m/Y H:i" }}</small>
-                                    </div>
-                                    <p class="mb-1">
-                                        <i class="fas fa-star text-warning"></i> Pontuação: {{ sessao.pontuacao|floatformat:1 }}<br>
-                                        <i class="fas fa-clock text-secondary"></i> Tempo: {{ sessao.tempo_jogo|floatformat:0 }}s
-                                        {% if sessao.codigo_habilidade %}
-                                            <br><i class="fas fa-book text-success"></i> Habilidade: {{ sessao.codigo_habilidade }}
-                                        {% endif %}
-                                    </p>
+                            <div class="list-group-item bg-dark text-white border-secondary mb-2"
+                                style="border-radius: 8px;">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1 text-info">{{ sessao.jogo.titulo }}</h5>
+                                    <small class="text-muted">{{ sessao.criado_em|date:"d/m/Y H:i" }}</small>
                                 </div>
+                                <p class="mb-1">
+                                    <i class="fas fa-star text-warning"></i> Pontuação: {{
+                                    sessao.pontuacao|floatformat:1 }}<br>
+                                    <i class="fas fa-clock text-secondary"></i> Tempo: {{
+                                    sessao.tempo_jogo|floatformat:0 }}s
+                                    {% if sessao.codigo_habilidade %}
+                                    <br><i class="fas fa-book text-success"></i> Habilidade: {{ sessao.codigo_habilidade
+                                    }}
+                                    {% endif %}
+                                </p>
+                            </div>
                             {% endfor %}
                         </div>
-                    {% else %}
+                        {% else %}
                         <p class="text-muted">Nenhuma partida registrada ainda.</p>
-                    {% endif %}
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
+    {% endblock %}
+</body>
+
+</html>
