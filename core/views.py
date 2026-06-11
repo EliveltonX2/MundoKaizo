@@ -827,14 +827,23 @@ def api_salvar_sessao_jogo(request):
 
         jogo = get_object_or_404(Jogo, id=jogo_id)
         
-        # Cria a sessão do jogo
-        SessaoJogo.objects.create(
+        # Atualiza ou cria a sessão do jogo (registro somatório)
+        sessao, created = SessaoJogo.objects.get_or_create(
             user=request.user,
             jogo=jogo,
-            pontuacao=pontuacao,
-            tempo_jogo=tempo_jogo,
-            codigo_habilidade=codigo_habilidade
+            defaults={
+                'pontuacao': pontuacao,
+                'tempo_jogo': tempo_jogo,
+                'codigo_habilidade': codigo_habilidade
+            }
         )
+
+        if not created:
+            sessao.pontuacao += pontuacao
+            sessao.tempo_jogo += tempo_jogo
+            if codigo_habilidade:
+                sessao.codigo_habilidade = codigo_habilidade
+            sessao.save()
 
         # Atualiza ou cria as estatísticas do usuário
         estatisticas, created = EstatisticasUsuario.objects.get_or_create(user=request.user)
@@ -879,7 +888,7 @@ def api_salvar_sessao_jogo(request):
 @login_required
 def estatisticas_view(request):
     estatisticas, created = EstatisticasUsuario.objects.get_or_create(user=request.user)
-    sessoes = request.user.sessoes_jogos.all().order_by('-criado_em')
+    sessoes = request.user.sessoes_jogos.all().order_by('-atualizado_em')
     
     context = {
         'estatisticas': estatisticas,

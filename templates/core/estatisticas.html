@@ -80,7 +80,7 @@
             <div class="col-md-6 mb-4">
                 <div class="card bg-dark text-white h-100">
                     <div class="card-header bg-secondary">
-                        <h4 class="mb-0">Histórico de Jogos</h4>
+                        <h4 class="mb-0">Estatísticas por Jogo</h4>
                     </div>
                     <div class="card-body" style="max-height: 400px; overflow-y: auto;">
                         {% if sessoes %}
@@ -90,12 +90,12 @@
                                 style="border-radius: 8px;">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1 text-info">{{ sessao.jogo.titulo }}</h5>
-                                    <small class="text-muted">{{ sessao.criado_em|date:"d/m/Y H:i" }}</small>
+                                    <small class="text-muted">Última vez jogado: {{ sessao.atualizado_em|date:"d/m/Y H:i" }}</small>
                                 </div>
                                 <p class="mb-1">
-                                    <i class="fas fa-star text-warning"></i> Pontuação: {{
+                                    <i class="fas fa-star text-warning"></i> Pontuação Total: {{
                                     sessao.pontuacao|floatformat:1 }}<br>
-                                    <i class="fas fa-clock text-secondary"></i> Tempo: {{
+                                    <i class="fas fa-clock text-secondary"></i> Tempo de Jogo: {{
                                     sessao.tempo_jogo|floatformat:0 }}s
                                     {% if sessao.codigo_habilidade %}
                                     <br><i class="fas fa-book text-success"></i> Habilidade: {{ sessao.codigo_habilidade

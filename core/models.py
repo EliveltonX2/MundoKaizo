@@ -333,6 +333,10 @@ class SessaoJogo(models.Model):
     tempo_jogo = models.FloatField(default=0.0) # Em segundos
     codigo_habilidade = models.CharField(max_length=50, blank=True, null=True)
     criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('user', 'jogo')
 
     def __str__(self):
-        return f"{self.user.username} jogou {self.jogo.titulo} - {self.pontuacao} pts"
+        return f"{self.user.username} jogou {self.jogo.titulo} - Total: {self.pontuacao} pts / {self.tempo_jogo}s"
