@@ -38,11 +38,9 @@
                     {% endif %}
 
                     <div class="card-body d-flex flex-column text-center">
-                        <h5 class="card-title" style="font-weight: bold; color: #333; font-size: 1.1rem;">{{ jogo.titulo
-                            }}</h5>
+                        <h5 class="card-title" style="font-weight: bold; color: #333; font-size: 1.1rem;">{{ jogo.titulo }}</h5>
                         {% if jogo.descricao %}
-                        <p class="card-text" style="font-size: 0.85rem; color: #666; flex-grow: 1;">{{
-                            jogo.descricao|truncatechars:60 }}</p>
+                        <p class="card-text" style="font-size: 0.85rem; color: #666; flex-grow: 1;">{{ jogo.descricao|truncatechars:60 }}</p>
                         {% endif %}
 
                         <a href="{% url 'jogar' jogo.id %}" class="btn mt-auto"
