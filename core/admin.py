@@ -169,3 +169,22 @@ class JogoAdmin(admin.ModelAdmin):
     
     # Isso deixa o campo caminho_s3 como leitura, já que o nosso JS é quem vai preencher isso!
     readonly_fields = ('caminho_s3',)
+
+from .models import HabilidadeBNCC, EstatisticasUsuario, SessaoJogo
+
+@admin.register(HabilidadeBNCC)
+class HabilidadeBNCCAdmin(admin.ModelAdmin):
+    list_display = ('codigo', 'ano_escolar', 'descricao')
+    list_filter = ('ano_escolar',)
+    search_fields = ('codigo', 'descricao')
+
+@admin.register(EstatisticasUsuario)
+class EstatisticasUsuarioAdmin(admin.ModelAdmin):
+    list_display = ('user', 'pontuacao_geral', 'dias_ofensiva', 'ultima_jogada')
+    search_fields = ('user__username',)
+
+@admin.register(SessaoJogo)
+class SessaoJogoAdmin(admin.ModelAdmin):
+    list_display = ('user', 'jogo', 'pontuacao', 'tempo_jogo', 'atualizado_em')
+    list_filter = ('jogo',)
+    search_fields = ('user__username', 'jogo__titulo')
