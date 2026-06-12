@@ -1,0 +1,316 @@
+<style>
+    .stats-banner {
+        display: flex;
+        width: 100%;
+        height: 140px;
+        background: #fff;
+        /* Cor das linhas que separam */
+        overflow: hidden;
+        border-radius: 6px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-segment {
+        flex: 1;
+        transform: skewX(-20deg);
+        margin-left: -20px;
+        margin-right: -20px;
+        position: relative;
+        color: white;
+        overflow: hidden;
+        border-right: 5px solid #fff;
+    }
+
+    .stat-segment:first-child {
+        margin-left: -40px;
+        padding-left: 40px;
+        /* Compensa o skew no primeiro item */
+    }
+
+    .stat-segment:last-child {
+        margin-right: -40px;
+        padding-right: 40px;
+        /* Compensa o skew no último item */
+        border-right: none;
+    }
+
+    .stat-segment>div {
+        transform: skewX(20deg);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 0 40px;
+        z-index: 2;
+        position: relative;
+    }
+
+    .stat-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 0;
+        letter-spacing: 0.5px;
+        font-family: 'Arial Black', Impact, sans-serif;
+        color: #fff;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .stat-value {
+        font-size: 4.5rem;
+        font-weight: 400;
+        line-height: 1.5;
+        margin-top: -5px;
+        font-family: 'Impact', 'Arial Black', sans-serif;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .stat-value small {
+        font-size: 2.5rem;
+    }
+
+    .bg-green {
+        background: #4CAF50;
+    }
+
+    .bg-fire {
+        background: #B71C1C;
+    }
+
+    /* Fogo fundo escuro */
+    .bg-orange {
+        background: #FF5722;
+    }
+
+    .bg-blue {
+        background: #0D47A1;
+    }
+
+    /* Padrões e Ícones de Fundo com Animações */
+    .pattern-stairs {
+        position: absolute;
+        right: -10px;
+        bottom: -20px;
+        font-size: 10rem;
+        opacity: 0.15;
+        transform: skewX(20deg);
+        z-index: 1;
+        animation: floatStairs 4s ease-in-out infinite;
+    }
+
+    .pattern-fire {
+        position: absolute;
+        top: -30px;
+        left: 10px;
+        font-size: 12rem;
+        opacity: 0.2;
+        transform: skewX(20deg);
+        z-index: 1;
+        color: #ff9800;
+        animation: pulseFire 2s ease-in-out infinite alternate;
+    }
+
+    .pattern-trophy {
+        position: absolute;
+        right: 20px;
+        bottom: -10px;
+        font-size: 6rem;
+        opacity: 0.9;
+        transform: skewX(20deg) rotate(10deg);
+        z-index: 1;
+        color: #FFD54F;
+        text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        animation: swayTrophy 3s ease-in-out infinite;
+    }
+
+    .pattern-medal {
+        position: absolute;
+        right: 20px;
+        bottom: -15px;
+        font-size: 6.5rem;
+        opacity: 0.9;
+        transform: skewX(20deg);
+        z-index: 1;
+        color: #FFD54F;
+        text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        animation: spinMedal 6s linear infinite;
+    }
+
+    @keyframes floatStairs {
+
+        0%,
+        100% {
+            transform: skewX(20deg) translateY(0);
+        }
+
+        50% {
+            transform: skewX(20deg) translateY(-10px);
+        }
+    }
+
+    @keyframes pulseFire {
+        0% {
+            transform: skewX(20deg) scale(0.8);
+            opacity: 0.2;
+        }
+
+        100% {
+            transform: skewX(20deg) scale(1.1);
+            opacity: 0.3;
+        }
+    }
+
+    @keyframes swayTrophy {
+
+        0%,
+        100% {
+            transform: skewX(20deg) rotate(10deg);
+        }
+
+        50% {
+            transform: skewX(20deg) rotate(-5deg);
+        }
+    }
+
+    @keyframes spinMedal {
+
+        0%,
+        100% {
+            transform: skewX(20deg) rotate(10deg);
+        }
+
+        50% {
+            transform: skewX(20deg) rotate(-5deg);
+        }
+    }
+
+    /* Responsivo para celulares */
+    @media (max-width: 992px) {
+        .stats-banner {
+            flex-direction: column;
+            height: auto;
+            transform: none;
+            gap: 10px;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .stat-segment {
+            transform: none;
+            margin: 0;
+            border: none;
+            border-radius: 8px;
+            height: 120px;
+        }
+
+        .stat-segment>div {
+            transform: none;
+            align-items: center;
+        }
+
+        .stat-segment:first-child,
+        .stat-segment:last-child {
+            margin: 0;
+            padding: 0;
+        }
+
+        .pattern-stairs,
+        .pattern-fire,
+        .pattern-trophy,
+        .pattern-medal {
+            transform: none;
+            animation: none;
+        }
+    }
+
+    .stats-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        border-radius: 6px;
+    }
+    
+    .stats-link:hover .stats-banner {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    }
+    
+    .stats-banner {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+</style>
+
+<a href="{% url 'estatisticas' %}" class="stats-link">
+<div class="stats-banner mt-4">
+    <div class="stat-segment bg-green">
+        <i class="fas fa-layer-group pattern-stairs"></i> <!-- Ícone que parece escada/níveis -->
+        <div>
+            <h5 class="stat-title">Pontuação Geral</h5>
+            <div class="stat-value"><span class="counter"
+                    data-target="{{ estatisticas.pontuacao_geral|stringformat:'s'|default:'0' }}">0</span></div>
+        </div>
+    </div>
+    <div class="stat-segment bg-fire">
+        <i class="fas fa-fire pattern-fire"></i>
+        <div>
+            <h5 class="stat-title">Ofensiva</h5>
+            <div class="stat-value"><span class="counter"
+                    data-target="{{ estatisticas.dias_ofensiva|default:0 }}">0</span> <small>DIAS</small></div>
+        </div>
+    </div>
+    <div class="stat-segment bg-orange">
+        <i class="fas fa-trophy pattern-trophy"></i>
+        <div>
+            <h5 class="stat-title">Maior Ofensiva</h5>
+            <div class="stat-value"><span class="counter"
+                    data-target="{{ estatisticas.maior_ofensiva|default:0 }}">0</span> <small>DIAS</small></div>
+        </div>
+    </div>
+    <div class="stat-segment bg-blue">
+        <i class="fas fa-medal pattern-medal"></i>
+        <div>
+            <h5 class="stat-title">Ranking</h5>
+            <div class="stat-value"><span class="counter" data-target="{{ ranking|default:0 }}">0</span>º</div>
+        </div>
+    </div>
+</div>
+</a>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const counters = document.querySelectorAll('.counter');
+        const speed = 30; // Quanto menor, mais rápido
+
+        counters.forEach(counter => {
+            const updateCount = () => {
+                // Prepara o valor, tratando vírgula para ponto se houver
+                let targetStr = counter.getAttribute('data-target').replace(',', '.');
+                const target = parseFloat(targetStr);
+
+                // Fallback se não for número
+                if (isNaN(target)) {
+                    counter.innerText = targetStr;
+                    return;
+                }
+
+                const count = parseFloat(counter.innerText.replace(',', '.'));
+                const isFloat = target % 1 !== 0;
+
+                const inc = target / speed;
+
+                if (count < target) {
+                    let newCount = count + inc;
+                    if (newCount > target) newCount = target;
+
+                    counter.innerText = isFloat ? newCount.toFixed(1).replace('.', ',') : Math.ceil(newCount);
+                    setTimeout(updateCount, 40);
+                } else {
+                    counter.innerText = isFloat ? target.toFixed(1).replace('.', ',') : target;
+                }
+            };
+
+            // Inicia
+            updateCount();
+        });
+    });
+</script>

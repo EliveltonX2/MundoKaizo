@@ -23,35 +23,7 @@
         <h2><i class="fas fa-chart-bar text-warning"></i> Estatísticas de {{ user.first_name|default:user.username }}
         </h2>
 
-        <div class="row mt-4">
-            <div class="col-md-4 mb-3">
-                <div class="card bg-primary text-white h-100">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Pontuação Geral</h5>
-                        <h2 class="display-4">{{ estatisticas.pontuacao_geral|floatformat:1 }}</h2>
-                        <p class="mb-0"><i class="fas fa-star"></i> Média de Habilidades</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-3">
-                <div class="card bg-success text-white h-100">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Ofensiva Atual</h5>
-                        <h2 class="display-4">{{ estatisticas.dias_ofensiva }} <i class="fas fa-fire"></i></h2>
-                        <p class="mb-0">Dias Seguidos</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-3">
-                <div class="card bg-info text-white h-100">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Maior Ofensiva</h5>
-                        <h2 class="display-4">{{ estatisticas.maior_ofensiva }} <i class="fas fa-trophy"></i></h2>
-                        <p class="mb-0">Seu Recorde</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        {% include 'core/includes/stats_bar.html' %}
 
         <div class="row mt-4">
             <div class="col-md-6 mb-4">
@@ -62,15 +34,19 @@
                     <div class="card-body">
                         {% if habilidades_ano %}
                         <p class="text-muted small">Mostrando currículo do {{ ano_usuario }}º Ano</p>
-                        <ul class="list-group list-group-flush" style="border-radius: 10px; overflow: hidden; max-height: 400px; overflow-y: auto;">
+                        <ul class="list-group list-group-flush"
+                            style="border-radius: 10px; overflow: hidden; max-height: 400px; overflow-y: auto;">
                             {% for hab in habilidades_ano %}
                             <li class="list-group-item bg-dark text-white d-flex justify-content-between align-items-center"
                                 style="border-color: #333;">
                                 <div>
                                     <strong>{{ hab.codigo }}</strong>
-                                    <div class="small text-muted" style="line-height: 1.2; margin-top: 4px;">{{ hab.descricao }}</div>
+                                    <div class="small text-muted" style="line-height: 1.2; margin-top: 4px;">{{
+                                        hab.descricao }}</div>
                                 </div>
-                                <span class="badge {% if hab.pontuacao > 0 %}bg-primary{% else %}bg-secondary{% endif %} rounded-pill ms-3" style="min-width: 60px;">{{ hab.pontuacao|floatformat:1 }} pts</span>
+                                <span
+                                    class="badge {% if hab.pontuacao > 0 %}bg-primary{% else %}bg-secondary{% endif %} rounded-pill ms-3"
+                                    style="min-width: 60px;">{{ hab.pontuacao|floatformat:1 }} pts</span>
                             </li>
                             {% endfor %}
                         </ul>
@@ -95,23 +71,28 @@
                                 <div class="d-flex w-100 justify-content-between">
                                     <div class="d-flex align-items-center">
                                         {% if sessao.jogo.capa %}
-                                        <img src="{{ sessao.jogo.capa.url }}" alt="Capa" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px; margin-right: 15px;">
+                                        <img src="{{ sessao.jogo.capa.url }}" alt="Capa"
+                                            style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px; margin-right: 15px;">
                                         {% else %}
-                                        <div style="width: 50px; height: 50px; background-color: #444; border-radius: 5px; margin-right: 15px; display: flex; align-items: center; justify-content: center;">
+                                        <div
+                                            style="width: 50px; height: 50px; background-color: #444; border-radius: 5px; margin-right: 15px; display: flex; align-items: center; justify-content: center;">
                                             <i class="fas fa-gamepad text-secondary"></i>
                                         </div>
                                         {% endif %}
                                         <h5 class="mb-1 text-info">{{ sessao.jogo.titulo }}</h5>
                                     </div>
-                                    <small class="text-muted" style="white-space: nowrap;">Última vez: <br>{{ sessao.atualizado_em|date:"d/m/y H:i" }}</small>
+                                    <small class="text-muted" style="white-space: nowrap;">Última vez: <br>{{
+                                        sessao.atualizado_em|date:"d/m/y H:i" }}</small>
                                 </div>
                                 <p class="mb-1 mt-2">
-                                    <i class="fas fa-star text-warning"></i> Pontuação Total: {{ sessao.pontuacao|floatformat:1 }}<br>
-                                    <i class="fas fa-clock text-secondary"></i> Tempo de Jogo: {{ sessao.tempo_jogo|floatformat:0 }}s
+                                    <i class="fas fa-star text-warning"></i> Pontuação Total: {{
+                                    sessao.pontuacao|floatformat:1 }}<br>
+                                    <i class="fas fa-clock text-secondary"></i> Tempo de Jogo: {{
+                                    sessao.tempo_jogo|floatformat:0 }}s
                                     {% if sessao.habilidades %}
-                                    <br><i class="fas fa-book text-success"></i> Habilidades abordadas: 
+                                    <br><i class="fas fa-book text-success"></i> Habilidades abordadas:
                                     {% for cod, pts in sessao.habilidades.items %}
-                                        <span class="badge bg-secondary ms-1">{{ cod }}</span>
+                                    <span class="badge bg-secondary ms-1">{{ cod }}</span>
                                     {% endfor %}
                                     {% endif %}
                                 </p>

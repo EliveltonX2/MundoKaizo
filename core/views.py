@@ -5,7 +5,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib import messages
 from django.core.cache import cache
 from django.core.files.storage import default_storage
-from .models import Livro, Pagina, User, VideoAula, Turma, TokenCadastro, SessaoChat, Mensagem, Jogo
+from .models import Livro, Pagina, User, VideoAula, Turma, TokenCadastro, SessaoChat, Mensagem, Jogo, EstatisticasUsuario
 from .services import adicionar_watermark
 from django.db.models import Q
 from django.urls import reverse
@@ -721,7 +721,15 @@ def jogos_list_view(request):
         # Filtra pelo título ignorando maiúsculas/minúsculas (icontains)
         jogos = jogos.filter(titulo__icontains=query)
         
-    return render(request, 'core/jogos.html', {'jogos': jogos, 'query': query})
+    estatisticas, created = EstatisticasUsuario.objects.get_or_create(user=request.user)
+    ranking = EstatisticasUsuario.objects.filter(pontuacao_geral__gt=estatisticas.pontuacao_geral).count() + 1
+        
+    return render(request, 'core/jogos.html', {
+        'jogos': jogos, 
+        'query': query,
+        'estatisticas': estatisticas,
+        'ranking': ranking
+    })
 
 @login_required
 def jogar_view(request, jogo_id):
@@ -905,6 +913,9 @@ def estatisticas_view(request):
     estatisticas, created = EstatisticasUsuario.objects.get_or_create(user=request.user)
     sessoes = request.user.sessoes_jogos.all().order_by('-atualizado_em')
     
+    # Ranking
+    ranking = EstatisticasUsuario.objects.filter(pontuacao_geral__gt=estatisticas.pontuacao_geral).count() + 1
+    
     # Busca o ano do aluno
     ano_usuario = None
     turma_aluno = request.user.turmas.filter(ano_escolar__isnull=False).first()
@@ -931,5 +942,6 @@ def estatisticas_view(request):
         'sessoes': sessoes,
         'habilidades_ano': habilidades_ano,
         'ano_usuario': ano_usuario,
+        'ranking': ranking,
     }
     return render(request, 'core/estatisticas.html', context)

@@ -1,57 +1,67 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/mkz.svg' %}">
     <title>MiniGames - MundoKaizo</title>
-    
+
     <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'core/css/app.css' %}">
 </head>
+
 <body style="background-color: #f9fafb; min-height: 100vh; display: flex; flex-direction: column;">
 
     {% url 'estante' as estante_url %}
     {% include 'includes/navbar.html' with back_url=estante_url custom_title="MiniGames Kaizo" show_search=True search_action='jogos' search_placeholder="Buscar jogo..." current_query=query %}
 
     <div class="container" style="flex: 1; padding-top: 30px; padding-bottom: 50px;">
-        
-        <div class="row" style="margin-top: 20px;">
+        {% include 'core/includes/stats_bar.html' %}
+
+        <div class="row" style="margin-top: 40px;">
             {% for jogo in jogos %}
-                <div class="col-6 col-md-4 col-lg-3 mb-4">
-                    <div class="card h-100" style="border-radius: 15px; border: none; box-shadow: 0 8px 20px rgba(0,0,0,0.05); overflow: hidden; transition: transform 0.2s;">
-                        
-                        {% if jogo.capa %}
-                            <img src="{{ jogo.capa.url }}" class="card-img-top" alt="{{ jogo.titulo }}" style="height: 180px; object-fit: cover;">
-                        {% else %}
-                            <div style="height: 180px; background: #2288c4; display: flex; align-items: center; justify-content: center; color: white;">
-                                <i class="fas fa-gamepad fa-3x"></i>
-                            </div>
+            <div class="col-6 col-md-4 col-lg-3 mb-4">
+                <div class="card h-100"
+                    style="border-radius: 15px; border: none; box-shadow: 0 8px 20px rgba(0,0,0,0.05); overflow: hidden; transition: transform 0.2s;">
+
+                    {% if jogo.capa %}
+                    <img src="{{ jogo.capa.url }}" class="card-img-top" alt="{{ jogo.titulo }}"
+                        style="height: 180px; object-fit: cover;">
+                    {% else %}
+                    <div
+                        style="height: 180px; background: #2288c4; display: flex; align-items: center; justify-content: center; color: white;">
+                        <i class="fas fa-gamepad fa-3x"></i>
+                    </div>
+                    {% endif %}
+
+                    <div class="card-body d-flex flex-column text-center">
+                        <h5 class="card-title" style="font-weight: bold; color: #333; font-size: 1.1rem;">{{ jogo.titulo
+                            }}</h5>
+                        {% if jogo.descricao %}
+                        <p class="card-text" style="font-size: 0.85rem; color: #666; flex-grow: 1;">{{
+                            jogo.descricao|truncatechars:60 }}</p>
                         {% endif %}
-                        
-                        <div class="card-body d-flex flex-column text-center">
-                            <h5 class="card-title" style="font-weight: bold; color: #333; font-size: 1.1rem;">{{ jogo.titulo }}</h5>
-                            {% if jogo.descricao %}
-                                <p class="card-text" style="font-size: 0.85rem; color: #666; flex-grow: 1;">{{ jogo.descricao|truncatechars:60 }}</p>
-                            {% endif %}
-                            
-                            <a href="{% url 'jogar' jogo.id %}" class="btn mt-auto" style="background: #28a745; color: white; border-radius: 20px; font-weight: bold;">
-                                <i class="fas fa-play"></i> JOGAR
-                            </a>
-                        </div>
+
+                        <a href="{% url 'jogar' jogo.id %}" class="btn mt-auto"
+                            style="background: #28a745; color: white; border-radius: 20px; font-weight: bold;">
+                            <i class="fas fa-play"></i> JOGAR
+                        </a>
                     </div>
                 </div>
+            </div>
             {% empty %}
-                <div class="col-12 text-center" style="margin-top: 50px;">
-                    <i class="fas fa-ghost fa-4x" style="color: #b8c1cd; margin-bottom: 20px;"></i>
-                    <h3 style="color: #555;">Nenhum jogo encontrado!</h3>
-                    <p style="color: #888;">Tente buscar por outro nome ou aguarde os próximos lançamentos.</p>
-                </div>
+            <div class="col-12 text-center" style="margin-top: 50px;">
+                <i class="fas fa-ghost fa-4x" style="color: #b8c1cd; margin-bottom: 20px;"></i>
+                <h3 style="color: #555;">Nenhum jogo encontrado!</h3>
+                <p style="color: #888;">Tente buscar por outro nome ou aguarde os próximos lançamentos.</p>
+            </div>
             {% endfor %}
         </div>
     </div>
 
 </body>
+
 </html>
