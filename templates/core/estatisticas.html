@@ -41,8 +41,7 @@
                                 style="border-color: #333;">
                                 <div>
                                     <strong>{{ hab.codigo }}</strong>
-                                    <div class="small text-muted" style="line-height: 1.2; margin-top: 4px;">{{
-                                        hab.descricao }}</div>
+                                    <div class="small text-muted" style="line-height: 1.2; margin-top: 4px;">{{ hab.descricao }}</div>
                                 </div>
                                 <span
                                     class="badge {% if hab.pontuacao > 0 %}bg-primary{% else %}bg-secondary{% endif %} rounded-pill ms-3"
@@ -81,14 +80,11 @@
                                         {% endif %}
                                         <h5 class="mb-1 text-info">{{ sessao.jogo.titulo }}</h5>
                                     </div>
-                                    <small class="text-muted" style="white-space: nowrap;">Última vez: <br>{{
-                                        sessao.atualizado_em|date:"d/m/y H:i" }}</small>
+                                    <small class="text-muted" style="white-space: nowrap;">Última vez: <br>{{ sessao.atualizado_em|date:"d/m/y H:i" }}</small>
                                 </div>
                                 <p class="mb-1 mt-2">
-                                    <i class="fas fa-star text-warning"></i> Pontuação Total: {{
-                                    sessao.pontuacao|floatformat:1 }}<br>
-                                    <i class="fas fa-clock text-secondary"></i> Tempo de Jogo: {{
-                                    sessao.tempo_jogo|floatformat:0 }}s
+                                    <i class="fas fa-star text-warning"></i> Pontuação Total: {{ sessao.pontuacao|floatformat:1 }}<br>
+                                    <i class="fas fa-clock text-secondary"></i> Tempo de Jogo: {{ sessao.tempo_jogo|floatformat:0 }}s
                                     {% if sessao.habilidades %}
                                     <br><i class="fas fa-book text-success"></i> Habilidades abordadas:
                                     {% for cod, pts in sessao.habilidades.items %}
