@@ -60,18 +60,22 @@
                         <h4 class="mb-0">Desempenho por Habilidade (BNCC)</h4>
                     </div>
                     <div class="card-body">
-                        {% if estatisticas.pontuacao_habilidades %}
-                        <ul class="list-group list-group-flush" style="border-radius: 10px; overflow: hidden;">
-                            {% for hab, pont in estatisticas.pontuacao_habilidades.items %}
+                        {% if habilidades_ano %}
+                        <p class="text-muted small">Mostrando currículo do {{ ano_usuario }}º Ano</p>
+                        <ul class="list-group list-group-flush" style="border-radius: 10px; overflow: hidden; max-height: 400px; overflow-y: auto;">
+                            {% for hab in habilidades_ano %}
                             <li class="list-group-item bg-dark text-white d-flex justify-content-between align-items-center"
                                 style="border-color: #333;">
-                                <strong>{{ hab }}</strong>
-                                <span class="badge bg-primary rounded-pill">{{ pont|floatformat:1 }} pts</span>
+                                <div>
+                                    <strong>{{ hab.codigo }}</strong>
+                                    <div class="small text-muted" style="line-height: 1.2; margin-top: 4px;">{{ hab.descricao }}</div>
+                                </div>
+                                <span class="badge {% if hab.pontuacao > 0 %}bg-primary{% else %}bg-secondary{% endif %} rounded-pill ms-3" style="min-width: 60px;">{{ hab.pontuacao|floatformat:1 }} pts</span>
                             </li>
                             {% endfor %}
                         </ul>
                         {% else %}
-                        <p class="text-muted">Você ainda não jogou nenhum jogo com habilidades registradas.</p>
+                        <p class="text-muted">Nenhuma habilidade cadastrada para o seu ano escolar atual.</p>
                         {% endif %}
                     </div>
                 </div>
@@ -89,17 +93,26 @@
                             <div class="list-group-item bg-dark text-white border-secondary mb-2"
                                 style="border-radius: 8px;">
                                 <div class="d-flex w-100 justify-content-between">
-                                    <h5 class="mb-1 text-info">{{ sessao.jogo.titulo }}</h5>
-                                    <small class="text-muted">Última vez jogado: {{ sessao.atualizado_em|date:"d/m/Y H:i" }}</small>
+                                    <div class="d-flex align-items-center">
+                                        {% if sessao.jogo.capa %}
+                                        <img src="{{ sessao.jogo.capa.url }}" alt="Capa" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px; margin-right: 15px;">
+                                        {% else %}
+                                        <div style="width: 50px; height: 50px; background-color: #444; border-radius: 5px; margin-right: 15px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-gamepad text-secondary"></i>
+                                        </div>
+                                        {% endif %}
+                                        <h5 class="mb-1 text-info">{{ sessao.jogo.titulo }}</h5>
+                                    </div>
+                                    <small class="text-muted" style="white-space: nowrap;">Última vez: <br>{{ sessao.atualizado_em|date:"d/m/y H:i" }}</small>
                                 </div>
-                                <p class="mb-1">
-                                    <i class="fas fa-star text-warning"></i> Pontuação Total: {{
-                                    sessao.pontuacao|floatformat:1 }}<br>
-                                    <i class="fas fa-clock text-secondary"></i> Tempo de Jogo: {{
-                                    sessao.tempo_jogo|floatformat:0 }}s
-                                    {% if sessao.codigo_habilidade %}
-                                    <br><i class="fas fa-book text-success"></i> Habilidade: {{ sessao.codigo_habilidade
-                                    }}
+                                <p class="mb-1 mt-2">
+                                    <i class="fas fa-star text-warning"></i> Pontuação Total: {{ sessao.pontuacao|floatformat:1 }}<br>
+                                    <i class="fas fa-clock text-secondary"></i> Tempo de Jogo: {{ sessao.tempo_jogo|floatformat:0 }}s
+                                    {% if sessao.habilidades %}
+                                    <br><i class="fas fa-book text-success"></i> Habilidades abordadas: 
+                                    {% for cod, pts in sessao.habilidades.items %}
+                                        <span class="badge bg-secondary ms-1">{{ cod }}</span>
+                                    {% endfor %}
                                     {% endif %}
                                 </p>
                             </div>

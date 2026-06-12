@@ -821,62 +821,77 @@ def api_salvar_sessao_jogo(request):
     try:
         dados = json.loads(request.body)
         jogo_id = dados.get('jogo_id')
-        pontuacao = float(dados.get('pontuacao', 0))
         tempo_jogo = float(dados.get('tempo_jogo', 0))
-        codigo_habilidade = dados.get('codigo_habilidade', '')
+        
+        # Pode ser o formato antigo (codigo_habilidade + pontuacao) ou o novo (habilidades)
+        habilidades_enviadas = dados.get('habilidades', {})
+        
+        # Retrocompatibilidade
+        codigo_antigo = dados.get('codigo_habilidade')
+        pontuacao_antiga = float(dados.get('pontuacao', 0))
+        if codigo_antigo and not habilidades_enviadas:
+            habilidades_enviadas = {codigo_antigo: pontuacao_antiga}
+            
+        pontuacao_sessao = sum(float(v) for v in habilidades_enviadas.values()) if habilidades_enviadas else pontuacao_antiga
 
         jogo = get_object_or_404(Jogo, id=jogo_id)
         
-        # Atualiza ou cria a sessão do jogo (registro somatório)
         sessao, created = SessaoJogo.objects.get_or_create(
             user=request.user,
             jogo=jogo,
             defaults={
-                'pontuacao': pontuacao,
+                'pontuacao': pontuacao_sessao,
                 'tempo_jogo': tempo_jogo,
-                'codigo_habilidade': codigo_habilidade
+                'habilidades': habilidades_enviadas
             }
         )
 
         if not created:
-            sessao.pontuacao += pontuacao
+            sessao.pontuacao += pontuacao_sessao
             sessao.tempo_jogo += tempo_jogo
-            if codigo_habilidade:
-                sessao.codigo_habilidade = codigo_habilidade
+            habs_sessao = sessao.habilidades or {}
+            for cod, pts in habilidades_enviadas.items():
+                habs_sessao[cod] = habs_sessao.get(cod, 0) + float(pts)
+            sessao.habilidades = habs_sessao
             sessao.save()
 
-        # Atualiza ou cria as estatísticas do usuário
         estatisticas, created = EstatisticasUsuario.objects.get_or_create(user=request.user)
 
-        # Atualiza ofensiva de dias
         hoje = timezone.localdate()
         if estatisticas.ultima_jogada != hoje:
             if estatisticas.ultima_jogada == hoje - datetime.timedelta(days=1):
                 estatisticas.dias_ofensiva += 1
             else:
                 estatisticas.dias_ofensiva = 1
-            
             if estatisticas.dias_ofensiva > estatisticas.maior_ofensiva:
                 estatisticas.maior_ofensiva = estatisticas.dias_ofensiva
-            
             estatisticas.ultima_jogada = hoje
 
-        # Atualiza pontuação por habilidade
-        if codigo_habilidade:
-            habilidades = estatisticas.pontuacao_habilidades or {}
-            # Se já tem pontuação, fazemos uma média simples para não inflacionar infinitamente, ou apenas soma.
-            # O mais comum é somar a pontuação de XP, mas como o usuário mencionou "média", 
-            # vamos somar as pontuações para compor a geral depois.
-            # Vamos assumir que salva a maior pontuação daquela habilidade.
-            pontuacao_atual = habilidades.get(codigo_habilidade, 0)
-            if pontuacao > pontuacao_atual:
-                habilidades[codigo_habilidade] = pontuacao
-            estatisticas.pontuacao_habilidades = habilidades
+        if habilidades_enviadas:
+            habs_gerais = estatisticas.pontuacao_habilidades or {}
+            for cod, pts in habilidades_enviadas.items():
+                pontuacao_atual = habs_gerais.get(cod, 0)
+                if float(pts) > pontuacao_atual:
+                    habs_gerais[cod] = float(pts)
+            
+            estatisticas.pontuacao_habilidades = habs_gerais
 
-            # Atualiza pontuação geral (média de todas as habilidades jogadas)
-            valores = list(habilidades.values())
+            # Calcula média de acordo com o ano da turma do usuário
+            ano_usuario = None
+            turma_aluno = request.user.turmas.filter(ano_escolar__isnull=False).first()
+            if turma_aluno:
+                ano_usuario = turma_aluno.ano_escolar
+                
+            from .models import HabilidadeBNCC
+            total_habilidades_ano = 1
+            if ano_usuario:
+                count = HabilidadeBNCC.objects.filter(ano_escolar=ano_usuario).count()
+                if count > 0:
+                    total_habilidades_ano = count
+
+            valores = list(habs_gerais.values())
             if valores:
-                estatisticas.pontuacao_geral = sum(valores) / len(valores)
+                estatisticas.pontuacao_geral = sum(valores) / total_habilidades_ano
 
         estatisticas.save()
 
@@ -890,8 +905,31 @@ def estatisticas_view(request):
     estatisticas, created = EstatisticasUsuario.objects.get_or_create(user=request.user)
     sessoes = request.user.sessoes_jogos.all().order_by('-atualizado_em')
     
+    # Busca o ano do aluno
+    ano_usuario = None
+    turma_aluno = request.user.turmas.filter(ano_escolar__isnull=False).first()
+    if turma_aluno:
+        ano_usuario = turma_aluno.ano_escolar
+
+    from .models import HabilidadeBNCC
+    # Pega todas as habilidades daquele ano e monta uma lista rica com a pontuação do usuário
+    habilidades_ano = []
+    if ano_usuario:
+        habilidades_db = HabilidadeBNCC.objects.filter(ano_escolar=ano_usuario).order_by('codigo')
+        habs_gerais = estatisticas.pontuacao_habilidades or {}
+        
+        for hab in habilidades_db:
+            pontuacao_obtida = habs_gerais.get(hab.codigo, 0)
+            habilidades_ano.append({
+                'codigo': hab.codigo,
+                'descricao': hab.descricao,
+                'pontuacao': pontuacao_obtida
+            })
+    
     context = {
         'estatisticas': estatisticas,
         'sessoes': sessoes,
+        'habilidades_ano': habilidades_ano,
+        'ano_usuario': ano_usuario,
     }
     return render(request, 'core/estatisticas.html', context)

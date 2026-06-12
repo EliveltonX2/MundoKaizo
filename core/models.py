@@ -62,6 +62,10 @@ class Escola(models.Model):
 class Turma(models.Model):
     nome = models.CharField(max_length=100, help_text="Ex: 3º Ano A")
     escola = models.ForeignKey(Escola, on_delete=models.CASCADE)
+    ano_escolar = models.IntegerField(
+        null=True, blank=True,
+        help_text="Ano escolar (ex: 1 para 1º Ano, 2 para 2º Ano, etc.)"
+    )
     
     def __str__(self):
         return f"{self.nome} - {self.escola.nome}"
@@ -326,12 +330,21 @@ class EstatisticasUsuario(models.Model):
         return f"Estatísticas de {self.user.username}"
 
 
+class HabilidadeBNCC(models.Model):
+    codigo = models.CharField(max_length=20, unique=True, help_text="Ex: EF01MA01")
+    descricao = models.TextField()
+    ano_escolar = models.IntegerField(help_text="Ano escolar correspondente (ex: 1 para 1º Ano)")
+
+    def __str__(self):
+        return f"{self.codigo} - {self.ano_escolar}º Ano"
+
+
 class SessaoJogo(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessoes_jogos')
     jogo = models.ForeignKey(Jogo, on_delete=models.CASCADE, related_name='sessoes')
     pontuacao = models.FloatField(default=0.0)
     tempo_jogo = models.FloatField(default=0.0) # Em segundos
-    codigo_habilidade = models.CharField(max_length=50, blank=True, null=True)
+    habilidades = models.JSONField(default=dict, blank=True, help_text="Ex: {'EF01MA01': 10, 'EF02MA01': 5}")
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
 

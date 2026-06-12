@@ -79,9 +79,14 @@
                     },
                     body: JSON.stringify({
                         jogo_id: '{{ jogo.id }}',
+                        tempo_jogo: data.play_time,
+                        
+                        // Novo formato de envio (múltiplas habilidades)
+                        habilidades: data.skills || {},
+                        
+                        // Formato antigo (retrocompatibilidade)
                         pontuacao: data.score,
-                        codigo_habilidade: data.skill_code,
-                        tempo_jogo: data.play_time
+                        codigo_habilidade: data.skill_code
                     })
                 })
                 .then(res => res.json())
