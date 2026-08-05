@@ -421,7 +421,7 @@ class HabilidadeBNCC(models.Model):
     exemplo_uso = models.TextField(blank=True, null=True, help_text="Exemplo de uso da habilidade")
 
     def __str__(self):
-        return f"{self.codigo} - {self.ano_escolar}"
+        return self.codigo
 
 
 class SessaoJogo(models.Model):
