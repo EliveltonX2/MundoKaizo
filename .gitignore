@@ -5,6 +5,7 @@ __pycache__/
 venv/
 env/
 IGNORE/
+livros_source/
 
 # Django
 *.log

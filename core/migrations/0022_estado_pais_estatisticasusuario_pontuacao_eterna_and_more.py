@@ -96,7 +96,11 @@ class Migration(migrations.Migration):
             name='estados_gestao',
             field=models.ManyToManyField(blank=True, help_text='Para Gestor Regional/Kaizo gerenciar estados', to='core.estado'),
         ),
-        migrations.AlterField(
+        migrations.RemoveField(
+            model_name='cidade',
+            name='estado',
+        ),
+        migrations.AddField(
             model_name='cidade',
             name='estado',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='core.estado'),
