@@ -84,10 +84,23 @@
                     </a>
                 </li>
                 <li>
+                    <a class="dropdown-item" href="{% url 'livros_interativos' %}">
+                        <i class="fas fa-book-reader icon-margin"></i> Livros Interativos
+                    </a>
+                </li>
+                <li>
                     <a class="dropdown-item btn-inativo" href="#">
                         <i class="fas fa-newspaper icon-margin"></i> Atividades
                     </a>
                 </li>
+                
+                {% if request.user.tipo == 'ALUNO' %}
+                <li>
+                    <a class="dropdown-item" href="{% url 'dashboard' %}">
+                        <i class="fas fa-chart-pie icon-margin"></i> Dashboard
+                    </a>
+                </li>
+                {% endif %}
 
                 {% if request.user.tipo == 'DEMO'%}
                 <li>
@@ -97,10 +110,21 @@
                 </li>
                 {% endif %}
                 
-                {% if request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_GERAL' or request.user.tipo == 'ADMIN' %}
+                {% if request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'GESTOR_GERAL' or request.user.tipo == 'ADMIN' %}
+
                     <li>
-                        <a class="dropdown-item" href="{% url 'painel_gestao' %}">
-                            <i class="fas fa-cogs icon-margin"></i> Painel de Controle
+                        <a class="dropdown-item" href="{% url 'gerenciar' %}">
+                            <i class="fas fa-chart-line icon-margin"></i> Gerenciar
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{% url 'bncc_list' %}">
+                            <i class="fas fa-book-open icon-margin"></i> BNCC Computação
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{% url 'dashboard' %}">
+                            <i class="fas fa-chart-pie icon-margin"></i> Dashboard
                         </a>
                     </li>
                     <li>

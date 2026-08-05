@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo de Lógica (Exemplo Rubricas)</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .card { background: #34495e; padding: 30px; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); width: 400px; text-align: center; }
+        .btn { background: #3498db; color: white; border: none; padding: 12px 20px; margin: 10px 5px; border-radius: 5px; cursor: pointer; font-size: 16px; width: 100%; transition: 0.3s; }
+        .btn:hover { background: #2980b9; }
+        .btn-correct { background: #27ae60; }
+        .btn-correct:hover { background: #2ecc71; }
+        .btn-wrong { background: #c0392b; }
+        .btn-wrong:hover { background: #e74c3c; }
+    </style>
+</head>
+<body>
+
+    <div class="card" id="gameScreen">
+        <h2>Pergunta 1</h2>
+        <p>Qual é o resultado da porta AND se A=1 e B=1?</p>
+        
+        <button class="btn btn-wrong" onclick="responder('rubrica_1', 0)">0 (Errou, falta de atenção)</button>
+        <button class="btn btn-wrong" onclick="responder('rubrica_2', 0)">Null (Errou, conceito básico)</button>
+        <button class="btn btn-correct" onclick="responder('rubrica_3', 100)">1 (Acertou, dominou o conceito!)</button>
+    </div>
+
+    <script>
+        // Simulando tempo de jogo
+        let startTime = Date.now();
+        
+        // Pega o ID do jogo e os tokens de segurança que o sistema injeta ao carregar o Iframe
+        // Para este exemplo, estamos assumindo valores fictícios se estiver rodando fora do iframe
+        const urlParams = new URLSearchParams(window.location.search);
+        const jogoId = urlParams.get('jogo_id') || 1; 
+
+        function responder(rubricaEscolhida, pontosGanhos) {
+            let endTime = Date.now();
+            let timeSpent = (endTime - startTime) / 1000; // Segundos
+            
+            let gameScreen = document.getElementById('gameScreen');
+            gameScreen.innerHTML = `<h2>Enviando Dados... 🚀</h2>`;
+            
+            // Monta o Payload simplificado apenas com a pontuação total
+            let payload = {
+                jogo_id: jogoId,
+                tempo_jogo: timeSpent,
+                pontuacao: pontosGanhos
+            };
+            
+            // Para enviar para o Django, o jogo deve emitir um PostMessage para a janela pai (o MundoKaizo)
+            // que possui o CSRF token e fará o fetch final, ou fazer o fetch se tiver o token.
+            // Para mantermos segurança, usamos postMessage:
+            
+            if (window.parent !== window) {
+                window.parent.postMessage({
+                    tipo: 'KAIZO_SALVAR_JOGO',
+                    dados: payload
+                }, '*');
+                gameScreen.innerHTML = `<h2 style="color: #2ecc71;">Dados Enviados! 🎉</h2><p>Você ativou a <b>${rubricaEscolhida}</b> com <b>${pontosGanhos} pts</b> em ${timeSpent.toFixed(1)}s.</p>`;
+            } else {
+                gameScreen.innerHTML = `<h2 style="color: #e74c3c;">Erro</h2><p>Este jogo precisa rodar dentro da plataforma MundoKaizo para salvar dados.</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

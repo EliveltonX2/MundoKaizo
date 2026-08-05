@@ -1,0 +1,324 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Aluno - MundoKaizo</title>
+    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'core/css/dashboard_master.css' %}">
+</head>
+<body class="bg-light min-vh-100">
+
+    {% url 'gerenciar' as back_url %}
+    {% include 'includes/navbar.html' with back_url=back_url custom_title="Detalhes do Aluno" show_search=False %}
+
+    <div class="container-fluid px-4 py-4 dashboard-container">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold text-dark mb-0">
+                <i class="fas fa-user-graduate text-primary me-2"></i> {{ aluno.get_full_name|default:aluno.username }}
+            </h2>
+            
+            <form action="{% url 'resetar_senha' aluno.id %}" method="POST" onsubmit="return confirm('Tem certeza que deseja resetar a senha deste aluno para a padrão (123456)?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning rounded-pill px-4 shadow-sm fw-bold">
+                    <i class="fas fa-key me-1"></i> Resetar Senha
+                </button>
+            </form>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-4" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Metrics Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-xl-3 col-sm-6">
+                <div class="card metric-card border-0 shadow-sm rounded-4 h-100 bg-white">
+                    <div class="card-body p-4 d-flex align-items-center">
+                        <div class="metric-icon bg-success-soft text-success rounded-circle me-3">
+                            <i class="fas fa-star fa-2x"></i>
+                        </div>
+                        <div>
+                            <h3 class="fw-bold mb-0 text-dark">{{ estatisticas.pontuacao_eterna|default:0|floatformat:0 }}</h3>
+                            <span class="text-muted small fw-semibold">Pontuação Eterna</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-xl-3 col-sm-6">
+                <div class="card metric-card border-0 shadow-sm rounded-4 h-100 bg-white">
+                    <div class="card-body p-4 d-flex align-items-center">
+                        <div class="metric-icon bg-primary-soft text-primary rounded-circle me-3">
+                            <i class="fas fa-layer-group fa-2x"></i>
+                        </div>
+                        <div>
+                            <h3 class="fw-bold mb-0 text-dark">{{ estatisticas.pontuacao_geral|default:0|floatformat:0 }}</h3>
+                            <span class="text-muted small fw-semibold">Pontuação Temporada</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-sm-6">
+                <div class="card metric-card border-0 shadow-sm rounded-4 h-100 bg-white">
+                    <div class="card-body p-4 d-flex align-items-center">
+                        <div class="metric-icon bg-info-soft text-info rounded-circle me-3">
+                            <i class="fas fa-fire fa-2x"></i>
+                        </div>
+                        <div>
+                            <h3 class="fw-bold mb-0 text-dark">{{ estatisticas.dias_ofensiva|default:0 }}</h3>
+                            <span class="text-muted small fw-semibold">Dias de Ofensiva</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-sm-6">
+                <div class="card metric-card border-0 shadow-sm rounded-4 h-100 bg-white">
+                    <div class="card-body p-4 d-flex align-items-center">
+                        <div class="metric-icon bg-warning-soft text-warning rounded-circle me-3">
+                            <i class="fas fa-trophy fa-2x"></i>
+                        </div>
+                        <div>
+                            <h3 class="fw-bold mb-0 text-dark">{{ estatisticas.maior_ofensiva|default:0 }}</h3>
+                            <span class="text-muted small fw-semibold">Recorde de Ofensiva</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detailed Info -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-12">
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold text-dark mb-4">Informações do Aluno</h5>
+                        <p><strong>Usuário:</strong> {{ aluno.username }}</p>
+                        <p><strong>Nome Completo:</strong> {{ aluno.get_full_name|default:"Não Informado" }}</p>
+                        <p><strong>Turma:</strong> {{ aluno.turmas.first.nome|default:"-" }}</p>
+                        <p><strong>Escola:</strong> {{ aluno.turmas.first.escola.nome|default:"-" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Painel de Engajamento -->
+        <div class="row g-4 mb-4">
+            <!-- Calendário estilo GitHub -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold text-dark mb-4"><i class="fas fa-calendar-check text-success me-2"></i> Acessos (Últimos 30 Dias)</h5>
+                        <div style="max-width: 320px; margin: 0 auto;">
+                            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;">
+                                {% for dia in mapa_acessos %}
+                                    <div title="{{ dia.data }}" style="
+                                        aspect-ratio: 1;
+                                        border-radius: 6px; 
+                                        background-color: {% if dia.ativo %}#2ea043{% else %}#ebedf0{% endif %}; 
+                                        border: 1px solid rgba(27,31,35,0.06);
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        color: {% if dia.ativo %}white{% else %}#777{% endif %};
+                                        font-size: 11px;
+                                        font-weight: bold;
+                                        box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+                                    ">
+                                        {{ dia.data }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="d-flex justify-content-end mt-3 small text-muted">
+                                <span class="me-2">Menos</span>
+                                <div style="width: 15px; height: 15px; border-radius: 2px; background-color: #ebedf0; margin-right: 2px;"></div>
+                                <div style="width: 15px; height: 15px; border-radius: 2px; background-color: #2ea043;"></div>
+                                <span class="ms-2">Mais</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráfico Barras: Últimos 5 Acessos -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold text-dark mb-4"><i class="fas fa-clock text-primary me-2"></i> Tempo dos Últimos 5 Acessos</h5>
+                        <div style="height: 200px;">
+                            <canvas id="chartUltimosAcessos"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Painel de Habilidades BNCC -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-12">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold text-dark mb-4"><i class="fas fa-brain me-2" style="color: #6f42c1;"></i> Tempo de Prática por Habilidade BNCC (Minutos)</h5>
+                        <div style="height: 300px;">
+                            <canvas id="chartHabilidades"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold text-dark mb-4"><i class="fas fa-gamepad text-primary me-2"></i> Últimas Sessões (Jogos)</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Jogo</th>
+                                        <th>Tempo</th>
+                                        <th>Concluído</th>
+                                        <th>Data</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sessao in sessoes_jogos %}
+                                    <tr>
+                                        <td>{{ sessao.jogo.titulo }}</td>
+                                        <td>{{ sessao.tempo_jogo }}s</td>
+                                        <td>
+                                            {% if sessao.concluido %}
+                                                <span class="badge bg-success">Sim</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Não</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ sessao.atualizado_em|date:"d/m/Y H:i" }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">Nenhuma sessão registrada.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold text-dark mb-4"><i class="fas fa-book text-primary me-2"></i> Últimas Sessões (Livros)</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Livro</th>
+                                        <th>Tempo Lendo</th>
+                                        <th>Concluído</th>
+                                        <th>Data</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sessao in sessoes_livros %}
+                                    <tr>
+                                        <td>{{ sessao.livro.titulo }}</td>
+                                        <td>{{ sessao.tempo_lendo }}s</td>
+                                        <td>
+                                            {% if sessao.concluido %}
+                                                <span class="badge bg-success">Sim</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Não</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ sessao.atualizado_em|date:"d/m/Y H:i" }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">Nenhuma sessão registrada.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Dados injetados pelo Django backend
+        const labelsAcessos = JSON.parse('{{ ultimos_acessos_labels_json|safe }}');
+        const dadosAcessos = JSON.parse('{{ ultimos_acessos_tempos_json|safe }}');
+        
+        const labelsHabs = JSON.parse('{{ habilidades_labels_json|safe }}');
+        const dadosHabs = JSON.parse('{{ habilidades_tempos_json|safe }}');
+
+        // Renderiza Gráfico de Acessos Recentes
+        const ctxAcessos = document.getElementById('chartUltimosAcessos');
+        if (ctxAcessos && labelsAcessos.length > 0) {
+            new Chart(ctxAcessos, {
+                type: 'bar',
+                data: {
+                    labels: labelsAcessos,
+                    datasets: [{
+                        label: 'Minutos Navegados',
+                        data: dadosAcessos,
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        // Renderiza Gráfico de Habilidades BNCC (Barra Horizontal)
+        const ctxHabilidades = document.getElementById('chartHabilidades');
+        if (ctxHabilidades && labelsHabs.length > 0) {
+            new Chart(ctxHabilidades, {
+                type: 'bar', 
+                data: {
+                    labels: labelsHabs,
+                    datasets: [{
+                        label: 'Minutos de Prática',
+                        data: dadosHabs,
+                        backgroundColor: '#8b5cf6',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // Isso transforma o gráfico de barras vertical num horizontal
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

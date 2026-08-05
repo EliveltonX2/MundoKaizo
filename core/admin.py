@@ -2,7 +2,7 @@ from django.contrib import admin, messages
 from django.urls import path
 from django.shortcuts import render, redirect
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Cidade, Escola, Turma, Livro, Pagina,TokenCadastro, Colecao, RegistroAcessoDemo, Jogo
+from .models import User, Pais, Estado, Cidade, Escola, Turma, Livro, Pagina,TokenCadastro, Colecao, RegistroAcessoDemo, Jogo
 from django import forms
 import uuid
 
@@ -10,13 +10,14 @@ import uuid
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
-        ('Informações Escolares', {'fields': ('tipo', 'escolas', 'turmas', 'cidades_gestao')}),
+        ('Informações Escolares', {'fields': ('tipo', 'escolas', 'turmas', 'cidades_gestao', 'estados_gestao', 'paises_gestao')}),
     )
+    filter_horizontal = ('groups', 'user_permissions', 'escolas', 'turmas', 'cidades_gestao', 'estados_gestao', 'paises_gestao')
 
 @admin.register(Livro)
 class LivroAdmin(admin.ModelAdmin):
-    list_display = ('titulo', 'colecao', 'volume', 'is_versao_professor', 'is_demo', 'criado_em')
-    list_editable = ('colecao', 'volume', 'is_versao_professor','is_demo')
+    list_display = ('titulo', 'colecao', 'volume', 'formato', 'ano_ensino', 'is_versao_professor', 'is_demo', 'criado_em')
+    list_editable = ('colecao', 'volume', 'formato', 'ano_ensino', 'is_versao_professor','is_demo')
     
     # ATUALIZAÇÃO: Aponta para o template que terá nosso botão azul!
     change_list_template = "admin/core/livro/change_list.html"
@@ -26,6 +27,7 @@ class LivroAdmin(admin.ModelAdmin):
         urls = super().get_urls()
         custom_urls = [
             path('upload-em-massa/', self.admin_site.admin_view(self.upload_em_massa_view), name='upload_paginas_massa'),
+            path('upload-interativo/', self.admin_site.admin_view(self.upload_interativo_view), name='upload_livro_interativo'),
         ]
         return custom_urls + urls
 
@@ -39,7 +41,20 @@ class LivroAdmin(admin.ModelAdmin):
         }
         return render(request, 'admin/upload_paginas_massa.html', context)
 
+    # A view que carrega a tela de upload interativo
+    def upload_interativo_view(self, request):
+        from .models import HabilidadeBNCC
+        habilidades = HabilidadeBNCC.objects.all().order_by('codigo')
+        context = {
+            **self.admin_site.each_context(request),
+            'title': "Upload de Livro Interativo (S3)",
+            'habilidades_bncc': habilidades
+        }
+        return render(request, 'admin/upload_livro_interativo.html', context)
+
 # Registrar os outros modelos simples
+admin.site.register(Pais)
+admin.site.register(Estado)
 admin.site.register(Cidade)
 admin.site.register(Escola)
 admin.site.register(Turma)
@@ -188,3 +203,11 @@ class SessaoJogoAdmin(admin.ModelAdmin):
     list_display = ('user', 'jogo', 'pontuacao', 'tempo_jogo', 'atualizado_em')
     list_filter = ('jogo',)
     search_fields = ('user__username', 'jogo__titulo')
+
+from .models import SessaoLivroInterativo
+
+@admin.register(SessaoLivroInterativo)
+class SessaoLivroInterativoAdmin(admin.ModelAdmin):
+    list_display = ('user', 'livro', 'ultima_pagina_visitada', 'pontuacao', 'tempo_gasto', 'atualizado_em')
+    list_filter = ('livro',)
+    search_fields = ('user__username', 'livro__titulo')

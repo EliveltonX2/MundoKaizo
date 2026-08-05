@@ -2,6 +2,11 @@
 {% load static %}
 
 {% block content %}
+<style>
+    .habilidade-item:hover {
+        background-color: #f1f1f1 !important;
+    }
+</style>
 <div style="max-width: 800px; margin: 20px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
     <h1 style="color: #2288c4; margin-bottom: 20px;">🚀 Central de Upload de Jogos Web</h1>
     
@@ -15,6 +20,26 @@
 
         <label style="font-weight: bold; color: #333;">Descrição (Opcional):</label><br>
         <textarea id="jogoDescricao" style="width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px;" rows="3" placeholder="Uma breve descrição do jogo..."></textarea>
+
+        <label style="font-weight: bold; color: #333;">Habilidades BNCC (Opcional):</label><br>
+        <p style="font-size: 13px; color: #666; margin-top: 0;">Clique nas habilidades da esquerda para associá-las ao jogo.</p>
+        <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+            <div style="flex: 1;">
+                <label style="font-size: 12px; font-weight: bold; color: #666;">Habilidades Disponíveis</label>
+                <div id="habilidadesDisponiveis" style="height: 150px; overflow-y: auto; border: 1px solid #ccc; border-radius: 5px; padding: 5px; background: #fff;">
+                    {% for hab in habilidades_bncc %}
+                        <div class="habilidade-item" data-id="{{ hab.id }}" onclick="moverHabilidade(this, 'selecionadas')" style="padding: 8px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s;">
+                            {{ hab.codigo }} - {{ hab.ano_escolar }}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div style="flex: 1;">
+                <label style="font-size: 12px; font-weight: bold; color: #666;">Habilidades Selecionadas</label>
+                <div id="habilidadesSelecionadas" style="height: 150px; overflow-y: auto; border: 1px solid #2288c4; border-radius: 5px; padding: 5px; background: #f0f8ff;">
+                </div>
+            </div>
+        </div>
 
         <label style="font-weight: bold; color: #333;">Seleciona a Pasta de Build (HTML5):</label><br>
         <div style="background: #f9fafb; padding: 15px; border: 1px dashed #b8c1cd; border-radius: 5px; margin-top: 5px; margin-bottom: 20px;">
@@ -40,6 +65,21 @@
 
 <script>
     const csrfToken = '{{ csrf_token }}';
+
+    function moverHabilidade(elemento, destino) {
+        const containerDisponiveis = document.getElementById('habilidadesDisponiveis');
+        const containerSelecionadas = document.getElementById('habilidadesSelecionadas');
+        
+        if (destino === 'selecionadas') {
+            elemento.setAttribute('onclick', "moverHabilidade(this, 'disponiveis')");
+            elemento.style.background = '#e1f5fe';
+            containerSelecionadas.appendChild(elemento);
+        } else {
+            elemento.setAttribute('onclick', "moverHabilidade(this, 'selecionadas')");
+            elemento.style.background = 'transparent';
+            containerDisponiveis.appendChild(elemento);
+        }
+    }
 
     document.getElementById('btnUpload').addEventListener('click', async function() {
         const tituloInput = document.getElementById('jogoTitulo');
@@ -152,6 +192,9 @@
         ficheiroAtual.innerText = "A finalizar configurações...";
 
         try {
+            const habilidadesSelecionadasElements = document.getElementById('habilidadesSelecionadas').children;
+            const habilidadesSelecionadas = Array.from(habilidadesSelecionadasElements).map(el => el.getAttribute('data-id'));
+
             const respostaFinal = await fetch('/api/salvar-jogo/', {
                 method: 'POST',
                 headers: {
@@ -161,7 +204,8 @@
                 body: JSON.stringify({
                     titulo: tituloInput.value,
                     descricao: descricaoInput.value,
-                    pasta_jogo: pastaJogoS3
+                    pasta_jogo: pastaJogoS3,
+                    habilidades: habilidadesSelecionadas
                 })
             });
 

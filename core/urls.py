@@ -2,6 +2,7 @@ from django.urls import path, include
 from django.views.generic import TemplateView
 from django.contrib.auth import views as auth_views
 from . import views
+from . import views_dashboard
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
@@ -21,8 +22,9 @@ urlpatterns = [
     path('aula/<int:aula_id>/', views.assistir_aula_view, name='assistir_aula'),
     path('videos/', views.galeria_videos, name='galeria_videos'),
 
-    path('painel/', views.painel_gestao_view, name='painel_gestao'),
-    path('painel/reset/<int:user_id>/', views.resetar_senha, name='resetar_senha'),
+    path('gerenciar/aluno/<int:aluno_id>/', views.detalhes_aluno_view, name='detalhes_aluno'),
+    path('gerenciar/exportar-csv/', views_dashboard.exportar_csv_dashboard, name='dashboard_exportar_csv'),
+    path('gerenciar/reset/<int:user_id>/', views.resetar_senha, name='resetar_senha'),
 
     path('', views.estante_view, name='estante'),
     path('login/', auth_views.LoginView.as_view(template_name='core/login.html'), name='login'),
@@ -53,7 +55,18 @@ urlpatterns = [
     path('jogos/<int:jogo_id>/', views.jogar_view, name='jogar'),
     
     path('api/jogo/salvar-sessao/', views.api_salvar_sessao_jogo, name='api_salvar_sessao_jogo'),
-    path('estatisticas/', views.estatisticas_view, name='estatisticas'),
+    path('dashboard/', views.estatisticas_view, name='dashboard'),
+    
+    path('livro/<int:livro_id>/interativo/', views.ler_livro_interativo_view, name='ler_livro_interativo'),
+    path('livros-interativos/', views.livros_interativos_list_view, name='livros_interativos'),
+    path('api/livro/salvar-progresso/', views.api_salvar_progresso_livro, name='api_salvar_progresso_livro'),
+    path('api/livro/carregar-progresso/<int:livro_id>/', views.api_carregar_progresso_livro, name='api_carregar_progresso_livro'),
+    path('api/salvar-livro-interativo/', views.api_salvar_livro_interativo, name='api_salvar_livro_interativo'),
+    
+    path('gerenciar/', views_dashboard.relatorios_avancados_view, name='gerenciar'),
+    
+    path('bncc/', views.bncc_list_view, name='bncc_list'),
+    path('bncc/<int:bncc_id>/', views.bncc_detail_view, name='bncc_detail'),
 ]
 
 if settings.DEBUG:

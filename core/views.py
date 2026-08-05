@@ -5,7 +5,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib import messages
 from django.core.cache import cache
 from django.core.files.storage import default_storage
-from .models import Livro, Pagina, User, VideoAula, Turma, TokenCadastro, SessaoChat, Mensagem, Jogo, EstatisticasUsuario
+from .models import Livro, Pagina, User, VideoAula, Turma, TokenCadastro, SessaoChat, Mensagem, Jogo, EstatisticasUsuario, RegistroAcessoDemo, SessaoJogo, SessaoLivroInterativo
 from .services import adicionar_watermark
 from django.db.models import Q
 from django.urls import reverse
@@ -30,17 +30,17 @@ def estante_view(request):
 
     if request.user.tipo == 'DEMO':
         # Filtra SÓ os livros marcados como demonstração
-        livros = Livro.objects.filter(is_demo=True)
+        livros = Livro.objects.filter(is_demo=True).exclude(formato='INTERATIVO')
 
     elif request.user.tipo == 'ALUNO':
-        livros = Livro.objects.filter(is_versao_professor=False, is_demo=False)
+        livros = Livro.objects.filter(is_versao_professor=False, is_demo=False).exclude(formato='INTERATIVO')
         #TODO: uma forma de filtrar apenas o livro do ano especifico do aluno.
 
         
     
     else:
         user = request.user
-        livros = Livro.objects.filter(is_versao_professor=False)
+        livros = Livro.objects.filter(is_versao_professor=False).exclude(formato='INTERATIVO')
         
         if query:
             livros = Livro.objects.filter(
@@ -135,50 +135,100 @@ def visualizar_livro(request, livro_id):
     return render(request, 'core/leitor.html', context)
 
 @login_required
-def painel_gestao_view(request):
+def detalhes_aluno_view(request, aluno_id):
     user = request.user
     
-    # Se for aluno, chuta para a estante (não tem acesso a painel)
     if user.tipo == 'ALUNO':
         return redirect('estante')
-
-    # 1. Lógica de Hierarquia (Definir QUEM o usuário pode ver)
-    usuarios_listados = User.objects.none() # Começa vazio
+        
+    aluno = get_object_or_404(User, pk=aluno_id, tipo='ALUNO')
     
+    # 1. Segurança: checar se o usuário atual pode ver esse aluno
+    autorizado = False
     if user.tipo == 'PROFESSOR':
-        # Professor vê alunos das suas turmas
-        minhas_turmas = user.turmas.all()
-        usuarios_listados = User.objects.filter(
-            tipo='ALUNO',
-            turmas__in=minhas_turmas
-        ).distinct()
-
+        if aluno.turmas.filter(id__in=user.turmas.all()).exists():
+            autorizado = True
     elif user.tipo == 'GESTOR_LOCAL':
-        # Gestor Local vê Alunos e Professores das suas Escolas
-        minhas_escolas = user.escolas.all()
-        usuarios_listados = User.objects.filter(
-            tipo__in=['ALUNO', 'PROFESSOR'],
-            turmas__escola__in=minhas_escolas 
-        ).distinct()
+        if aluno.turmas.filter(escola__in=user.escolas.all()).exists():
+            autorizado = True
+    elif user.tipo == 'GESTOR_REGIONAL':
+        if aluno.turmas.filter(escola__cidade__in=user.cidades_gestao.all()).exists():
+            autorizado = True
+    elif user.tipo in ['GESTOR_KAIZO', 'ADMIN'] or user.is_superuser:
+        autorizado = True
+        
+    if not autorizado:
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied("Você não tem permissão para visualizar os detalhes deste aluno.")
 
-    elif user.tipo in ['GESTOR_GERAL', 'ADMIN'] or user.is_superuser:
-        # Vê todo mundo (menos outros admins/superusers para segurança básica)
-        usuarios_listados = User.objects.exclude(is_superuser=True)
-
-    # 2. LÓGICA DE BUSCA (O que estava faltando)
-    # Filtra a lista já definida acima com base no que foi digitado na navbar
-    query = request.GET.get('q')
-    if query:
-        usuarios_listados = usuarios_listados.filter(
-            Q(username__icontains=query) | 
-            Q(first_name__icontains=query) |
-            Q(email__icontains=query)
-        )
-
+    # 2. Resgatar Estatísticas
+    estatisticas, _ = EstatisticasUsuario.objects.get_or_create(user=aluno)
+    sessoes_jogos = SessaoJogo.objects.filter(user=aluno).order_by('-atualizado_em')[:50]
+    sessoes_livros = SessaoLivroInterativo.objects.filter(user=aluno).order_by('-atualizado_em')[:50]
+    
+    # NOVAS ESTATÍSTICAS
+    from datetime import timedelta
+    from django.utils import timezone
+    hoje = timezone.now().date()
+    
+    # Mapa de acessos (30 dias)
+    dias_30 = [hoje - timedelta(days=i) for i in range(29, -1, -1)]
+    
+    # Usando .values() invés de flat=True para evitar erros de date() cast em SQLite
+    acessos_recente = RegistroAcessoDemo.objects.filter(
+        user=aluno, 
+        data_login__gte=timezone.now() - timedelta(days=31)
+    )
+    acessos_set = {a.data_login.date() for a in acessos_recente}
+    
+    mapa_acessos = []
+    for d in dias_30:
+        mapa_acessos.append({
+            'data': d.strftime("%d/%m"),
+            'ativo': d in acessos_set
+        })
+        
+    # Últimos 5 acessos
+    ultimos_5 = RegistroAcessoDemo.objects.filter(user=aluno).order_by('-data_login')[:5]
+    ultimos_acessos_labels = [acesso.data_login.strftime("%d/%m") for acesso in reversed(ultimos_5)]
+    ultimos_acessos_tempos = [acesso.tempo_navegacao_minutos for acesso in reversed(ultimos_5)]
+    
+    # Tempo por Habilidade BNCC
+    tempo_habilidades = {}
+    
+    sessoes_j_all = SessaoJogo.objects.filter(user=aluno).select_related('jogo').prefetch_related('jogo__habilidades_relacionadas')
+    for sj in sessoes_j_all:
+        minutos = sj.tempo_jogo / 60.0 if sj.tempo_jogo else 0
+        if minutos > 0:
+            for h in sj.jogo.habilidades_relacionadas.all():
+                label = f"{h.codigo}"
+                tempo_habilidades[label] = tempo_habilidades.get(label, 0) + minutos
+                
+    sessoes_l_all = SessaoLivroInterativo.objects.filter(user=aluno).select_related('livro').prefetch_related('livro__habilidades_relacionadas')
+    for sl in sessoes_l_all:
+        minutos = sl.tempo_gasto / 60.0 if sl.tempo_gasto else 0
+        if minutos > 0:
+            for h in sl.livro.habilidades_relacionadas.all():
+                label = f"{h.codigo}"
+                tempo_habilidades[label] = tempo_habilidades.get(label, 0) + minutos
+                
+    habilidades_ordenadas = sorted(tempo_habilidades.items(), key=lambda x: x[1], reverse=True)[:15] # Top 15
+    habilidades_labels = [item[0] for item in habilidades_ordenadas]
+    habilidades_tempos = [round(item[1], 1) for item in habilidades_ordenadas]
+    
+    import json
     context = {
-        'usuarios': usuarios_listados
+        'aluno': aluno,
+        'estatisticas': estatisticas,
+        'sessoes_jogos': sessoes_jogos,
+        'sessoes_livros': sessoes_livros,
+        'mapa_acessos': mapa_acessos,
+        'ultimos_acessos_labels_json': json.dumps(ultimos_acessos_labels),
+        'ultimos_acessos_tempos_json': json.dumps(ultimos_acessos_tempos),
+        'habilidades_labels_json': json.dumps(habilidades_labels),
+        'habilidades_tempos_json': json.dumps(habilidades_tempos),
     }
-    return render(request, 'core/painel.html', context)
+    return render(request, 'core/detalhes_aluno.html', context)
 
 
 @login_required
@@ -214,7 +264,7 @@ def resetar_senha(request, user_id):
         else:
             messages.error(request, "Você não tem permissão para resetar este usuário.")
     
-    return redirect('painel_gestao')
+    return redirect('detalhes_aluno', aluno_id=user_id)
 
 
 
@@ -701,13 +751,21 @@ def salvar_registro_jogo(request):
             descricao=dados.get('descricao'),
             caminho_s3=f"jogos_web/{dados.get('pasta_jogo')}"
         )
+        
+        # Associa as habilidades selecionadas
+        habilidades_ids = dados.get('habilidades', [])
+        if habilidades_ids:
+            jogo.habilidades_relacionadas.set(habilidades_ids)
+            
         return JsonResponse({'status': 'sucesso', 'jogo_id': jogo.id})
     
 
 @staff_member_required
 def upload_jogos_view(request):
     # Essa view só pode ser acessada por quem tem o is_staff=True (quem acessa o admin)
-    return render(request, 'core/upload_jogos.html')
+    from .models import HabilidadeBNCC
+    habilidades = HabilidadeBNCC.objects.all().order_by('codigo')
+    return render(request, 'core/upload_jogos.html', {'habilidades_bncc': habilidades})
 
 @login_required
 def jogos_list_view(request):
@@ -726,6 +784,41 @@ def jogos_list_view(request):
         
     return render(request, 'core/jogos.html', {
         'jogos': jogos, 
+        'query': query,
+        'estatisticas': estatisticas,
+        'ranking': ranking
+    })
+
+
+@login_required
+def livros_interativos_list_view(request):
+    user = request.user
+    query = request.GET.get('q', '')
+    
+    livros = Livro.objects.filter(formato='INTERATIVO').order_by('ano_ensino', 'titulo')
+    
+    if user.tipo == 'ALUNO':
+        # Busca a turma do aluno para saber o ano escolar atual
+        turma = user.turmas.first()
+        ano_atual = turma.ano_escolar if (turma and turma.ano_escolar) else 0
+        
+        # Filtra os livros cujo ano de ensino seja menor ou igual ao ano atual do aluno
+        # Livros sem ano_ensino (null) podem ser tratados como acesso livre ou ocultos. Vamos permitir os que são null ou menores.
+        from django.db.models import Q
+        livros = livros.filter(Q(ano_ensino__isnull=True) | Q(ano_ensino__lte=ano_atual))
+        livros = livros.filter(is_versao_professor=False, is_demo=False)
+        
+    elif user.tipo == 'DEMO':
+        livros = livros.filter(is_demo=True)
+        
+    if query:
+        livros = livros.filter(titulo__icontains=query)
+        
+    estatisticas, _ = EstatisticasUsuario.objects.get_or_create(user=request.user)
+    ranking = EstatisticasUsuario.objects.filter(pontuacao_geral__gt=estatisticas.pontuacao_geral).count() + 1
+        
+    return render(request, 'core/livros_interativos_list.html', {
+        'livros': livros, 
         'query': query,
         'estatisticas': estatisticas,
         'ranking': ranking
@@ -831,19 +924,17 @@ def api_salvar_sessao_jogo(request):
         jogo_id = dados.get('jogo_id')
         tempo_jogo = float(dados.get('tempo_jogo', 0))
         
-        # Pode ser o formato antigo (codigo_habilidade + pontuacao) ou o novo (habilidades)
-        habilidades_enviadas = dados.get('habilidades', {})
-        
-        # Retrocompatibilidade
-        codigo_antigo = dados.get('codigo_habilidade')
-        pontuacao_antiga = float(dados.get('pontuacao', 0))
-        if codigo_antigo and not habilidades_enviadas:
-            habilidades_enviadas = {codigo_antigo: pontuacao_antiga}
-            
-        pontuacao_sessao = sum(float(v) for v in habilidades_enviadas.values()) if habilidades_enviadas else pontuacao_antiga
+        # Agora o cliente envia apenas a pontuação total (score)
+        # Retrocompatibilidade com pontuacao
+        pontuacao_sessao = float(dados.get('score', dados.get('pontuacao', 0)))
 
         jogo = get_object_or_404(Jogo, id=jogo_id)
         
+        # O servidor associa a pontuação a todas as habilidades relacionadas
+        habilidades_enviadas = {}
+        for hab in jogo.habilidades_relacionadas.all():
+            habilidades_enviadas[hab.codigo] = pontuacao_sessao
+            
         sessao, created = SessaoJogo.objects.get_or_create(
             user=request.user,
             jogo=jogo,
@@ -855,15 +946,25 @@ def api_salvar_sessao_jogo(request):
         )
 
         if not created:
-            sessao.pontuacao += pontuacao_sessao
+            sessao.pontuacao = pontuacao_sessao
             sessao.tempo_jogo += tempo_jogo
+            
+            if pontuacao_sessao > sessao.recorde_pontuacao:
+                sessao.recorde_pontuacao = pontuacao_sessao
+                
             habs_sessao = sessao.habilidades or {}
             for cod, pts in habilidades_enviadas.items():
                 habs_sessao[cod] = habs_sessao.get(cod, 0) + float(pts)
             sessao.habilidades = habs_sessao
             sessao.save()
+        else:
+            sessao.recorde_pontuacao = pontuacao_sessao
+            sessao.save()
 
-        estatisticas, created = EstatisticasUsuario.objects.get_or_create(user=request.user)
+        estatisticas, created_est = EstatisticasUsuario.objects.get_or_create(user=request.user)
+        
+        # Soma pontuação eterna
+        estatisticas.pontuacao_eterna += pontuacao_sessao
 
         hoje = timezone.localdate()
         if estatisticas.ultima_jogada != hoje:
@@ -923,7 +1024,7 @@ def estatisticas_view(request):
         ano_usuario = turma_aluno.ano_escolar
 
     from .models import HabilidadeBNCC
-    # Pega todas as habilidades daquele ano e monta uma lista rica com a pontuação do usuário
+    # Pega todas as habilidades daquele ano e monta uma lista rica com a pontuacao do usuario
     habilidades_ano = []
     if ano_usuario:
         habilidades_db = HabilidadeBNCC.objects.filter(ano_escolar=ano_usuario).order_by('codigo')
@@ -936,12 +1037,250 @@ def estatisticas_view(request):
                 'descricao': hab.descricao,
                 'pontuacao': pontuacao_obtida
             })
+            
+    sessoes_livros = request.user.sessoes_livros_interativos.all().order_by('-atualizado_em')
     
     context = {
         'estatisticas': estatisticas,
         'sessoes': sessoes,
+        'sessoes_livros': sessoes_livros,
         'habilidades_ano': habilidades_ano,
         'ano_usuario': ano_usuario,
         'ranking': ranking,
     }
-    return render(request, 'core/estatisticas.html', context)
+    return render(request, 'core/estatisticas.html', context)
+
+
+from .models import SessaoLivroInterativo
+
+@login_required
+def ler_livro_interativo_view(request, livro_id):
+    livro = get_object_or_404(Livro, id=livro_id, formato='INTERATIVO')
+    return render(request, 'core/ler_livro_interativo.html', {'livro': livro})
+
+
+@login_required
+@require_POST
+def api_salvar_progresso_livro(request):
+    try:
+        dados = json.loads(request.body)
+        livro_id = dados.get('livro_id')
+        
+        livro = get_object_or_404(Livro, id=livro_id, formato='INTERATIVO')
+        
+        pontuacao_sessao = float(dados.get('pontuacao', dados.get('score', 0.0)))
+        
+        # O servidor associa a pontuação a todas as habilidades relacionadas
+        habilidades_enviadas = {}
+        for hab in livro.habilidades_relacionadas.all():
+            habilidades_enviadas[hab.codigo] = pontuacao_sessao
+        
+        sessao, created = SessaoLivroInterativo.objects.get_or_create(
+            user=request.user,
+            livro=livro,
+            defaults={
+                'ultima_pagina_visitada': dados.get('page', 1),
+                'respostas_atividades': dados.get('answers', {}),
+                'tentativas_atividades': dados.get('attempts', {}),
+                'pontuacao': pontuacao_sessao,
+                'progresso': float(dados.get('progresso', 0.0)),
+                'tempo_gasto': float(dados.get('time', 0)),
+                'habilidades': habilidades_enviadas
+            }
+        )
+
+        if not created:
+            sessao.ultima_pagina_visitada = dados.get('page', sessao.ultima_pagina_visitada)
+            
+            # Mescla as respostas
+            respostas_atuais = sessao.respostas_atividades or {}
+            respostas_novas = dados.get('answers', {})
+            respostas_atuais.update(respostas_novas)
+            sessao.respostas_atividades = respostas_atuais
+            
+            # Mescla as tentativas
+            tentativas_atuais = sessao.tentativas_atividades or {}
+            tentativas_novas = dados.get('attempts', {})
+            for k, v in tentativas_novas.items():
+                tentativas_atuais[k] = tentativas_atuais.get(k, 0) + v
+            sessao.tentativas_atividades = tentativas_atuais
+            
+            # Mescla habilidades
+            habs_atuais = sessao.habilidades or {}
+            for cod, pts in habilidades_enviadas.items():
+                pontuacao_atual = habs_atuais.get(cod, 0)
+                if float(pts) > pontuacao_atual:
+                    habs_atuais[cod] = float(pts)
+            sessao.habilidades = habs_atuais
+            
+            sessao.tempo_gasto += float(dados.get('time', 0))
+            
+            if 'progresso' in dados:
+                sessao.progresso = float(dados.get('progresso', sessao.progresso))
+                
+            sessao.pontuacao = pontuacao_sessao
+                
+            if pontuacao_sessao > sessao.recorde_pontuacao:
+                sessao.recorde_pontuacao = pontuacao_sessao
+                
+            sessao.save()
+            
+            # Soma pontuação eterna
+            estatisticas, _ = EstatisticasUsuario.objects.get_or_create(user=request.user)
+            estatisticas.pontuacao_eterna += pontuacao_sessao
+            estatisticas.save()
+            
+        else:
+            sessao.recorde_pontuacao = sessao.pontuacao
+            sessao.save()
+            estatisticas, _ = EstatisticasUsuario.objects.get_or_create(user=request.user)
+            estatisticas.pontuacao_eterna += sessao.pontuacao
+            estatisticas.save()
+            
+        return JsonResponse({'status': 'sucesso'})
+    except Exception as e:
+        return JsonResponse({'status': 'erro', 'mensagem': str(e)}, status=400)
+
+
+@login_required
+def api_carregar_progresso_livro(request, livro_id):
+    livro = get_object_or_404(Livro, id=livro_id, formato='INTERATIVO')
+    sessao = SessaoLivroInterativo.objects.filter(user=request.user, livro=livro).first()
+    
+    if sessao:
+        progress = {
+            'page': sessao.ultima_pagina_visitada,
+            'answers': sessao.respostas_atividades,
+            'attempts': sessao.tentativas_atividades,
+            'time': sessao.tempo_gasto
+        }
+    else:
+        progress = {
+            'page': 1, 'answers': {}, 'attempts': {}, 'time': 0
+        }
+        
+    return JsonResponse({'status': 'sucesso', 'progress': progress})
+
+
+@login_required
+def relatorios_desempenho_view(request):
+    if request.user.tipo not in ['PROFESSOR', 'GESTOR_LOCAL', 'GESTOR_GERAL', 'ADMIN']:
+        return redirect('estante')
+        
+    # Inicialmente simples, carregando turmas do usuário
+    if request.user.tipo == 'PROFESSOR':
+        turmas = request.user.turmas.all()
+    elif request.user.tipo == 'GESTOR_LOCAL':
+        turmas = Turma.objects.filter(escola__in=request.user.escolas.all())
+    else:
+        turmas = Turma.objects.all()
+        
+    # Para cada turma, podemos calcular estatísticas básicas
+    # Como as estatísticas são complexas, passamos as turmas para o template
+    # Opcionalmente, processamos estatísticas por turma aqui.
+    
+    turmas_stats = []
+    for turma in turmas:
+        alunos = User.objects.filter(turmas=turma, tipo='ALUNO')
+        total_alunos = alunos.count()
+        pontuacao_media = 0
+        
+        if total_alunos > 0:
+            estatisticas_alunos = EstatisticasUsuario.objects.filter(user__in=alunos)
+            total_pontos = sum(e.pontuacao_geral for e in estatisticas_alunos)
+            pontuacao_media = total_pontos / total_alunos
+            
+        turmas_stats.append({
+            'turma': turma,
+            'total_alunos': total_alunos,
+            'pontuacao_media': pontuacao_media
+        })
+        
+    context = {
+        'turmas_stats': turmas_stats
+    }
+    return render(request, 'core/relatorios_desempenho.html', context)
+
+
+@login_required
+def api_salvar_livro_interativo(request):
+    if not (request.user.is_superuser or request.user.is_staff or getattr(request.user, 'tipo', '') in ['GESTOR_GERAL', 'ADMIN']):
+        return JsonResponse({'erro': 'Sem permissão.'}, status=403)
+
+    if request.method == 'POST':
+        try:
+            dados = json.loads(request.body)
+            livro = Livro.objects.create(
+                titulo=dados.get('titulo'),
+                descricao=dados.get('descricao', ''),
+                caminho_s3=f"jogos_web/{dados.get('pasta_s3')}",
+                formato='INTERATIVO',
+                ano_ensino=dados.get('ano_ensino') if dados.get('ano_ensino') else None,
+                rubricas_atividades=dados.get('rubricas', {})
+            )
+            
+            # Constrói o modelo relacional para performance em relatórios
+            from .models import AtividadeLivro, RubricaAlternativa
+            rubricas_json = dados.get('rubricas', {})
+            for key_atividade, alternativas in rubricas_json.items():
+                if key_atividade.startswith('Atividade_'):
+                    try:
+                        num = int(key_atividade.split('_')[1])
+                        atividade = AtividadeLivro.objects.create(livro=livro, numero=num)
+                        
+                        rubricas_para_salvar = []
+                        for alt, texto in alternativas.items():
+                            rubricas_para_salvar.append(RubricaAlternativa(
+                                atividade=atividade,
+                                alternativa=alt,
+                                texto_rubrica=texto
+                            ))
+                        RubricaAlternativa.objects.bulk_create(rubricas_para_salvar)
+                    except ValueError:
+                        pass
+                        
+            # Associa as habilidades selecionadas
+            habilidades_ids = dados.get('habilidades', [])
+            if habilidades_ids:
+                livro.habilidades_relacionadas.set(habilidades_ids)
+                
+            return JsonResponse({'status': 'sucesso', 'livro_id': livro.id})
+        except Exception as e:
+            return JsonResponse({'status': 'erro', 'mensagem': str(e)}, status=400)
+    return JsonResponse({'status': 'metodo_invalido'}, status=405)
+
+
+from django.db.models import Q
+
+@login_required
+def bncc_list_view(request):
+    if request.user.tipo not in ['PROFESSOR', 'GESTOR_LOCAL', 'GESTOR_REGIONAL', 'GESTOR_KAIZO', 'ADMIN']:
+        return redirect('estante')
+        
+    query = request.GET.get('q', '')
+    from .models import HabilidadeBNCC
+    
+    if query:
+        habilidades = HabilidadeBNCC.objects.filter(
+            Q(codigo__icontains=query) | 
+            Q(descricao__icontains=query) |
+            Q(ano_escolar__icontains=query)
+        ).order_by('codigo')
+    else:
+        habilidades = HabilidadeBNCC.objects.all().order_by('codigo')
+    
+    context = {
+        'habilidades': habilidades,
+        'query': query,
+    }
+    return render(request, 'core/bncc_list.html', context)
+
+@login_required
+def bncc_detail_view(request, bncc_id):
+    if request.user.tipo not in ['PROFESSOR', 'GESTOR_LOCAL', 'GESTOR_REGIONAL', 'GESTOR_KAIZO', 'ADMIN']:
+        return redirect('estante')
+        
+    from .models import HabilidadeBNCC
+    habilidade = get_object_or_404(HabilidadeBNCC, id=bncc_id)
+    return render(request, 'core/bncc_detail.html', {'habilidade': habilidade})
+

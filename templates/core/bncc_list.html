@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/mkz.svg' %}">
+    <title>BNCC - MundoKaizo</title>
+
+    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/css/app.css' %}">
+</head>
+
+<body style="background-color: #f9fafb; min-height: 100vh; display: flex; flex-direction: column;">
+
+    {% url 'estante' as estante_url %}
+    {% include 'includes/navbar.html' with back_url=estante_url custom_title="BNCC Computação Digital" show_search=True search_action='bncc_list' search_placeholder="Buscar habilidade..." current_query=query %}
+
+    <div class="container" style="flex: 1; padding-top: 30px; padding-bottom: 50px;">
+        
+        <div class="row mb-4">
+            <div class="col-12">
+                <h3 style="color: #333; font-weight: bold;">
+                    <i class="fas fa-book-open" style="color: #2288c4;"></i> Base Nacional Comum Curricular (BNCC)
+                </h3>
+                <p style="color: #666;">Explore as habilidades de Computação e Tecnologia para o Ensino Fundamental.</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="list-group">
+                    {% for habilidade in habilidades %}
+                    <a href="{% url 'bncc_detail' habilidade.id %}" class="list-group-item list-group-item-action d-flex flex-column align-items-start shadow-sm mb-3 rounded" style="border-left: 5px solid #2288c4; padding: 20px; transition: all 0.2s;">
+                        <div class="d-flex w-100 justify-content-between mb-2">
+                            <h5 class="mb-1" style="font-weight: bold; color: #2288c4;">{{ habilidade.codigo }}</h5>
+                            <span class="badge bg-primary rounded-pill" style="font-size: 0.9rem;">{{ habilidade.ano_escolar }}</span>
+                        </div>
+                        <p class="mb-1 text-muted">{{ habilidade.descricao|truncatewords:20 }}</p>
+                    </a>
+                    {% empty %}
+                    <div class="text-center" style="margin-top: 50px;">
+                        <i class="fas fa-search fa-4x" style="color: #b8c1cd; margin-bottom: 20px;"></i>
+                        <h3 style="color: #555;">Nenhuma habilidade encontrada!</h3>
+                        <p style="color: #888;">Tente buscar por outro código ou palavra-chave.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

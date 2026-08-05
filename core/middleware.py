@@ -8,7 +8,7 @@ class MonitoramentoDemoMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
 
-        if request.user.is_authenticated and request.user.tipo == 'DEMO':
+        if request.user.is_authenticated:
             registro_id = request.session.get('registro_acesso_demo_id')
             agora = timezone.now()
 
@@ -16,7 +16,7 @@ class MonitoramentoDemoMiddleware:
                 try:
                     registro = RegistroAcessoDemo.objects.get(id=registro_id)
                     
-                    # Se passou mais de 30 minutos (1800 segundos) inativo, 
+                    # Se passou mais de 10 minutos (600 segundos) inativo, 
                     # consideramos que é uma NOVA sessão de navegação (ex: voltou no dia seguinte)
                     if (agora - registro.ultima_atividade).total_seconds() > 600:
                         
@@ -30,6 +30,12 @@ class MonitoramentoDemoMiddleware:
                         )
                         # Atualiza a sessão com o ID novo
                         request.session['registro_acesso_demo_id'] = novo_registro.id
+                        
+                        # Proteção de Ofensiva: se expirou a sessão, checa a ofensiva do aluno
+                        if request.user.tipo == 'ALUNO':
+                            from core.signals import atualizar_ofensiva
+                            atualizar_ofensiva(request.user)
+                            
                     else:
                         # Se faz menos de 30 min, apenas atualiza o cronômetro da sessão atual
                         registro.ultima_atividade = agora

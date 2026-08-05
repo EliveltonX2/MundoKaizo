@@ -45,9 +45,23 @@ class TokenCadastro(models.Model):
         return f"[{self.tipo_usuario}] {self.codigo} - {status}"
 
 
+class Pais(models.Model):
+    nome = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.nome
+
+class Estado(models.Model):
+    nome = models.CharField(max_length=100)
+    sigla = models.CharField(max_length=2)
+    pais = models.ForeignKey(Pais, on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.nome} - {self.sigla}"
+
 class Cidade(models.Model):
     nome = models.CharField(max_length=100)
-    estado = models.CharField(max_length=2)
+    estado = models.ForeignKey(Estado, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.nome
@@ -76,8 +90,9 @@ class User(AbstractUser):
     class Tipos(models.TextChoices):
         ALUNO = 'ALUNO', 'Aluno'
         PROFESSOR = 'PROFESSOR', 'Professor'
-        GESTOR_LOCAL = 'GESTOR_LOCAL', 'Gestor Local'
-        GESTOR_GERAL = 'GESTOR_GERAL', 'Gestor Geral'
+        GESTOR_LOCAL = 'GESTOR_LOCAL', 'Gestor Escolar'
+        GESTOR_REGIONAL = 'GESTOR_REGIONAL', 'Gestor Regional'
+        GESTOR_KAIZO = 'GESTOR_KAIZO', 'Gestor Kaizo'
         ADMIN = 'ADMIN', 'Administrador'
         DEMO = 'DEMO', 'Conta de Demonstração'
 
@@ -91,8 +106,9 @@ class User(AbstractUser):
     escolas = models.ManyToManyField(Escola, blank=True, help_text="Para Gestores Locais e Professores")
     turmas = models.ManyToManyField(Turma, blank=True, help_text="Para Professores e Alunos")
     
-    # Para Gestor Geral (pode ser responsável por várias cidades ou escolas específicas)
-    cidades_gestao = models.ManyToManyField(Cidade, blank=True, help_text="Para Gestor Geral gerenciar cidades inteiras")
+    cidades_gestao = models.ManyToManyField(Cidade, blank=True, help_text="Para Gestor Regional gerenciar cidades")
+    estados_gestao = models.ManyToManyField(Estado, blank=True, help_text="Para Gestor Regional/Kaizo gerenciar estados")
+    paises_gestao = models.ManyToManyField(Pais, blank=True, help_text="Para Gestor Kaizo gerenciar países")
 
     def __str__(self):
         return f"{self.username} ({self.get_tipo_display()})"
@@ -105,6 +121,14 @@ class User(AbstractUser):
     @property
     def is_professor(self):
         return self.tipo == self.Tipos.PROFESSOR
+        
+    @property
+    def is_gestor_regional(self):
+        return self.tipo == self.Tipos.GESTOR_REGIONAL
+        
+    @property
+    def is_gestor_kaizo(self):
+        return self.tipo == self.Tipos.GESTOR_KAIZO
 
 class Colecao(models.Model):
     nome = models.CharField(max_length=100, unique=True, verbose_name="Nome da Coleção")
@@ -138,8 +162,19 @@ class Livro(models.Model):
     is_demo = models.BooleanField(default=False, help_text="Marque esta opção para liberar este livro para contas de demonstração.")
     capa = models.ImageField(upload_to='capas/', null=True, blank=True)
     is_versao_professor = models.BooleanField(default=False)
-
     
+    ano_ensino = models.IntegerField(null=True, blank=True, help_text="Ano escolar correspondente (ex: 1 para 1º Ano)")
+    rubricas_atividades = models.JSONField(default=dict, blank=True, help_text="Estrutura de rubricas das atividades (usado para livros interativos)")
+    
+    FORMATOS = (
+        ('ESTATICO', 'Estático'),
+        ('INTERATIVO', 'Interativo'),
+    )
+    formato = models.CharField(max_length=20, choices=FORMATOS, default='ESTATICO')
+    caminho_s3 = models.CharField(max_length=500, blank=True, null=True, help_text="Caminho base do livro interativo no S3")
+    
+    habilidades_relacionadas = models.ManyToManyField('HabilidadeBNCC', blank=True, related_name='livros')
+
     colecao = models.ForeignKey(
         Colecao, 
         on_delete=models.SET_NULL, 
@@ -184,6 +219,34 @@ class Livro(models.Model):
         tipo = "Prof" if self.is_versao_professor else "Aluno"
         return f"{self.titulo} ({tipo})"
 
+    @property
+    def url_interativa(self):
+        if self.formato == 'INTERATIVO' and self.caminho_s3:
+            return f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{self.caminho_s3}/index.html"
+        return ""
+
+class AtividadeLivro(models.Model):
+    livro = models.ForeignKey(Livro, on_delete=models.CASCADE, related_name='atividades')
+    numero = models.PositiveIntegerField(help_text="Número da atividade (ex: 1 para Atividade 1)")
+    
+    class Meta:
+        ordering = ['numero']
+        unique_together = ['livro', 'numero']
+
+    def __str__(self):
+        return f"Atividade {self.numero} - {self.livro.titulo}"
+
+class RubricaAlternativa(models.Model):
+    atividade = models.ForeignKey(AtividadeLivro, on_delete=models.CASCADE, related_name='rubricas')
+    alternativa = models.CharField(max_length=10, help_text="Ex: A, B, C, D")
+    texto_rubrica = models.CharField(max_length=500, blank=True, null=True)
+
+    class Meta:
+        unique_together = ['atividade', 'alternativa']
+        ordering = ['alternativa']
+
+    def __str__(self):
+        return f"[{self.alternativa}] {self.texto_rubrica}"
 
 
 class Pagina(models.Model):
@@ -306,6 +369,14 @@ class Jogo(models.Model):
     caminho_s3 = models.CharField(max_length=500, help_text="Caminho base do jogo no S3")
     capa = models.ImageField(upload_to='capas_jogos/', blank=True, null=True)
     ativo = models.BooleanField(default=True)
+    
+    habilidades_relacionadas = models.ManyToManyField('HabilidadeBNCC', blank=True, related_name='jogos')
+    rubrica_1 = models.CharField(max_length=255, blank=True, null=True, help_text="Rubrica opção 1")
+    rubrica_2 = models.CharField(max_length=255, blank=True, null=True, help_text="Rubrica opção 2")
+    rubrica_3 = models.CharField(max_length=255, blank=True, null=True, help_text="Rubrica opção 3")
+    rubrica_4 = models.CharField(max_length=255, blank=True, null=True, help_text="Rubrica opção 4")
+    rubrica_5 = models.CharField(max_length=255, blank=True, null=True, help_text="Rubrica opção 5")
+    
     criado_em = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
@@ -320,6 +391,7 @@ class Jogo(models.Model):
 class EstatisticasUsuario(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='estatisticas')
     pontuacao_geral = models.FloatField(default=0.0)
+    pontuacao_eterna = models.FloatField(default=0.0, help_text="Soma de todas as pontuações adquiridas")
     # Ex: {"EF01CO01": 150, "EF02CO02": 200}
     pontuacao_habilidades = models.JSONField(default=dict, blank=True)
     dias_ofensiva = models.IntegerField(default=0)
@@ -332,17 +404,20 @@ class EstatisticasUsuario(models.Model):
 
 class HabilidadeBNCC(models.Model):
     codigo = models.CharField(max_length=20, unique=True, help_text="Ex: EF01MA01")
-    descricao = models.TextField()
-    ano_escolar = models.IntegerField(help_text="Ano escolar correspondente (ex: 1 para 1º Ano)")
+    ano_escolar = models.CharField(max_length=20, help_text="Ano escolar correspondente (ex: 1ANO)")
+    descricao = models.TextField(help_text="Descrição da habilidade")
+    explicacao = models.TextField(blank=True, null=True, help_text="Explicação da habilidade")
+    exemplo_uso = models.TextField(blank=True, null=True, help_text="Exemplo de uso da habilidade")
 
     def __str__(self):
-        return f"{self.codigo} - {self.ano_escolar}º Ano"
+        return f"{self.codigo} - {self.ano_escolar}"
 
 
 class SessaoJogo(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessoes_jogos')
     jogo = models.ForeignKey(Jogo, on_delete=models.CASCADE, related_name='sessoes')
     pontuacao = models.FloatField(default=0.0)
+    recorde_pontuacao = models.FloatField(default=0.0)
     tempo_jogo = models.FloatField(default=0.0) # Em segundos
     habilidades = models.JSONField(default=dict, blank=True, help_text="Ex: {'EF01MA01': 10, 'EF02MA01': 5}")
     criado_em = models.DateTimeField(auto_now_add=True)
@@ -352,4 +427,25 @@ class SessaoJogo(models.Model):
         unique_together = ('user', 'jogo')
 
     def __str__(self):
-        return f"{self.user.username} jogou {self.jogo.titulo} - Total: {self.pontuacao} pts / {self.tempo_jogo}s"
+        return f"{self.user.username} jogou {self.jogo.titulo} - Total: {self.pontuacao} pts / {self.tempo_jogo}s"
+
+
+class SessaoLivroInterativo(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessoes_livros_interativos')
+    livro = models.ForeignKey(Livro, on_delete=models.CASCADE, related_name='sessoes_interativas')
+    ultima_pagina_visitada = models.IntegerField(default=1)
+    respostas_atividades = models.JSONField(default=dict, blank=True)
+    tentativas_atividades = models.JSONField(default=dict, blank=True)
+    pontuacao = models.FloatField(default=0.0)
+    recorde_pontuacao = models.FloatField(default=0.0)
+    progresso = models.FloatField(default=0.0)
+    tempo_gasto = models.FloatField(default=0.0) # Em segundos
+    habilidades = models.JSONField(default=dict, blank=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('user', 'livro')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.livro.titulo} (Pág. {self.ultima_pagina_visitada})"
