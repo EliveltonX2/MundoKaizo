@@ -2,7 +2,7 @@ from django.contrib import admin, messages
 from django.urls import path
 from django.shortcuts import render, redirect
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Pais, Estado, Cidade, Escola, Turma, Livro, Pagina,TokenCadastro, Colecao, RegistroAcessoDemo, Jogo
+from .models import User, Pais, Estado, Cidade, Escola, Turma, Livro, Pagina,TokenCadastro, Colecao, RegistroAcessoDemo, Jogo, AnoEscolar
 from django import forms
 import uuid
 
@@ -16,8 +16,12 @@ class CustomUserAdmin(UserAdmin):
 
 @admin.register(Livro)
 class LivroAdmin(admin.ModelAdmin):
-    list_display = ('titulo', 'colecao', 'volume', 'formato', 'ano_ensino', 'is_versao_professor', 'is_demo', 'criado_em')
-    list_editable = ('colecao', 'volume', 'formato', 'ano_ensino', 'is_versao_professor','is_demo')
+    list_display = ('titulo', 'colecao', 'volume', 'formato', 'get_anos_escolares', 'is_versao_professor', 'is_demo', 'criado_em')
+    list_editable = ('colecao', 'volume', 'formato', 'is_versao_professor','is_demo')
+    
+    def get_anos_escolares(self, obj):
+        return ", ".join([a.nome for a in obj.anos_escolares.all()])
+    get_anos_escolares.short_description = 'Anos Escolares'
     
     # ATUALIZAÇÃO: Aponta para o template que terá nosso botão azul!
     change_list_template = "admin/core/livro/change_list.html"
@@ -57,7 +61,26 @@ admin.site.register(Pais)
 admin.site.register(Estado)
 admin.site.register(Cidade)
 admin.site.register(Escola)
-admin.site.register(Turma)
+from .admin_demo_generator import gerador_demo_panel_view, gerar_dados_demo_view, apagar_dados_demo_view
+
+@admin.register(Turma)
+class TurmaAdmin(admin.ModelAdmin):
+    change_list_template = "admin/core/turma/change_list.html"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('gerador-demo/', self.admin_site.admin_view(gerador_demo_panel_view), name='gerador_demo_panel'),
+            path('gerador-demo/gerar/', self.admin_site.admin_view(gerar_dados_demo_view), name='gerar_dados_demo'),
+            path('gerador-demo/apagar/', self.admin_site.admin_view(apagar_dados_demo_view), name='apagar_dados_demo'),
+        ]
+        return custom_urls + urls
+
+@admin.register(AnoEscolar)
+class AnoEscolarAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'ordem')
+    list_editable = ('ordem',)
+    ordering = ('ordem',)
 
 
 @admin.register(Colecao)
@@ -189,9 +212,13 @@ from .models import HabilidadeBNCC, EstatisticasUsuario, SessaoJogo
 
 @admin.register(HabilidadeBNCC)
 class HabilidadeBNCCAdmin(admin.ModelAdmin):
-    list_display = ('codigo', 'ano_escolar', 'descricao')
-    list_filter = ('ano_escolar',)
+    list_display = ('codigo', 'get_anos_escolares', 'descricao')
+    list_filter = ('anos_escolares',)
     search_fields = ('codigo', 'descricao')
+
+    def get_anos_escolares(self, obj):
+        return ", ".join([a.nome for a in obj.anos_escolares.all()])
+    get_anos_escolares.short_description = 'Anos Escolares'
 
 @admin.register(EstatisticasUsuario)
 class EstatisticasUsuarioAdmin(admin.ModelAdmin):

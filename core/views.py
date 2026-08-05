@@ -795,17 +795,19 @@ def livros_interativos_list_view(request):
     user = request.user
     query = request.GET.get('q', '')
     
-    livros = Livro.objects.filter(formato='INTERATIVO').order_by('ano_ensino', 'titulo')
+    livros = Livro.objects.filter(formato='INTERATIVO').order_by('titulo')
     
     if user.tipo == 'ALUNO':
         # Busca a turma do aluno para saber o ano escolar atual
         turma = user.turmas.first()
-        ano_atual = turma.ano_escolar if (turma and turma.ano_escolar) else 0
+        ano_atual = turma.ano_escolar if (turma and turma.ano_escolar) else None
         
-        # Filtra os livros cujo ano de ensino seja menor ou igual ao ano atual do aluno
-        # Livros sem ano_ensino (null) podem ser tratados como acesso livre ou ocultos. Vamos permitir os que são null ou menores.
         from django.db.models import Q
-        livros = livros.filter(Q(ano_ensino__isnull=True) | Q(ano_ensino__lte=ano_atual))
+        if ano_atual:
+            livros = livros.filter(Q(anos_escolares__isnull=True) | Q(anos_escolares__ordem__lte=ano_atual.ordem)).distinct()
+        else:
+            livros = livros.filter(anos_escolares__isnull=True)
+            
         livros = livros.filter(is_versao_professor=False, is_demo=False)
         
     elif user.tipo == 'DEMO':
@@ -994,7 +996,7 @@ def api_salvar_sessao_jogo(request):
             from .models import HabilidadeBNCC
             total_habilidades_ano = 1
             if ano_usuario:
-                count = HabilidadeBNCC.objects.filter(ano_escolar=ano_usuario).count()
+                count = HabilidadeBNCC.objects.filter(anos_escolares=ano_usuario).count()
                 if count > 0:
                     total_habilidades_ano = count
 
@@ -1027,7 +1029,7 @@ def estatisticas_view(request):
     # Pega todas as habilidades daquele ano e monta uma lista rica com a pontuacao do usuario
     habilidades_ano = []
     if ano_usuario:
-        habilidades_db = HabilidadeBNCC.objects.filter(ano_escolar=ano_usuario).order_by('codigo')
+        habilidades_db = HabilidadeBNCC.objects.filter(anos_escolares=ano_usuario).order_by('codigo')
         habs_gerais = estatisticas.pontuacao_habilidades or {}
         
         for hab in habilidades_db:
@@ -1215,9 +1217,12 @@ def api_salvar_livro_interativo(request):
                 descricao=dados.get('descricao', ''),
                 caminho_s3=f"jogos_web/{dados.get('pasta_s3')}",
                 formato='INTERATIVO',
-                ano_ensino=dados.get('ano_ensino') if dados.get('ano_ensino') else None,
                 rubricas_atividades=dados.get('rubricas', {})
             )
+            
+            anos_ids = dados.get('anos_escolares', [])
+            if anos_ids:
+                livro.anos_escolares.set(anos_ids)
             
             # Constrói o modelo relacional para performance em relatórios
             from .models import AtividadeLivro, RubricaAlternativa
@@ -1264,8 +1269,8 @@ def bncc_list_view(request):
         habilidades = HabilidadeBNCC.objects.filter(
             Q(codigo__icontains=query) | 
             Q(descricao__icontains=query) |
-            Q(ano_escolar__icontains=query)
-        ).order_by('codigo')
+            Q(anos_escolares__nome__icontains=query)
+        ).distinct().order_by('codigo')
     else:
         habilidades = HabilidadeBNCC.objects.all().order_by('codigo')
     

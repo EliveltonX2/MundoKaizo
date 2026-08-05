@@ -7,6 +7,18 @@ from django.templatetags.static import static
 from django.utils import timezone
 
 # --- Estrutura Geográfica e Institucional ---
+class AnoEscolar(models.Model):
+    nome = models.CharField(max_length=20, unique=True, help_text="Ex: 1 Ano EF, 1 Ano EM")
+    ordem = models.IntegerField(default=0, help_text="Define a ordenação nas listas (ex: 1 para 1º EF, 10 para 1º EM)")
+
+    class Meta:
+        ordering = ['ordem']
+        verbose_name = "Ano Escolar"
+        verbose_name_plural = "Anos Escolares"
+
+    def __str__(self):
+        return self.nome
+
 class TokenCadastro(models.Model):
     TIPOS = (
         ('ALUNO', 'Aluno'),
@@ -76,10 +88,7 @@ class Escola(models.Model):
 class Turma(models.Model):
     nome = models.CharField(max_length=100, help_text="Ex: 3º Ano A")
     escola = models.ForeignKey(Escola, on_delete=models.CASCADE)
-    ano_escolar = models.IntegerField(
-        null=True, blank=True,
-        help_text="Ano escolar (ex: 1 para 1º Ano, 2 para 2º Ano, etc.)"
-    )
+    ano_escolar = models.ForeignKey(AnoEscolar, on_delete=models.SET_NULL, null=True, blank=True, related_name='turmas')
     
     def __str__(self):
         return f"{self.nome} - {self.escola.nome}"
@@ -163,7 +172,8 @@ class Livro(models.Model):
     capa = models.ImageField(upload_to='capas/', null=True, blank=True)
     is_versao_professor = models.BooleanField(default=False)
     
-    ano_ensino = models.IntegerField(null=True, blank=True, help_text="Ano escolar correspondente (ex: 1 para 1º Ano)")
+    anos_escolares = models.ManyToManyField(AnoEscolar, blank=True, related_name='livros')
+    
     rubricas_atividades = models.JSONField(default=dict, blank=True, help_text="Estrutura de rubricas das atividades (usado para livros interativos)")
     
     FORMATOS = (
@@ -370,6 +380,7 @@ class Jogo(models.Model):
     capa = models.ImageField(upload_to='capas_jogos/', blank=True, null=True)
     ativo = models.BooleanField(default=True)
     
+    anos_escolares = models.ManyToManyField(AnoEscolar, blank=True, related_name='jogos')
     habilidades_relacionadas = models.ManyToManyField('HabilidadeBNCC', blank=True, related_name='jogos')
     rubrica_1 = models.CharField(max_length=255, blank=True, null=True, help_text="Rubrica opção 1")
     rubrica_2 = models.CharField(max_length=255, blank=True, null=True, help_text="Rubrica opção 2")
@@ -404,7 +415,7 @@ class EstatisticasUsuario(models.Model):
 
 class HabilidadeBNCC(models.Model):
     codigo = models.CharField(max_length=20, unique=True, help_text="Ex: EF01MA01")
-    ano_escolar = models.CharField(max_length=20, help_text="Ano escolar correspondente (ex: 1ANO)")
+    anos_escolares = models.ManyToManyField(AnoEscolar, blank=True, related_name='habilidades')
     descricao = models.TextField(help_text="Descrição da habilidade")
     explicacao = models.TextField(blank=True, null=True, help_text="Explicação da habilidade")
     exemplo_uso = models.TextField(blank=True, null=True, help_text="Exemplo de uso da habilidade")

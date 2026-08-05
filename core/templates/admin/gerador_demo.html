@@ -1,0 +1,38 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div id="content-main">
+    <h1>Gerenciador de Dados de Demonstração</h1>
+    
+    <p>Este painel permite criar uma massa de dados completa (Cidades, Escolas, Turmas, Alunos, Sessões de Jogos e Livros) para testes e apresentações. Todos os dados criados recebem o prefixo seguro <code>[MOCK]</code> e podem ser completamente apagados em cascata a qualquer momento sem afetar o banco principal.</p>
+
+    <div style="display: flex; gap: 20px; margin-top: 30px;">
+        <!-- Card: Gerar Dados -->
+        <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 45%;">
+            <h2>🌱 Gerar Dados</h2>
+            <p>Irá criar uma Cidade, Escola, Turmas (para cada Ano Escolar cadastrado) e dezenas de Alunos fictícios (usando nomes de personagens de anime).</p>
+            <p><strong>Login:</strong> <code>mock_{turma}_{nome}</code><br><strong>Senha:</strong> <code>123456</code></p>
+            
+            <form method="POST" action="{% url 'admin:gerar_dados_demo' %}">
+                {% csrf_token %}
+                <button type="submit" style="background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%;">
+                    GERAR DADOS AGORA
+                </button>
+            </form>
+        </div>
+
+        <!-- Card: Apagar Dados -->
+        <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 45%; border-left: 4px solid #f44336;">
+            <h2 style="color: #f44336;">🔥 Apagar Todos os Dados</h2>
+            <p>Irá varrer o banco de dados buscando qualquer entidade com a marcação de demonstração (`[MOCK]` e `mock_`) e apagá-la em cascata (incluindo progresso, sessões e históricos destes perfis falsos).</p>
+            
+            <form method="POST" action="{% url 'admin:apagar_dados_demo' %}" onsubmit="return confirm('Tem certeza? Isso apagará todas as Cidades, Escolas, Turmas e Alunos de Demonstração permanentemente!');">
+                {% csrf_token %}
+                <button type="submit" style="background: #f44336; color: white; padding: 10px 20px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%;">
+                    APAGAR DADOS DE DEMONSTRAÇÃO
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
