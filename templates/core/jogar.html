@@ -81,12 +81,13 @@
                         jogo_id: '{{ jogo.id }}',
                         tempo_jogo: data.play_time,
                         
-                        // Novo formato de envio (múltiplas habilidades)
-                        habilidades: data.skills || {},
+                        // Novo formato de envio (múltiplas habilidades e rubrica)
+                        habilidades: data.skills || [],
+                        rubrica: data.rubrica || '',
                         
                         // Formato antigo (retrocompatibilidade)
-                        pontuacao: data.score,
-                        codigo_habilidade: data.skill_code
+                        pontuacao: data.score || 0,
+                        codigo_habilidade: data.skill_code || ''
                     })
                 })
                 .then(res => res.json())

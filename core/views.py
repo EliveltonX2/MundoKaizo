@@ -926,42 +926,53 @@ def api_salvar_sessao_jogo(request):
         jogo_id = dados.get('jogo_id')
         tempo_jogo = float(dados.get('tempo_jogo', 0))
         
-        # Agora o cliente envia apenas a pontuação total (score)
-        # Retrocompatibilidade com pontuacao
-        pontuacao_sessao = float(dados.get('score', dados.get('pontuacao', 0)))
+        # A pontuação vai até 10 pontos por chamada
+        pontuacao_recebida = float(dados.get('score', dados.get('pontuacao', 0)))
+        pontuacao_sessao = min(pontuacao_recebida, 10.0)
+        
+        rubrica_enviada = dados.get('rubrica', '')
 
         jogo = get_object_or_404(Jogo, id=jogo_id)
         
-        # O servidor associa a pontuação a todas as habilidades relacionadas
-        habilidades_enviadas = {}
-        for hab in jogo.habilidades_relacionadas.all():
-            habilidades_enviadas[hab.codigo] = pontuacao_sessao
-            
+        habilidades_recebidas = dados.get('habilidades', [])
+        # Tratamento caso o frontend envie como dicionário (retrocompatibilidade)
+        if isinstance(habilidades_recebidas, dict):
+            habilidades_recebidas = list(habilidades_recebidas.keys())
+
+        # Verifica se as habilidades recebidas já estão listadas no jogo e, se não, adiciona
+        from .models import HabilidadeBNCC
+        for codigo_hab in habilidades_recebidas:
+            if not jogo.habilidades_relacionadas.filter(codigo=codigo_hab).exists():
+                hab_obj = HabilidadeBNCC.objects.filter(codigo=codigo_hab).first()
+                if hab_obj:
+                    jogo.habilidades_relacionadas.add(hab_obj)
+        
         sessao, created = SessaoJogo.objects.get_or_create(
             user=request.user,
             jogo=jogo,
             defaults={
                 'pontuacao': pontuacao_sessao,
                 'tempo_jogo': tempo_jogo,
-                'habilidades': habilidades_enviadas
+                'rubrica': rubrica_enviada
             }
         )
 
         if not created:
-            sessao.pontuacao = pontuacao_sessao
+            sessao.pontuacao += pontuacao_sessao
             sessao.tempo_jogo += tempo_jogo
+            sessao.rubrica = rubrica_enviada
             
-            if pontuacao_sessao > sessao.recorde_pontuacao:
-                sessao.recorde_pontuacao = pontuacao_sessao
-                
-            habs_sessao = sessao.habilidades or {}
-            for cod, pts in habilidades_enviadas.items():
-                habs_sessao[cod] = habs_sessao.get(cod, 0) + float(pts)
-            sessao.habilidades = habs_sessao
+            if sessao.pontuacao > sessao.recorde_pontuacao:
+                sessao.recorde_pontuacao = sessao.pontuacao
             sessao.save()
         else:
             sessao.recorde_pontuacao = pontuacao_sessao
             sessao.save()
+        # Atualiza as habilidades na Sessão do Jogo
+        for codigo_hab in habilidades_recebidas:
+            hab_obj = HabilidadeBNCC.objects.filter(codigo=codigo_hab).first()
+            if hab_obj:
+                sessao.habilidades_conquistadas.add(hab_obj)
 
         estatisticas, created_est = EstatisticasUsuario.objects.get_or_create(user=request.user)
         
@@ -978,32 +989,14 @@ def api_salvar_sessao_jogo(request):
                 estatisticas.maior_ofensiva = estatisticas.dias_ofensiva
             estatisticas.ultima_jogada = hoje
 
-        if habilidades_enviadas:
-            habs_gerais = estatisticas.pontuacao_habilidades or {}
-            for cod, pts in habilidades_enviadas.items():
-                pontuacao_atual = habs_gerais.get(cod, 0)
-                if float(pts) > pontuacao_atual:
-                    habs_gerais[cod] = float(pts)
-            
-            estatisticas.pontuacao_habilidades = habs_gerais
+        # Atualiza Estatística de Habilidade do Usuário (só carimba a habilidade)
+        for codigo_hab in habilidades_recebidas:
+            hab_obj = HabilidadeBNCC.objects.filter(codigo=codigo_hab).first()
+            if hab_obj:
+                estatisticas.habilidades_conquistadas.add(hab_obj)
 
-            # Calcula média de acordo com o ano da turma do usuário
-            ano_usuario = None
-            turma_aluno = request.user.turmas.filter(ano_escolar__isnull=False).first()
-            if turma_aluno:
-                ano_usuario = turma_aluno.ano_escolar
-                
-            from .models import HabilidadeBNCC
-            total_habilidades_ano = 1
-            if ano_usuario:
-                count = HabilidadeBNCC.objects.filter(anos_escolares=ano_usuario).count()
-                if count > 0:
-                    total_habilidades_ano = count
-
-            valores = list(habs_gerais.values())
-            if valores:
-                estatisticas.pontuacao_geral = sum(valores) / total_habilidades_ano
-
+        # Atualiza a pontuação geral com base na eterna
+        estatisticas.pontuacao_geral = estatisticas.pontuacao_eterna
         estatisticas.save()
 
         return JsonResponse({'status': 'sucesso'})
@@ -1026,18 +1019,19 @@ def estatisticas_view(request):
         ano_usuario = turma_aluno.ano_escolar
 
     from .models import HabilidadeBNCC
-    # Pega todas as habilidades daquele ano e monta uma lista rica com a pontuacao do usuario
+    # Pega todas as habilidades daquele ano e mostra se o aluno as conquistou
     habilidades_ano = []
     if ano_usuario:
         habilidades_db = HabilidadeBNCC.objects.filter(anos_escolares=ano_usuario).order_by('codigo')
-        habs_gerais = estatisticas.pontuacao_habilidades or {}
+        
+        habilidades_conquistadas_ids = estatisticas.habilidades_conquistadas.values_list('id', flat=True)
         
         for hab in habilidades_db:
-            pontuacao_obtida = habs_gerais.get(hab.codigo, 0)
+            conquistou = hab.id in habilidades_conquistadas_ids
             habilidades_ano.append({
                 'codigo': hab.codigo,
                 'descricao': hab.descricao,
-                'pontuacao': pontuacao_obtida
+                'pontuacao': 100 if conquistou else 0 # Mock visual para o template que esperava pontuação
             })
             
     sessoes_livros = request.user.sessoes_livros_interativos.all().order_by('-atualizado_em')
@@ -1070,30 +1064,38 @@ def api_salvar_progresso_livro(request):
         
         livro = get_object_or_404(Livro, id=livro_id, formato='INTERATIVO')
         
-        pontuacao_sessao = float(dados.get('pontuacao', dados.get('score', 0.0)))
+        # A pontuação vai até 150 pontos por chamada
+        pontuacao_recebida = float(dados.get('pontuacao', dados.get('score', 0.0)))
+        pontuacao_sessao = min(pontuacao_recebida, 150.0)
         
-        # O servidor associa a pontuação a todas as habilidades relacionadas
-        habilidades_enviadas = {}
-        for hab in livro.habilidades_relacionadas.all():
-            habilidades_enviadas[hab.codigo] = pontuacao_sessao
+        rubrica_enviada = dados.get('rubrica', '')
         
+        habilidades_recebidas = dados.get('habilidades', [])
+        # Tratamento caso o frontend envie como dicionário (retrocompatibilidade)
+        if isinstance(habilidades_recebidas, dict):
+            habilidades_recebidas = list(habilidades_recebidas.keys())
+
+        # Verifica se as habilidades recebidas já estão listadas no livro e, se não, adiciona
+        from .models import HabilidadeBNCC
+        for codigo_hab in habilidades_recebidas:
+            if not livro.habilidades_relacionadas.filter(codigo=codigo_hab).exists():
+                hab_obj = HabilidadeBNCC.objects.filter(codigo=codigo_hab).first()
+                if hab_obj:
+                    livro.habilidades_relacionadas.add(hab_obj)
+
         sessao, created = SessaoLivroInterativo.objects.get_or_create(
             user=request.user,
             livro=livro,
             defaults={
-                'ultima_pagina_visitada': dados.get('page', 1),
                 'respostas_atividades': dados.get('answers', {}),
                 'tentativas_atividades': dados.get('attempts', {}),
                 'pontuacao': pontuacao_sessao,
-                'progresso': float(dados.get('progresso', 0.0)),
                 'tempo_gasto': float(dados.get('time', 0)),
-                'habilidades': habilidades_enviadas
+                'rubrica': rubrica_enviada
             }
         )
 
         if not created:
-            sessao.ultima_pagina_visitada = dados.get('page', sessao.ultima_pagina_visitada)
-            
             # Mescla as respostas
             respostas_atuais = sessao.respostas_atividades or {}
             respostas_novas = dados.get('answers', {})
@@ -1107,30 +1109,23 @@ def api_salvar_progresso_livro(request):
                 tentativas_atuais[k] = tentativas_atuais.get(k, 0) + v
             sessao.tentativas_atividades = tentativas_atuais
             
-            # Mescla habilidades
-            habs_atuais = sessao.habilidades or {}
-            for cod, pts in habilidades_enviadas.items():
-                pontuacao_atual = habs_atuais.get(cod, 0)
-                if float(pts) > pontuacao_atual:
-                    habs_atuais[cod] = float(pts)
-            sessao.habilidades = habs_atuais
-            
             sessao.tempo_gasto += float(dados.get('time', 0))
-            
-            if 'progresso' in dados:
-                sessao.progresso = float(dados.get('progresso', sessao.progresso))
+            sessao.rubrica = rubrica_enviada
                 
-            sessao.pontuacao = pontuacao_sessao
+            # Pontuação é sobrescrita apenas se for maior
+            if pontuacao_sessao > sessao.pontuacao:
+                diferenca = pontuacao_sessao - sessao.pontuacao
+                sessao.pontuacao = pontuacao_sessao
                 
-            if pontuacao_sessao > sessao.recorde_pontuacao:
-                sessao.recorde_pontuacao = pontuacao_sessao
+                if sessao.pontuacao > sessao.recorde_pontuacao:
+                    sessao.recorde_pontuacao = sessao.pontuacao
+                    
+                # Soma pontuação eterna (apenas a diferença para não duplicar)
+                estatisticas, _ = EstatisticasUsuario.objects.get_or_create(user=request.user)
+                estatisticas.pontuacao_eterna += diferenca
+                estatisticas.save()
                 
             sessao.save()
-            
-            # Soma pontuação eterna
-            estatisticas, _ = EstatisticasUsuario.objects.get_or_create(user=request.user)
-            estatisticas.pontuacao_eterna += pontuacao_sessao
-            estatisticas.save()
             
         else:
             sessao.recorde_pontuacao = sessao.pontuacao
@@ -1138,6 +1133,15 @@ def api_salvar_progresso_livro(request):
             estatisticas, _ = EstatisticasUsuario.objects.get_or_create(user=request.user)
             estatisticas.pontuacao_eterna += sessao.pontuacao
             estatisticas.save()
+            
+        estatisticas, _ = EstatisticasUsuario.objects.get_or_create(user=request.user)
+
+        # Atualiza a pontuação por habilidade (só carimba no M2M)
+        for codigo_hab in habilidades_recebidas:
+            hab_obj = HabilidadeBNCC.objects.filter(codigo=codigo_hab).first()
+            if hab_obj:
+                sessao.habilidades_conquistadas.add(hab_obj)
+                estatisticas.habilidades_conquistadas.add(hab_obj)
             
         return JsonResponse({'status': 'sucesso'})
     except Exception as e:
@@ -1151,7 +1155,6 @@ def api_carregar_progresso_livro(request, livro_id):
     
     if sessao:
         progress = {
-            'page': sessao.ultima_pagina_visitada,
             'answers': sessao.respostas_atividades,
             'attempts': sessao.tentativas_atividades,
             'time': sessao.tempo_gasto

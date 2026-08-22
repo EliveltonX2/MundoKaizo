@@ -235,6 +235,6 @@ from .models import SessaoLivroInterativo
 
 @admin.register(SessaoLivroInterativo)
 class SessaoLivroInterativoAdmin(admin.ModelAdmin):
-    list_display = ('user', 'livro', 'ultima_pagina_visitada', 'pontuacao', 'tempo_gasto', 'atualizado_em')
+    list_display = ('user', 'livro', 'pontuacao', 'tempo_gasto', 'atualizado_em')
     list_filter = ('livro',)
     search_fields = ('user__username', 'livro__titulo')

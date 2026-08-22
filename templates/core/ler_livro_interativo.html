@@ -83,13 +83,12 @@
                     },
                     body: JSON.stringify({
                         livro_id: '{{ livro.id }}',
-                        page: data.page,
-                        answers: data.answers,
-                        attempts: data.attempts,
-                        skills: data.skills,
-                        progresso: data.progresso,
-                        pontuacao: data.pontuacao,
-                        time: data.time
+                        answers: data.answers || {},
+                        attempts: data.attempts || {},
+                        skills: data.skills || [],
+                        pontuacao: data.pontuacao || data.score || 0,
+                        rubrica: data.rubrica || '',
+                        time: data.time || data.play_time || 0
                     })
                 })
                 .then(res => res.json())

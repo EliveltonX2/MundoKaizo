@@ -403,8 +403,7 @@ class EstatisticasUsuario(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='estatisticas')
     pontuacao_geral = models.FloatField(default=0.0)
     pontuacao_eterna = models.FloatField(default=0.0, help_text="Soma de todas as pontuações adquiridas")
-    # Ex: {"EF01CO01": 150, "EF02CO02": 200}
-    pontuacao_habilidades = models.JSONField(default=dict, blank=True)
+    habilidades_conquistadas = models.ManyToManyField('HabilidadeBNCC', blank=True, related_name='estatisticas_usuario')
     dias_ofensiva = models.IntegerField(default=0)
     maior_ofensiva = models.IntegerField(default=0)
     ultima_jogada = models.DateField(null=True, blank=True)
@@ -430,7 +429,8 @@ class SessaoJogo(models.Model):
     pontuacao = models.FloatField(default=0.0)
     recorde_pontuacao = models.FloatField(default=0.0)
     tempo_jogo = models.FloatField(default=0.0) # Em segundos
-    habilidades = models.JSONField(default=dict, blank=True, help_text="Ex: {'EF01MA01': 10, 'EF02MA01': 5}")
+    rubrica = models.TextField(blank=True, null=True, help_text="Rubrica do jogador nesta sessão")
+    habilidades_conquistadas = models.ManyToManyField('HabilidadeBNCC', blank=True, related_name='sessoes_jogos')
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
 
@@ -444,14 +444,13 @@ class SessaoJogo(models.Model):
 class SessaoLivroInterativo(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessoes_livros_interativos')
     livro = models.ForeignKey(Livro, on_delete=models.CASCADE, related_name='sessoes_interativas')
-    ultima_pagina_visitada = models.IntegerField(default=1)
     respostas_atividades = models.JSONField(default=dict, blank=True)
     tentativas_atividades = models.JSONField(default=dict, blank=True)
     pontuacao = models.FloatField(default=0.0)
     recorde_pontuacao = models.FloatField(default=0.0)
-    progresso = models.FloatField(default=0.0)
     tempo_gasto = models.FloatField(default=0.0) # Em segundos
-    habilidades = models.JSONField(default=dict, blank=True)
+    rubrica = models.TextField(blank=True, null=True, help_text="Rubrica do aluno neste livro")
+    habilidades_conquistadas = models.ManyToManyField('HabilidadeBNCC', blank=True, related_name='sessoes_livros')
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
 
@@ -459,4 +458,4 @@ class SessaoLivroInterativo(models.Model):
         unique_together = ('user', 'livro')
 
     def __str__(self):
-        return f"{self.user.username} - {self.livro.titulo} (Pág. {self.ultima_pagina_visitada})"
+        return f"{self.user.username} - {self.livro.titulo}"
