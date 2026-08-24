@@ -458,4 +458,20 @@ class SessaoLivroInterativo(models.Model):
         unique_together = ('user', 'livro')
 
     def __str__(self):
-        return f"{self.user.username} - {self.livro.titulo}"
+        return f"{self.user.username} - {self.livro.titulo}"
+
+class Ferramenta(models.Model):
+    nome = models.CharField(max_length=200)
+    descricao = models.TextField(blank=True, null=True)
+    caminho_s3 = models.CharField(max_length=500, help_text="Caminho base da ferramenta no S3")
+    icone = models.CharField(max_length=50, blank=True, null=True, default="fas fa-wrench", help_text="Classe de ícone do FontAwesome, ex: fa-solid fa-calculator")
+    ativo = models.BooleanField(default=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.nome
+    
+    @property
+    def url_ferramenta(self):
+        # Retorna a URL completa para montar o iframe no Frontend
+        return f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{self.caminho_s3}/index.html"

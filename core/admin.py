@@ -238,3 +238,14 @@ class SessaoLivroInterativoAdmin(admin.ModelAdmin):
     list_display = ('user', 'livro', 'pontuacao', 'tempo_gasto', 'atualizado_em')
     list_filter = ('livro',)
     search_fields = ('user__username', 'livro__titulo')
+
+from .models import Ferramenta
+
+@admin.register(Ferramenta)
+class FerramentaAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'caminho_s3', 'ativo', 'criado_em')
+    search_fields = ('nome', 'caminho_s3')
+    list_filter = ('ativo', 'criado_em')
+    readonly_fields = ('caminho_s3',)
+    
+    change_list_template = "admin/core/ferramenta/change_list.html"

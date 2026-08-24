@@ -1291,4 +1291,32 @@ def bncc_detail_view(request, bncc_id):
     from .models import HabilidadeBNCC
     habilidade = get_object_or_404(HabilidadeBNCC, id=bncc_id)
     return render(request, 'core/bncc_detail.html', {'habilidade': habilidade})
+
+@staff_member_required
+def upload_ferramentas_view(request):
+    # Essa view só pode ser acessada por quem tem o is_staff=True (quem acessa o admin)
+    return render(request, 'core/upload_ferramentas.html')
+
+@login_required
+def salvar_registro_ferramenta(request):
+    """ Chamado pelo JS após terminar o upload de todos os arquivos """
+    if request.method == 'POST':
+        import json
+        dados = json.loads(request.body)
+        
+        # Cria o registro no banco de dados
+        from .models import Ferramenta
+        ferramenta = Ferramenta.objects.create(
+            nome=dados.get('nome'),
+            descricao=dados.get('descricao'),
+            caminho_s3=f"ferramentas_web/{dados.get('pasta_ferramenta')}"
+        )
+            
+        return JsonResponse({'status': 'sucesso', 'ferramenta_id': ferramenta.id})
+
+@login_required
+def ferramenta_view(request, ferramenta_id):
+    from .models import Ferramenta
+    ferramenta = get_object_or_404(Ferramenta, id=ferramenta_id, ativo=True)
+    return render(request, 'core/ferramenta.html', {'ferramenta': ferramenta})
 

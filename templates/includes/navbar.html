@@ -63,6 +63,26 @@
             </ul>
         </div>
 
+        <!-- Dropdown de Ferramentas -->
+        <div class="dropdown">
+            <button class="btn-nav dropdown-toggle" type="button" id="toolsDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Ferramentas">
+                <i class="fas fa-wrench"></i>
+            </button>
+            <ul class="dropdown-menu nav-dropdown-menu dropdown-menu-end" aria-labelledby="toolsDropdown">
+                {% if ferramentas %}
+                    {% for ferramenta in ferramentas %}
+                    <li>
+                        <a class="dropdown-item" href="{% url 'ferramenta_view' ferramenta.id %}">
+                            <i class="{{ ferramenta.icone }} icon-margin"></i> {{ ferramenta.nome }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <li><span class="dropdown-item text-muted">Nenhuma ferramenta disponível</span></li>
+                {% endif %}
+            </ul>
+        </div>
+
         <div class="dropdown">
             <button class="btn-nav dropdown-toggle" type="button" id="navDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="fas fa-bars"></i>
