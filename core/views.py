@@ -670,6 +670,7 @@ def gerar_presigned_url_view(request):
     nome_arquivo = request.GET.get('file_name')
     tipo_arquivo = request.GET.get('file_type') or 'application/octet-stream'
     pasta_jogo = request.GET.get('pasta_jogo')
+    pasta_base = request.GET.get('pasta_base', 'jogos_web')
 
     if not nome_arquivo or not pasta_jogo:
         return JsonResponse({'erro': 'Faltam parâmetros'}, status=400)
@@ -690,7 +691,7 @@ def gerar_presigned_url_view(request):
         content_encoding = 'gzip'
     # ------------------------------------------------------------------------
 
-    caminho_s3 = f"jogos_web/{pasta_jogo}/{nome_arquivo}"
+    caminho_s3 = f"{pasta_base}/{pasta_jogo}/{nome_arquivo}"
 
     try:
         import boto3

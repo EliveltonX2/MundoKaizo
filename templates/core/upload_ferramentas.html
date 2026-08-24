@@ -98,7 +98,7 @@
 
                 ficheiroAtual.innerText = `A enviar: ${caminhoRelativoLimpo}`;
 
-                const respostaDjango = await fetch(`/api/gerar-url-upload/?file_name=${encodeURIComponent(caminhoRelativoLimpo)}&file_type=${encodeURIComponent(ficheiro.type || 'application/octet-stream')}&pasta_jogo=../ferramentas_web/${pastaFerramentaS3}`);
+                const respostaDjango = await fetch(`/api/gerar-url-upload/?file_name=${encodeURIComponent(caminhoRelativoLimpo)}&file_type=${encodeURIComponent(ficheiro.type || 'application/octet-stream')}&pasta_jogo=${pastaFerramentaS3}&pasta_base=ferramentas_web`);
                 
                 if (!respostaDjango.ok) throw new Error("Falha ao obter permissão do servidor.");
                 const presignedData = await respostaDjango.json();
