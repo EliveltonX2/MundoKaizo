@@ -6,67 +6,8 @@
     <title>{{ ferramenta.nome }} - MundoKaizo</title>
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden; /* Remove as barras de rolagem duplas */
-            background-color: #000;
-        }
-
-        .tool-iframe {
-            width: 100vw;
-            height: 100vh;
-            border: none;
-            display: block;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }
-
-        .loading-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 18px;
-            font-weight: bold;
-            font-family: 'Nunito', sans-serif;
-            z-index: 0;
-        }
-
-        /* Botão de Fechar pequeno e transparente */
-        .btn-fechar {
-            position: fixed;
-            top: 15px;
-            right: 15px;
-            z-index: 9999;
-            color: white;
-            font-size: 12px;
-            background-color: black;
-            width: 25px;
-            height: 25px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 50%;
-            text-decoration: none;
-            opacity: 0.25;
-            transition: opacity 0.3s;
-        }
-
-        .btn-fechar:hover {
-            opacity: 0.8;
-        }
-    </style>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'ferramentas/css/detail.css' %}">
 </head>
 <body>
 

@@ -1,0 +1,126 @@
+/* CSS Reset Básico e Fontes */
+:root {
+    --primary-color: #ff6b6b;
+    --secondary-color: #4ecdc4;
+    --accent-color: #ffe66d;
+    --text-dark: #2c3e50;
+    --text-light: #f7f9fa;
+    --bg-color: #f4f7f6;
+    --nav-height: 60px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-dark);
+}
+
+/* Navbar Dinâmica e Limpa */
+.navbar {
+    height: var(--nav-height);
+    background-color: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    position: relative;
+    z-index: 1000;
+}
+
+.navbar-brand a {
+    text-decoration: none;
+    color: var(--primary-color);
+    font-weight: 800;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: transform 0.2s;
+}
+
+.navbar-brand a:hover {
+    transform: scale(1.05);
+}
+
+.navbar-menu {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.user-dropdown-btn {
+    background: none;
+    border: none;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-dark);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 15px;
+    border-radius: 20px;
+    transition: background 0.2s;
+}
+
+.user-dropdown-btn:hover {
+    background-color: #f0f4f8;
+}
+
+.user-dropdown-content {
+    display: none;
+    position: absolute;
+    top: 110%;
+    right: 0;
+    background-color: white;
+    min-width: 180px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    overflow: hidden;
+    animation: fadeInDown 0.2s ease;
+}
+
+.user-dropdown-content.show {
+    display: block;
+}
+
+.user-dropdown-content a {
+    color: var(--text-dark);
+    padding: 12px 20px;
+    text-decoration: none;
+    display: block;
+    font-weight: 600;
+    transition: background 0.2s, color 0.2s;
+}
+
+.user-dropdown-content a:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.login-btn {
+    background-color: var(--secondary-color);
+    color: white;
+    text-decoration: none;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-weight: bold;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(78, 205, 196, 0.4);
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
