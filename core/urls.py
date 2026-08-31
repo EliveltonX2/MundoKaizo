@@ -62,11 +62,12 @@ urlpatterns = [
     path('api/jogo/salvar-sessao/', views.api_salvar_sessao_jogo, name='api_salvar_sessao_jogo'),
     path('dashboard/', views.estatisticas_view, name='dashboard'),
     
-    path('livro/<int:livro_id>/interativo/', views.ler_livro_interativo_view, name='ler_livro_interativo'),
+    path('aula/<int:aula_id>/interativa/', views.ler_aula_interativa_view, name='ler_aula_interativa'),
     path('livros-interativos/', views.livros_interativos_list_view, name='livros_interativos'),
-    path('api/livro/salvar-progresso/', views.api_salvar_progresso_livro, name='api_salvar_progresso_livro'),
-    path('api/livro/carregar-progresso/<int:livro_id>/', views.api_carregar_progresso_livro, name='api_carregar_progresso_livro'),
+    path('api/aula/salvar-progresso/', views.api_salvar_progresso_aula, name='api_salvar_progresso_aula'),
+    path('api/aula/carregar-progresso/<int:aula_id>/', views.api_carregar_progresso_aula, name='api_carregar_progresso_aula'),
     path('api/salvar-livro-interativo/', views.api_salvar_livro_interativo, name='api_salvar_livro_interativo'),
+    path('api/salvar-aula-interativa/', views.api_salvar_aula_interativa, name='api_salvar_aula_interativa'),
     
     path('gerenciar/', views_dashboard.relatorios_avancados_view, name='gerenciar'),
     

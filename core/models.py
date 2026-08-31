@@ -246,6 +246,33 @@ class AtividadeLivro(models.Model):
     def __str__(self):
         return f"Atividade {self.numero} - {self.livro.titulo}"
 
+class AulaInterativa(models.Model):
+    titulo = models.CharField(max_length=200)
+    descricao = models.TextField(blank=True, null=True)
+    numero_aula = models.PositiveIntegerField(help_text="Número da Aula (ex: 23)")
+    capitulo = models.PositiveIntegerField(default=1, help_text="Capítulo ao qual a aula pertence")
+    paginas_referencia = models.CharField(max_length=100, blank=True, null=True, help_text="Ex: Págs 87 a 89")
+    
+    # Hierarquia
+    colecao = models.ForeignKey(Colecao, on_delete=models.CASCADE, related_name='aulas_interativas', null=True, blank=True)
+    livro = models.ForeignKey(Livro, on_delete=models.CASCADE, related_name='aulas_interativas')
+    ano_escolar = models.ForeignKey(AnoEscolar, on_delete=models.SET_NULL, null=True, blank=True, related_name='aulas_interativas')
+    
+    # Funcionalidade
+    caminho_s3 = models.CharField(max_length=500, help_text="Caminho base da aula no S3 (ex: livros/livro-3/aula-23)")
+    habilidades_relacionadas = models.ManyToManyField('HabilidadeBNCC', blank=True, related_name='aulas_interativas')
+    tem_desafio = models.BooleanField(default=False, help_text="Marque se a aula possui desafio do explorador")
+    
+    criado_em = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['colecao', 'livro', 'capitulo', 'numero_aula']
+        unique_together = ('livro', 'numero_aula')
+        verbose_name = "Aula Interativa"
+        verbose_name_plural = "Aulas Interativas"
+        
+    def __str__(self):
+        return f"Aula {self.numero_aula} - {self.titulo} ({self.livro.titulo})"
 class RubricaAlternativa(models.Model):
     atividade = models.ForeignKey(AtividadeLivro, on_delete=models.CASCADE, related_name='rubricas')
     alternativa = models.CharField(max_length=10, help_text="Ex: A, B, C, D")
@@ -441,24 +468,22 @@ class SessaoJogo(models.Model):
         return f"{self.user.username} jogou {self.jogo.titulo} - Total: {self.pontuacao} pts / {self.tempo_jogo}s"
 
 
-class SessaoLivroInterativo(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessoes_livros_interativos')
-    livro = models.ForeignKey(Livro, on_delete=models.CASCADE, related_name='sessoes_interativas')
-    respostas_atividades = models.JSONField(default=dict, blank=True)
-    tentativas_atividades = models.JSONField(default=dict, blank=True)
+class SessaoAulaInterativa(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessoes_aulas_interativas')
+    aula = models.ForeignKey(AulaInterativa, on_delete=models.CASCADE, related_name='sessoes_interativas')
     pontuacao = models.FloatField(default=0.0)
     recorde_pontuacao = models.FloatField(default=0.0)
     tempo_gasto = models.FloatField(default=0.0) # Em segundos
-    rubrica = models.TextField(blank=True, null=True, help_text="Rubrica do aluno neste livro")
-    habilidades_conquistadas = models.ManyToManyField('HabilidadeBNCC', blank=True, related_name='sessoes_livros')
+    rubrica = models.TextField(blank=True, null=True, help_text="Rubrica do aluno nesta aula")
+    habilidades_conquistadas = models.ManyToManyField('HabilidadeBNCC', blank=True, related_name='sessoes_aulas')
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('user', 'livro')
+        unique_together = ('user', 'aula')
 
     def __str__(self):
-        return f"{self.user.username} - {self.livro.titulo}"
+        return f"{self.user.username} - {self.aula.titulo}"
 
 class Ferramenta(models.Model):
     nome = models.CharField(max_length=200)

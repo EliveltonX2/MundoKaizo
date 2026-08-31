@@ -231,13 +231,13 @@ class SessaoJogoAdmin(admin.ModelAdmin):
     list_filter = ('jogo',)
     search_fields = ('user__username', 'jogo__titulo')
 
-from .models import SessaoLivroInterativo
+from .models import SessaoAulaInterativa
 
-@admin.register(SessaoLivroInterativo)
-class SessaoLivroInterativoAdmin(admin.ModelAdmin):
-    list_display = ('user', 'livro', 'pontuacao', 'tempo_gasto', 'atualizado_em')
-    list_filter = ('livro',)
-    search_fields = ('user__username', 'livro__titulo')
+@admin.register(SessaoAulaInterativa)
+class SessaoAulaInterativaAdmin(admin.ModelAdmin):
+    list_display = ('user', 'aula', 'pontuacao', 'tempo_gasto', 'atualizado_em')
+    list_filter = ('aula__livro', 'aula__colecao')
+    search_fields = ('user__username', 'aula__titulo')
 
 from .models import Ferramenta
 
@@ -249,3 +249,38 @@ class FerramentaAdmin(admin.ModelAdmin):
     readonly_fields = ('caminho_s3',)
     
     change_list_template = "admin/core/ferramenta/change_list.html"
+
+from .models import AulaInterativa
+
+@admin.register(AulaInterativa)
+class AulaInterativaAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'colecao', 'livro', 'capitulo', 'ano_escolar', 'caminho_s3')
+    list_filter = ('colecao', 'livro', 'ano_escolar')
+    search_fields = ('titulo', 'numero_aula', 'livro__titulo', 'colecao__nome')
+    list_editable = ('caminho_s3',)
+
+    change_list_template = "admin/core/aulainterativa/change_list.html"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('upload-aula/', self.admin_site.admin_view(self.upload_aula_interativa_view), name='upload_aula_interativa'),
+        ]
+        return custom_urls + urls
+
+    def upload_aula_interativa_view(self, request):
+        from .models import HabilidadeBNCC, Colecao, Livro, AnoEscolar
+        habilidades = HabilidadeBNCC.objects.all().order_by('codigo')
+        colecoes = Colecao.objects.all().order_by('nome')
+        livros = Livro.objects.filter(formato='INTERATIVO').order_by('titulo')
+        anos = AnoEscolar.objects.all().order_by('ordem')
+        
+        context = {
+            **self.admin_site.each_context(request),
+            'title': "Upload de Aula Interativa (S3)",
+            'habilidades_bncc': habilidades,
+            'colecoes': colecoes,
+            'livros': livros,
+            'anos': anos
+        }
+        return render(request, 'admin/upload_aula_interativa.html', context)

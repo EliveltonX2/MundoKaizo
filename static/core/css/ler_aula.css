@@ -1,0 +1,18 @@
+.book-container {
+    width: 100%;
+    max-width: 90vw;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    /* Proporção para livros pode variar, mas 16:9 é bom para telas web */
+    aspect-ratio: 16 / 9; 
+    position: relative;
+}
+
+.book-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}

@@ -5,7 +5,7 @@ import random
 import datetime
 from .models import (
     User, Pais, Estado, Cidade, Escola, Turma, AnoEscolar, 
-    Livro, Jogo, EstatisticasUsuario, SessaoJogo, SessaoLivroInterativo
+    Livro, Jogo, EstatisticasUsuario, SessaoJogo, SessaoAulaInterativa, AulaInterativa
 )
 
 NOME_ANIMAIS = [
@@ -95,18 +95,19 @@ def gerar_dados_demo_view(request):
                                     recorde_pontuacao=random.randint(100, 500)
                                 )
                                 
-                        # 6. Gera Sessões de Livros Falsas
+                        # 6. Gera Sessões de Aulas Falsas
                         if livros:
-                            livros_lidos = random.sample(livros, min(len(livros), random.randint(1, 3)))
+                            livros_lidos = random.sample(list(livros), min(len(livros), random.randint(1, 3)))
                             for livro in livros_lidos:
-                                SessaoLivroInterativo.objects.create(
-                                    user=aluno,
-                                    livro=livro,
-                                    ultima_pagina_visitada=random.randint(2, 10),
-                                    pontuacao=random.randint(10, 100),
-                                    progresso=random.randint(10, 100),
-                                    tempo_gasto=random.randint(300, 1800) # 5 a 30 min
-                                )
+                                aulas = list(AulaInterativa.objects.filter(livro=livro))
+                                if aulas:
+                                    aula_lida = random.choice(aulas)
+                                    SessaoAulaInterativa.objects.create(
+                                        user=aluno,
+                                        aula=aula_lida,
+                                        pontuacao=random.randint(10, 150),
+                                        tempo_gasto=random.randint(300, 1800) # 5 a 30 min
+                                    )
                                 
                         total_alunos_criados += 1
 
