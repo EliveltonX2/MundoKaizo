@@ -273,6 +273,13 @@ class AulaInterativa(models.Model):
         
     def __str__(self):
         return f"Aula {self.numero_aula} - {self.titulo} ({self.livro.titulo})"
+
+    @property
+    def url_interativa(self):
+        from django.conf import settings
+        if self.caminho_s3:
+            return f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{self.caminho_s3}/index.html"
+        return ""
 class RubricaAlternativa(models.Model):
     atividade = models.ForeignKey(AtividadeLivro, on_delete=models.CASCADE, related_name='rubricas')
     alternativa = models.CharField(max_length=10, help_text="Ex: A, B, C, D")
