@@ -1,0 +1,180 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 20px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+    <h1 style="color: #2288c4; margin-bottom: 20px;">🔧 Central de Upload de Ferramentas</h1>
+    
+    <p style="color: #555;">Selecione a pasta completa da ferramenta web. Os arquivos irão diretamente para o S3 (pasta ferramentas_web/), garantindo a máxima velocidade e zero consumo de recursos do servidor.</p>
+
+    <hr style="border: 0; height: 1px; background: #eee; margin: 20px 0;">
+    
+    <div style="margin-top: 20px;">
+        <label style="font-weight: bold; color: #333;">Nome da Ferramenta:</label><br>
+        <input type="text" id="ferramentaNome" style="width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px;" placeholder="Ex: Calculadora Kaizo">
+
+        <label style="font-weight: bold; color: #333;">Descrição (Opcional):</label><br>
+        <textarea id="ferramentaDescricao" style="width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px;" rows="3" placeholder="Uma breve descrição..."></textarea>
+
+        <label style="font-weight: bold; color: #333;">Seleciona a Pasta (HTML5/Web):</label><br>
+        <div style="background: #f9fafb; padding: 15px; border: 1px dashed #b8c1cd; border-radius: 5px; margin-top: 5px; margin-bottom: 20px;">
+            <input type="file" id="ferramentaPasta" webkitdirectory directory multiple>
+        </div>
+
+        <label style="font-weight: bold; color: #333;">Miniatura / Thumb (Tamanho ideal: 600x400):</label><br>
+        <div style="background: #f9fafb; padding: 15px; border: 1px dashed #b8c1cd; border-radius: 5px; margin-top: 5px; margin-bottom: 20px;">
+            <input type="file" id="ferramentaThumb" accept="image/*">
+        </div>
+
+        <button id="btnUpload" style="background: #2288c4; color: white; padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; width: 100%; transition: background 0.3s;">
+            Iniciar Upload para S3
+        </button>
+    </div>
+
+    <div id="progressoArea" style="margin-top: 30px; display: none; background: #f9fafb; padding: 20px; border-radius: 8px; border: 1px solid #e1e8ed;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <b style="color: #2288c4;" id="statusTexto">A preparar ficheiros...</b> 
+            <span id="contador" style="font-weight: bold; color: #555;">0/0</span>
+        </div>
+        <div style="width: 100%; background: #e1e8ed; height: 20px; border-radius: 10px; overflow: hidden;">
+            <div id="barraProgresso" style="width: 0%; background: #28a745; height: 100%; transition: width 0.3s ease;"></div>
+        </div>
+        <p id="ficheiroAtual" style="font-size: 12px; color: #888; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">A aguardar...</p>
+    </div>
+</div>
+
+<script>
+    const csrfToken = '{{ csrf_token }}';
+
+    document.getElementById('btnUpload').addEventListener('click', async function() {
+        const nomeInput = document.getElementById('ferramentaNome');
+        const descricaoInput = document.getElementById('ferramentaDescricao');
+        const pastaInput = document.getElementById('ferramentaPasta');
+        const btnUpload = document.getElementById('btnUpload');
+        
+        if (!nomeInput.value.trim()) {
+            alert("Por favor, introduz o nome da ferramenta.");
+            return;
+        }
+        if (pastaInput.files.length === 0) {
+            alert("Por favor, seleciona a pasta da ferramenta.");
+            return;
+        }
+
+        let temIndex = false;
+        for (let i = 0; i < pastaInput.files.length; i++) {
+            if (pastaInput.files[i].webkitRelativePath.endsWith("index.html")) {
+                temIndex = true;
+                break;
+            }
+        }
+        
+        if (!temIndex) {
+            if(!confirm("Não foi encontrado um ficheiro 'index.html' na pasta selecionada. Tens a certeza que é uma build Web válida?")) {
+                return;
+            }
+        }
+
+        btnUpload.disabled = true;
+        btnUpload.style.background = "#99aab5";
+        btnUpload.innerText = "A enviar... Por favor, não feches esta janela!";
+        
+        document.getElementById('progressoArea').style.display = 'block';
+        const statusTexto = document.getElementById('statusTexto');
+        const contador = document.getElementById('contador');
+        const barraProgresso = document.getElementById('barraProgresso');
+        const ficheiroAtual = document.getElementById('ficheiroAtual');
+
+        const ficheiros = Array.from(pastaInput.files);
+        const totalFicheiros = ficheiros.length;
+        
+        const tituloSlug = nomeInput.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+        const pastaFerramentaS3 = `${tituloSlug}_${Date.now()}`;
+
+        let enviados = 0;
+
+        for (const ficheiro of ficheiros) {
+            try {
+                const partesCaminho = ficheiro.webkitRelativePath.split('/');
+                partesCaminho.shift(); 
+                const caminhoRelativoLimpo = partesCaminho.join('/');
+                
+                if (caminhoRelativoLimpo === '') continue;
+
+                ficheiroAtual.innerText = `A enviar: ${caminhoRelativoLimpo}`;
+
+                const respostaDjango = await fetch(`/api/gerar-url-upload/?file_name=${encodeURIComponent(caminhoRelativoLimpo)}&file_type=${encodeURIComponent(ficheiro.type || 'application/octet-stream')}&pasta_jogo=${pastaFerramentaS3}&pasta_base=ferramentas_web`);
+                
+                if (!respostaDjango.ok) throw new Error("Falha ao obter permissão do servidor.");
+                const presignedData = await respostaDjango.json();
+
+                const formData = new FormData();
+                for (const key in presignedData.fields) {
+                    formData.append(key, presignedData.fields[key]);
+                }
+                formData.append('file', ficheiro);
+
+                const respostaS3 = await fetch(presignedData.url, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!respostaS3.ok) throw new Error(`Falha no upload para o S3: ${respostaS3.statusText}`);
+
+                enviados++;
+                const percentagem = Math.round((enviados / totalFicheiros) * 100);
+                contador.innerText = `${enviados}/${totalFicheiros}`;
+                barraProgresso.style.width = `${percentagem}%`;
+
+            } catch (erro) {
+                console.error(erro);
+                alert(`Erro ao enviar o ficheiro: ${ficheiro.name}. O upload foi interrompido.`);
+                btnUpload.disabled = false;
+                btnUpload.style.background = "#2288c4";
+                btnUpload.innerText = "Tentar Novamente";
+                return; 
+            }
+        }
+
+        statusTexto.innerText = "A guardar a ferramenta na base de dados...";
+        ficheiroAtual.innerText = "A finalizar configurações...";
+
+        try {
+            const formDataFinal = new FormData();
+            formDataFinal.append('nome', nomeInput.value);
+            formDataFinal.append('descricao', descricaoInput.value);
+            formDataFinal.append('pasta_ferramenta', pastaFerramentaS3);
+            
+            const thumbInput = document.getElementById('ferramentaThumb');
+            if (thumbInput.files.length > 0) {
+                formDataFinal.append('thumb', thumbInput.files[0]);
+            }
+
+            const respostaFinal = await fetch('/ferramentas/api/salvar-ferramenta/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                body: formDataFinal
+            });
+
+            const resultado = await respostaFinal.json();
+
+            if (resultado.status === 'sucesso') {
+                statusTexto.innerText = "Upload Concluído com Sucesso!";
+                statusTexto.style.color = "#28a745";
+                ficheiroAtual.innerText = "A redirecionar...";
+                
+                setTimeout(() => {
+                    window.location.href = `/admin/ferramentas/ferramenta/${resultado.ferramenta_id}/change/`;
+                }, 1500);
+            } else {
+                throw new Error("O Django não conseguiu salvar a ferramenta no banco.");
+            }
+        } catch (erro) {
+            console.error(erro);
+            alert("Os ficheiros foram enviados para a Amazon, mas ocorreu um erro ao registar a ferramenta no MundoKaizo.");
+        }
+    });
+</script>
+{% endblock %}

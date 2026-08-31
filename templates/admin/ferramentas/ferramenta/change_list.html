@@ -1,0 +1,13 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools-items %}
+    
+    <li>
+        <a href="{% url 'admin:ferramentas_upload_direto' %}" style="background-color: #2288c4; color: white; padding: 5px 15px; border-radius: 4px; font-weight: bold; margin-right: 10px;">
+            🔧 Upload Direto de Ferramenta (S3)
+        </a>
+    </li>
+
+    {{ block.super }}
+    
+{% endblock %}

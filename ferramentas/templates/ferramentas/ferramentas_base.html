@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Ferramentas - MundoKaizo{% endblock %}</title>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* CSS Reset Básico e Fontes */
+        :root {
+            --primary-color: #ff6b6b;
+            --secondary-color: #4ecdc4;
+            --accent-color: #ffe66d;
+            --text-dark: #2c3e50;
+            --text-light: #f7f9fa;
+            --bg-color: #f4f7f6;
+            --nav-height: 60px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Considerando a fonte do projeto */
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            {% block body_style %}{% endblock %}
+        }
+
+        /* Navbar Dinâmica e Limpa */
+        .navbar {
+            height: var(--nav-height);
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .navbar-brand a {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 800;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.2s;
+        }
+
+        .navbar-brand a:hover {
+            transform: scale(1.05);
+        }
+
+        .navbar-menu {
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .user-dropdown-btn {
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-dark);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            transition: background 0.2s;
+        }
+
+        .user-dropdown-btn:hover {
+            background-color: #f0f4f8;
+        }
+
+        .user-dropdown-content {
+            display: none;
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background-color: white;
+            min-width: 180px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            animation: fadeInDown 0.2s ease;
+        }
+
+        .user-dropdown-content.show {
+            display: block;
+        }
+
+        .user-dropdown-content a {
+            color: var(--text-dark);
+            padding: 12px 20px;
+            text-decoration: none;
+            display: block;
+            font-weight: 600;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .user-dropdown-content a:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .login-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            text-decoration: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(78, 205, 196, 0.4);
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <a href="{% url 'estante' %}">
+                <i class="fa-solid fa-rocket"></i> MundoKaizo
+            </a>
+        </div>
+        
+        <div class="navbar-menu">
+            {% if user.is_authenticated %}
+                <button class="user-dropdown-btn" onclick="toggleDropdown()">
+                    <i class="fa-solid fa-user-circle" style="font-size: 20px; color: var(--secondary-color);"></i>
+                    {{ user.username }}
+                    <i class="fa-solid fa-chevron-down" style="font-size: 12px;"></i>
+                </button>
+                <div class="user-dropdown-content" id="userMenu">
+                    <a href="{% url 'estante' %}"><i class="fa-solid fa-home"></i> Início</a>
+                    <!-- Assuming 'password_reset_guide' or 'alterar_senha' is the correct URL for password reset -->
+                    <a href="{% url 'alterar_senha' %}"><i class="fa-solid fa-key"></i> Alterar Senha</a>
+                    <a href="{% url 'logout' %}"><i class="fa-solid fa-sign-out-alt"></i> Sair</a>
+                </div>
+            {% else %}
+                <a href="{% url 'login' %}?next={{ request.path }}" class="login-btn"><i class="fa-solid fa-sign-in-alt"></i> Entrar</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <script>
+        // Lógica simples para o Dropdown
+        function toggleDropdown() {
+            document.getElementById("userMenu").classList.toggle("show");
+        }
+
+        // Fecha o dropdown se clicar fora dele
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-dropdown-btn') && !event.target.closest('.user-dropdown-btn')) {
+                var dropdowns = document.getElementsByClassName("user-dropdown-content");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
