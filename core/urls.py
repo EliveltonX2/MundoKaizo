@@ -54,11 +54,6 @@ urlpatterns = [
     path('jogos/', views.jogos_list_view, name='jogos'),
     path('jogos/<int:jogo_id>/', views.jogar_view, name='jogar'),
     
-    # Ferramentas
-    path('api/salvar-ferramenta/', views.salvar_registro_ferramenta, name='salvar_registro_ferramenta'),
-    path('ferramentas/upload/', views.upload_ferramentas_view, name='upload_ferramentas'),
-    path('ferramentas/<int:ferramenta_id>/', views.ferramenta_view, name='ferramenta_view'),
-    
     path('api/jogo/salvar-sessao/', views.api_salvar_sessao_jogo, name='api_salvar_sessao_jogo'),
     path('dashboard/', views.estatisticas_view, name='dashboard'),
     

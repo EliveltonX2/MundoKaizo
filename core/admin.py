@@ -239,17 +239,6 @@ class SessaoAulaInterativaAdmin(admin.ModelAdmin):
     list_filter = ('aula__livro', 'aula__colecao')
     search_fields = ('user__username', 'aula__titulo')
 
-from .models import Ferramenta
-
-@admin.register(Ferramenta)
-class FerramentaAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'caminho_s3', 'ativo', 'criado_em')
-    search_fields = ('nome', 'caminho_s3')
-    list_filter = ('ativo', 'criado_em')
-    readonly_fields = ('caminho_s3',)
-    
-    change_list_template = "admin/core/ferramenta/change_list.html"
-
 from .models import AulaInterativa
 
 @admin.register(AulaInterativa)
@@ -283,4 +272,4 @@ class AulaInterativaAdmin(admin.ModelAdmin):
             'livros': livros,
             'anos': anos
         }
-        return render(request, 'admin/upload_aula_interativa.html', context)
+        return render(request, 'admin/upload_aula_interativa.html', context)

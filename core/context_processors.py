@@ -1,4 +1,4 @@
-from .models import Ferramenta
+from ferramentas.models import Ferramenta
 
 def ferramentas_processor(request):
     """

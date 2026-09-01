@@ -72,8 +72,8 @@
                 {% if ferramentas %}
                     {% for ferramenta in ferramentas %}
                     <li>
-                        <a class="dropdown-item" href="{% url 'ferramenta_view' ferramenta.id %}">
-                            <i class="{{ ferramenta.icone }} icon-margin"></i> {{ ferramenta.nome }}
+                        <a class="dropdown-item" href="{% url 'ferramenta_detail' ferramenta.slug %}">
+                            <i class="fas fa-wrench icon-margin"></i> {{ ferramenta.nome }}
                         </a>
                     </li>
                     {% endfor %}
