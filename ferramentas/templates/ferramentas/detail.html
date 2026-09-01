@@ -1,29 +1,31 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ ferramenta.nome }} - MundoKaizo</title>
-    <!-- FontAwesome -->
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#14213d">
+    <title>{{ ferramenta.nome }} | MundoKaizo</title>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    {% load static %}
     <link rel="stylesheet" href="{% static 'ferramentas/css/detail.css' %}">
 </head>
 <body>
-
-    <a href="{% url 'ferramentas_index' %}" class="btn-fechar" title="Sair da Ferramenta">
-        <i class="fa-solid fa-xmark"></i>
-    </a>
-
-    <div class="loading-text" id="loadingText"><i class="fa-solid fa-spinner fa-spin"></i> A carregar {{ ferramenta.nome }}...</div>
-    
-    <iframe 
-        src="{{ ferramenta.url_ferramenta }}" 
-        class="tool-iframe"
-        allowfullscreen
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        onload="document.getElementById('loadingText').style.display = 'none';">
-    </iframe>
-
+    <header class="tool-shell">
+        <a href="{% url 'ferramentas_index' %}" class="tool-shell-back">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Ferramentas</span>
+        </a>
+        <div class="tool-shell-title">
+            <span class="tool-shell-mark" aria-hidden="true"><i class="fa-solid fa-bolt"></i></span>
+            <strong>{{ ferramenta.nome }}</strong>
+        </div>
+        <span class="tool-shell-brand"><i class="fa-solid fa-rocket" aria-hidden="true"></i> MundoKaizo</span>
+    </header>
+    <div class="loading-screen" id="loadingScreen" role="status" aria-live="polite">
+        <div class="loader-orbit" aria-hidden="true"><span></span></div>
+        <strong>Preparando {{ ferramenta.nome }}</strong><small>Só um instante...</small>
+    </div>
+    <iframe src="{{ ferramenta.url_ferramenta }}" title="{{ ferramenta.nome }}" class="tool-iframe"
+        allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+    <script src="{% static 'ferramentas/js/detail.js' %}"></script>
 </body>
 </html>

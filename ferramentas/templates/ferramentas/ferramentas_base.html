@@ -1,54 +1,108 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Ferramentas - MundoKaizo{% endblock %}</title>
-    <!-- FontAwesome -->
+    <meta name="theme-color" content="#14213d">
+    <title>{% block title %}Ferramentas | MundoKaizo{% endblock %}</title>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    {% load static %}
     <link rel="stylesheet" href="{% static 'ferramentas/css/base.css' %}">
-    
-    <style>
-        body {
-            {% block body_style %}{% endblock %}
-        }
-    </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-
-    <nav class="navbar">
-        <div class="navbar-brand">
-            <a href="{% url 'estante' %}">
-                <i class="fa-solid fa-rocket"></i> MundoKaizo
+    <a class="skip-link" href="#conteudo-principal">Ir para o conteúdo</a>
+    <header class="site-header">
+        <nav class="navbar" aria-label="Navegação principal">
+            <a class="navbar-brand" href="{% url 'estante' %}" aria-label="MundoKaizo — início">
+                <span class="brand-mark" aria-hidden="true"><i class="fa-solid fa-rocket"></i></span>
+                <span class="brand-copy"><strong>MundoKaizo</strong><small>Central de ferramentas</small></span>
             </a>
-        </div>
-        
-        <div class="navbar-menu">
-            {% if user.is_authenticated %}
-                <button class="user-dropdown-btn" onclick="toggleDropdown()">
-                    <i class="fa-solid fa-user-circle" style="font-size: 20px; color: var(--secondary-color);"></i>
-                    {{ user.username }}
-                    <i class="fa-solid fa-chevron-down" style="font-size: 12px;"></i>
+            <div class="navbar-actions">
+                <a class="back-home" href="{% url 'estante' %}">
+                    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Voltar ao MundoKaizo</span>
+                </a>
+                {% if user.is_authenticated %}
+                    <div class="user-dropdown">
+                        <button class="user-dropdown-btn" type="button" aria-expanded="false" aria-controls="userMenu">
+                            <span class="avatar" aria-hidden="true">{{ user.username|first|upper }}</span>
+                            <span class="user-name">{{ user.username }}</span>
+                            <i class="fa-solid fa-chevron-down dropdown-chevron" aria-hidden="true"></i>
+                        </button>
+                        <div class="user-dropdown-content" id="userMenu">
+                            <a href="{% url 'estante' %}"><i class="fa-solid fa-house" aria-hidden="true"></i> Início</a>
+                            <a href="{% url 'alterar_senha' %}"><i class="fa-solid fa-key" aria-hidden="true"></i> Alterar senha</a>
+                            <form action="{% url 'logout' %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit"><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> Sair</button>
+                            </form>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{% url 'login' %}?next={{ request.path }}" class="login-btn">
+                        <i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i> Entrar
+                    </a>
+                {% endif %}
+                <button class="nav-menu-btn" type="button" aria-expanded="false" aria-controls="mainMenu" aria-label="Abrir menu principal">
+                    <i class="fa-solid fa-bars" aria-hidden="true"></i>
                 </button>
-                <div class="user-dropdown-content" id="userMenu">
-                    <a href="{% url 'estante' %}"><i class="fa-solid fa-home"></i> Início</a>
-                    <!-- Assuming 'password_reset_guide' or 'alterar_senha' is the correct URL for password reset -->
-                    <a href="{% url 'alterar_senha' %}"><i class="fa-solid fa-key"></i> Alterar Senha</a>
-                    <a href="{% url 'logout' %}"><i class="fa-solid fa-sign-out-alt"></i> Sair</a>
-                </div>
-            {% else %}
-                <a href="{% url 'login' %}?next={{ request.path }}" class="login-btn"><i class="fa-solid fa-sign-in-alt"></i> Entrar</a>
-            {% endif %}
-        </div>
-    </nav>
+            </div>
+        </nav>
+    </header>
 
-    <main>
+    <div class="menu-backdrop" data-menu-close></div>
+    <aside class="side-menu" id="mainMenu" aria-hidden="true" aria-label="Menu do MundoKaizo">
+        <div class="side-menu-header">
+            <div>
+                <span class="side-menu-kicker">MUNDOKAIZO</span>
+                <strong>Para onde vamos?</strong>
+            </div>
+            <button class="side-menu-close" type="button" data-menu-close aria-label="Fechar menu">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <nav class="side-menu-nav" aria-label="Áreas do sistema">
+            <a href="{% url 'estante' %}"><span class="menu-icon"><i class="fa-solid fa-book" aria-hidden="true"></i></span><span>Livros</span><i class="fa-solid fa-chevron-right menu-arrow" aria-hidden="true"></i></a>
+            <a href="{% url 'galeria_videos' %}"><span class="menu-icon"><i class="fa-solid fa-video" aria-hidden="true"></i></span><span>Vídeos</span><i class="fa-solid fa-chevron-right menu-arrow" aria-hidden="true"></i></a>
+            <a href="{% url 'jogos' %}"><span class="menu-icon"><i class="fa-solid fa-gamepad" aria-hidden="true"></i></span><span>MiniGames</span><i class="fa-solid fa-chevron-right menu-arrow" aria-hidden="true"></i></a>
+            <a href="{% url 'livros_interativos' %}"><span class="menu-icon"><i class="fa-solid fa-book-open-reader" aria-hidden="true"></i></span><span>Livros Interativos</span><i class="fa-solid fa-chevron-right menu-arrow" aria-hidden="true"></i></a>
+            <a class="is-current" href="{% url 'ferramentas_index' %}" aria-current="page"><span class="menu-icon"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></span><span>Ferramentas</span><span class="current-label">Você está aqui</span></a>
+            <span class="side-menu-item is-disabled" aria-disabled="true"><span class="menu-icon"><i class="fa-solid fa-newspaper" aria-hidden="true"></i></span><span>Atividades</span><span class="soon-label">Em breve</span></span>
+
+            {% if request.user.tipo == 'ALUNO' %}
+                <a href="{% url 'dashboard' %}"><span class="menu-icon"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i></span><span>Dashboard</span><i class="fa-solid fa-chevron-right menu-arrow" aria-hidden="true"></i></a>
+            {% endif %}
+
+            {% if request.user.tipo == 'DEMO' %}
+                <a href="{% url 'kai_chat' %}"><span class="menu-icon kai-icon"><img src="{% static 'core/img/kai.png' %}" alt=""></span><span>Falar com a Kai</span><i class="fa-solid fa-chevron-right menu-arrow" aria-hidden="true"></i></a>
+            {% endif %}
+
+            {% if request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'GESTOR_GERAL' or request.user.tipo == 'ADMIN' %}
+                <div class="side-menu-divider"><span>GESTÃO E ACOMPANHAMENTO</span></div>
+                <a href="{% url 'gerenciar' %}"><span class="menu-icon"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></span><span>Gerenciar</span><i class="fa-solid fa-chevron-right menu-arrow" aria-hidden="true"></i></a>
+                <a href="{% url 'bncc_list' %}"><span class="menu-icon"><i class="fa-solid fa-book-open" aria-hidden="true"></i></span><span>BNCC Computação</span><i class="fa-solid fa-chevron-right menu-arrow" aria-hidden="true"></i></a>
+                <a href="{% url 'dashboard' %}"><span class="menu-icon"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i></span><span>Dashboard</span><i class="fa-solid fa-chevron-right menu-arrow" aria-hidden="true"></i></a>
+                <a href="{% url 'vincular_cartoes' %}"><span class="menu-icon"><i class="fa-solid fa-id-card" aria-hidden="true"></i></span><span>Vincular Cartões</span><i class="fa-solid fa-chevron-right menu-arrow" aria-hidden="true"></i></a>
+                {% if user.tipo == 'GESTOR_LOCAL' or user.tipo == 'ADMIN' %}
+                    <a href="{% url 'criar_turma' %}"><span class="menu-icon"><i class="fa-solid fa-chalkboard" aria-hidden="true"></i></span><span>Gerenciar Turmas</span><i class="fa-solid fa-chevron-right menu-arrow" aria-hidden="true"></i></a>
+                {% endif %}
+                <a href="{% url 'kai_chat' %}"><span class="menu-icon kai-icon"><img src="{% static 'core/img/kai.png' %}" alt=""></span><span>Falar com a Kai</span><i class="fa-solid fa-chevron-right menu-arrow" aria-hidden="true"></i></a>
+            {% endif %}
+        </nav>
+
+        {% if user.is_authenticated %}
+            <div class="side-menu-user">
+                <span class="avatar" aria-hidden="true">{{ user.username|first|upper }}</span>
+                <span><small>Conectado como</small><strong>{{ user.username }}</strong></span>
+            </div>
+        {% endif %}
+    </aside>
+
+    <main id="conteudo-principal" class="site-main">
         {% block content %}{% endblock %}
     </main>
-
     <script src="{% static 'ferramentas/js/base.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
