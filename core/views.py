@@ -23,6 +23,11 @@ import datetime
 
 
 @login_required
+def home_view(request):
+    """ Página Inicial (Hub Principal) """
+    return render(request, 'core/home.html')
+
+@login_required
 def estante_view(request):
     
     user = request.user

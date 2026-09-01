@@ -1,0 +1,97 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{% static 'core/ico/favicon/favicon-96x96.png' %}" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="{% static 'core/ico/favicon/favicon.svg' %}" />
+    <link rel="shortcut icon" href="{% static 'core/ico/favicon/favicon.ico' %}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'core/ico/favicon/apple-touch-icon.png' %}" />
+    <title>Hub Inicial - KaizoEdu</title>
+    
+    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/css/app.css' %}">
+
+    <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+</head>
+<body>
+
+    <!-- Incluímos a Navbar normal da plataforma -->
+    {% include "includes/navbar.html" %}
+
+    <div class="hub-container">
+        <div class="hub-header">
+            <h1>Mundo Kaizo</h1>
+            <p>Explore as possibilidades da sua plataforma educacional.</p>
+        </div>
+
+        <div class="hub-grid">
+            
+            <a href="{% url 'estante' %}" class="hub-card c-livros">
+                <i class="fas fa-book"></i>
+                <h3>Livros</h3>
+                <p>Acesse o acervo de livros didáticos digitais.</p>
+            </a>
+
+            <a href="{% url 'livros_interativos' %}" class="hub-card c-interativos">
+                <i class="fas fa-book-reader"></i>
+                <h3>Livros Interativos</h3>
+                <p>Experiências educacionais animadas e gamificadas.</p>
+            </a>
+
+            <a href="{% url 'jogos' %}" class="hub-card c-jogos">
+                <i class="fas fa-gamepad"></i>
+                <h3>MiniGames</h3>
+                <p>Aprenda jogando com desafios incríveis.</p>
+            </a>
+
+            <a href="{% url 'galeria_videos' %}" class="hub-card c-videos">
+                <i class="fas fa-video"></i>
+                <h3>Vídeos</h3>
+                <p>Assista a videoaulas e complemente seus estudos.</p>
+            </a>
+
+            <a href="{% url 'ferramentas_index' %}" class="hub-card c-ferramentas">
+                <i class="fas fa-wrench"></i>
+                <h3>Ferramentas</h3>
+                <p>Utilitários educacionais rápidos e práticos.</p>
+            </a>
+
+            {% if request.user.tipo == 'ALUNO' or request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'ADMIN' %}
+            <a href="{% url 'dashboard' %}" class="hub-card c-dashboard">
+                <i class="fas fa-chart-pie"></i>
+                <h3>Dashboard</h3>
+                <p>Acompanhe seu desempenho e estatísticas.</p>
+            </a>
+            {% endif %}
+
+            {% if request.user.tipo == 'DEMO' or request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'ADMIN' %}
+            <a href="{% url 'kai_chat' %}" class="hub-card">
+                <img src="{% static 'core/img/kai.png' %}" alt="Kai" class="kai-icon">
+                <h3>Falar com a Kai</h3>
+                <p>Sua assistente inteligente para ideias pedagógicas.</p>
+            </a>
+            {% endif %}
+
+            {% if request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'ADMIN' %}
+            <a href="{% url 'gerenciar' %}" class="hub-card c-gerenciar">
+                <i class="fas fa-chart-line"></i>
+                <h3>Gerenciamento</h3>
+                <p>Relatórios, turmas e gestão escolar.</p>
+            </a>
+            
+            <a href="{% url 'bncc_list' %}" class="hub-card c-livros">
+                <i class="fas fa-book-open"></i>
+                <h3>BNCC Computação</h3>
+                <p>Consulte as habilidades de computação da BNCC.</p>
+            </a>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <script src="{% static 'core/js/home.js' %}"></script>
+</body>
+</html>

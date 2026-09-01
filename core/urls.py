@@ -26,7 +26,8 @@ urlpatterns = [
     path('gerenciar/exportar-csv/', views_dashboard.exportar_csv_dashboard, name='dashboard_exportar_csv'),
     path('gerenciar/reset/<int:user_id>/', views.resetar_senha, name='resetar_senha'),
 
-    path('', views.estante_view, name='estante'),
+    path('', views.home_view, name='home'),
+    path('estante/', views.estante_view, name='estante'),
     path('login/', auth_views.LoginView.as_view(template_name='core/login.html'), name='login'),
     path('recuperar-senha/', TemplateView.as_view(template_name='core/password_reset_guide.html'), name='password_reset_guide'),
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
