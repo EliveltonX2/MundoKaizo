@@ -5,7 +5,8 @@ from django.contrib.auth.hashers import make_password
 from django.contrib import messages
 from django.core.cache import cache
 from django.core.files.storage import default_storage
-from .models import Livro, Pagina, User, VideoAula, Turma, TokenCadastro, SessaoChat, Mensagem, Jogo, EstatisticasUsuario, RegistroAcessoDemo, SessaoJogo
+from .models import Livro, Pagina, User, VideoAula, Turma, TokenCadastro, SessaoChat, Mensagem, EstatisticasUsuario, RegistroAcessoDemo
+from jogos.models import Jogo, SessaoJogo
 from .services import adicionar_watermark
 from django.db.models import Q
 from django.urls import reverse

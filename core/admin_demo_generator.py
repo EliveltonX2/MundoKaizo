@@ -5,8 +5,9 @@ import random
 import datetime
 from .models import (
     User, Pais, Estado, Cidade, Escola, Turma, AnoEscolar, 
-    Livro, Jogo, EstatisticasUsuario, SessaoJogo
+    Livro, EstatisticasUsuario
 )
+from jogos.models import Jogo, SessaoJogo
 
 NOME_ANIMAIS = [
     "Naruto", "Sasuke", "Sakura", "Kakashi", "Goku", "Vegeta", "Gohan", "Piccolo", 

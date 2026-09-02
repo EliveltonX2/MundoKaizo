@@ -6,7 +6,8 @@ from django.http import HttpResponse
 from django.db.models import Avg, Sum, Count, F, ExpressionWrapper, fields
 from django.utils import timezone
 from datetime import timedelta
-from core.models import User, Turma, Escola, Cidade, Estado, Pais, EstatisticasUsuario, SessaoJogo, RegistroAcessoDemo
+from core.models import User, Turma, Escola, Cidade, Estado, Pais, EstatisticasUsuario, RegistroAcessoDemo
+from jogos.models import SessaoJogo
 
 @login_required
 # ==============================================================
