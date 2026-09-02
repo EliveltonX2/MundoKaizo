@@ -134,7 +134,7 @@
             
             try {
                 // Solicita permissão e URL para este arquivo
-                const resp = await fetch(`/api/gerar-url-upload/?file_name=${encodeURIComponent(objectKey)}&file_type=${encodeURIComponent(file.type || 'application/octet-stream')}`);
+                const resp = await fetch(`/api/gerar-url-upload/?file_name=${encodeURIComponent(cleanPath)}&file_type=${encodeURIComponent(file.type || 'application/octet-stream')}&pasta_jogo=jogo_${slug}`);
                 const data = await resp.json();
                 
                 if (data.erro) {
