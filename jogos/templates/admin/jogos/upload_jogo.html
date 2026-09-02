@@ -143,12 +143,12 @@
                 
                 // Envia o arquivo direto para a AWS
                 const formData = new FormData();
-                Object.keys(data.presigned_post.fields).forEach(key => {
-                    formData.append(key, data.presigned_post.fields[key]);
+                Object.keys(data.fields).forEach(key => {
+                    formData.append(key, data.fields[key]);
                 });
                 formData.append('file', file);
                 
-                const uploadResp = await fetch(data.presigned_post.url, {
+                const uploadResp = await fetch(data.url, {
                     method: 'POST',
                     body: formData
                 });
