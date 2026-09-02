@@ -43,6 +43,13 @@
         <!-- Pode adicionar seleção de habilidades se quiser -->
     </div>
     
+    <div class="form-group">
+        <label for="jogo_capa">Capa do Jogo (Opcional - Tamanho ideal: 16:9 / Ex: 800x450)</label>
+        <div style="background: #f9fafb; padding: 15px; border: 1px dashed #b8c1cd; border-radius: 5px; margin-top: 5px;">
+            <input type="file" id="jogo_capa" accept="image/*">
+        </div>
+    </div>
+    
     <div class="file-drop-area" id="drop-area">
         <i class="fa-solid fa-cloud-arrow-up"></i>
         <span id="file-count">Clique ou arraste a pasta (Build WebGL) aqui</span>
@@ -169,18 +176,22 @@
         
         // 2. Salva no banco de dados chamando nossa API interna
         try {
+            const formDataFinal = new FormData();
+            formDataFinal.append('titulo', titulo);
+            formDataFinal.append('descricao', descricao);
+            formDataFinal.append('pasta_jogo', slug);
+            
+            const capaInput = document.getElementById('jogo_capa');
+            if (capaInput.files.length > 0) {
+                formDataFinal.append('capa', capaInput.files[0]);
+            }
+
             const saveResp = await fetch("{% url 'jogos:api_salvar_jogo' %}", {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'X-CSRFToken': '{{ csrf_token }}'
                 },
-                body: JSON.stringify({
-                    titulo: titulo,
-                    descricao: descricao,
-                    pasta_jogo: slug,
-                    habilidades: []
-                })
+                body: formDataFinal
             });
             
             const saveData = await saveResp.json();

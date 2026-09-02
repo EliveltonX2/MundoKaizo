@@ -43,15 +43,23 @@ def api_salvar_jogo(request):
         return JsonResponse({'status': 'erro', 'mensagem': 'Acesso negado.'}, status=403)
         
     try:
-        dados = json.loads(request.body)
+        titulo = request.POST.get('titulo')
+        descricao = request.POST.get('descricao')
+        pasta_jogo = request.POST.get('pasta_jogo')
+        capa = request.FILES.get('capa')
+        habilidades_ids = request.POST.getlist('habilidades[]')
+
         jogo = Jogo.objects.create(
-            titulo=dados.get('titulo'),
-            descricao=dados.get('descricao'),
-            caminho_s3=f"jogos_web/jogo_{dados.get('pasta_jogo')}"
+            titulo=titulo,
+            descricao=descricao,
+            caminho_s3=f"jogos_web/jogo_{pasta_jogo}"
         )
         
+        if capa:
+            jogo.capa = capa
+            jogo.save()
+        
         # Associa as habilidades selecionadas
-        habilidades_ids = dados.get('habilidades', [])
         if habilidades_ids:
             jogo.habilidades_relacionadas.set(habilidades_ids)
             
