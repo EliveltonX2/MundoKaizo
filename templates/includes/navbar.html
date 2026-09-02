@@ -1,212 +1,146 @@
 {% load static %}
+<link rel="stylesheet" href="{% static 'core/css/navbar.css' %}?v=20260901a">
 
-<link rel="stylesheet" href="{% static 'core/css/navbar.css' %}">
+<header class="mk-header">
+    <nav class="mk-navbar" aria-label="Navegação principal">
+        <div class="mk-navbar-left">
+            {% if back_url %}
+                <a href="{{ back_url }}" class="mk-icon-btn mk-back-btn" aria-label="Voltar" title="Voltar"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+            {% endif %}
+            <a class="mk-brand" href="{% url 'home' %}" aria-label="MundoKaizo — página inicial">
+                <span class="mk-brand-mark" aria-hidden="true"><i class="fa-solid fa-rocket"></i></span>
+                <span class="mk-brand-copy">
+                    <strong>{% if custom_title %}{{ custom_title }}{% else %}MundoKaizo{% endif %}</strong>
+                    <small>Aprender é uma aventura</small>
+                </span>
+            </a>
+        </div>
 
-<nav class="navbar-wrapper">
-    <div class="navbar-left">
-        {% if back_url %}
-            <a href="{{ back_url }}" class="btn-nav" title="Voltar">
-                <i class="fas fa-arrow-left"></i>
+        <div class="mk-navbar-center">
+            {% if show_page_navigator %}
+                <div class="mk-page-navigator">
+                    <span class="mk-page-label">Pág.</span>
+                    <input type="number" id="pageInput" class="mk-nav-input" value="1" min="1" aria-label="Número da página">
+                    <span class="mk-page-label">/ <span id="totalPages">--</span></span>
+                    <button id="goPageBtn" class="mk-icon-btn" type="button" aria-label="Ir para página"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+                </div>
+            {% elif show_search %}
+                <form method="GET" action="." class="mk-search-form" role="search">
+                    <label class="mk-search-wrapper">
+                        <span class="mk-sr-only">Buscar</span>
+                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                        <input type="search" name="q" class="mk-nav-input" placeholder="{{ search_placeholder|default:'Buscar...' }}" value="{{ request.GET.q|default:'' }}">
+                    </label>
+                </form>
+            {% endif %}
+        </div>
+
+        <div class="mk-navbar-actions">
+            <div class="mk-user-dropdown">
+                <button class="mk-user-btn" type="button" aria-expanded="false" aria-controls="mkUserMenu">
+                    <span class="mk-avatar" aria-hidden="true">{{ request.user.username|first|upper }}</span>
+                    <span class="mk-user-name">{{ request.user.username }}</span>
+                    <i class="fa-solid fa-chevron-down mk-user-chevron" aria-hidden="true"></i>
+                </button>
+                <div class="mk-user-menu" id="mkUserMenu">
+                    <span class="mk-user-menu-title">Minha conta</span>
+                    <a href="{% url 'alterar_senha' %}"><i class="fa-solid fa-key" aria-hidden="true"></i> Alterar senha</a>
+                    <form action="{% url 'logout' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit"><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> Sair</button>
+                    </form>
+                </div>
+            </div>
+            <button class="mk-menu-btn" type="button" aria-expanded="false" aria-controls="mkMainMenu" aria-label="Abrir menu principal">
+                <i class="fa-solid fa-bars" aria-hidden="true"></i>
+            </button>
+        </div>
+    </nav>
+</header>
+
+<div class="mk-menu-backdrop" data-mk-menu-close></div>
+<aside class="mk-side-menu" id="mkMainMenu" aria-hidden="true" aria-label="Menu do MundoKaizo">
+    <div class="mk-side-menu-header">
+        <div><span>MUNDOKAIZO</span><strong>Para onde vamos?</strong></div>
+        <button class="mk-side-menu-close" type="button" data-mk-menu-close aria-label="Fechar menu"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    </div>
+
+    <nav class="mk-side-menu-nav" aria-label="Áreas do sistema">
+        <a class="{% if request.resolver_match.url_name == 'home' %}is-current{% endif %}" href="{% url 'home' %}" {% if request.resolver_match.url_name == 'home' %}aria-current="page"{% endif %}>
+            <span class="mk-menu-icon"><i class="fa-solid fa-house" aria-hidden="true"></i></span><span>Início</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>
+        </a>
+        <a class="{% if request.resolver_match.url_name == 'estante' %}is-current{% endif %}" href="{% url 'estante' %}">
+            <span class="mk-menu-icon"><i class="fa-solid fa-book" aria-hidden="true"></i></span><span>Livros</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>
+        </a>
+        <a class="{% if request.resolver_match.url_name == 'livros_interativos' %}is-current{% endif %}" href="{% url 'livros_interativos' %}">
+            <span class="mk-menu-icon"><i class="fa-solid fa-book-open-reader" aria-hidden="true"></i></span><span>Livros Interativos</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>
+        </a>
+        <a class="{% if request.resolver_match.url_name == 'jogos' %}is-current{% endif %}" href="{% url 'jogos' %}">
+            <span class="mk-menu-icon"><i class="fa-solid fa-gamepad" aria-hidden="true"></i></span><span>MiniGames</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>
+        </a>
+        <a class="{% if request.resolver_match.url_name == 'galeria_videos' %}is-current{% endif %}" href="{% url 'galeria_videos' %}">
+            <span class="mk-menu-icon"><i class="fa-solid fa-video" aria-hidden="true"></i></span><span>Vídeos</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>
+        </a>
+        <a href="{% url 'ferramentas_index' %}">
+            <span class="mk-menu-icon"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></span><span>Ferramentas</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>
+        </a>
+        <span class="mk-side-menu-item is-disabled" aria-disabled="true">
+            <span class="mk-menu-icon"><i class="fa-solid fa-newspaper" aria-hidden="true"></i></span><span>Atividades</span><span class="mk-soon-label">Em breve</span>
+        </span>
+
+        {% if request.user.tipo == 'ALUNO' %}
+            <div class="mk-side-menu-divider"><span>MEU APRENDIZADO</span></div>
+            <a class="{% if request.resolver_match.url_name == 'dashboard' %}is-current{% endif %}" href="{% url 'dashboard' %}">
+                <span class="mk-menu-icon"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i></span><span>Meu progresso</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>
             </a>
         {% endif %}
 
-        <a href="{% url 'home' %}" class="navbar-brand">
-            {% if custom_title %}
-                {{ custom_title }}
-            {% else %}
-                <img src="{% static 'core/img/logokaizo2.png' %}" alt="Mundo Kaizo" class="navbar-logo">
-            {% endif %}
-        </a>
-    </div>
-
-    <div class="navbar-center">
-        {% if show_page_navigator %}
-            <div class="page-navigator">
-                <span class="page-label hide-mobile">Pág.</span>
-                <input type="number" id="pageInput" class="search-input" value="1" min="1">
-                <span class="page-label">/ <span id="totalPages">--</span></span>
-                <button id="goPageBtn" class="btn-nav ms-2" title="Ir para página">
-                    <i class="fas fa-arrow-right"></i>
-                </button>
-            </div>
-        {% elif show_search %}
-            <form method="GET" action="." class="search-form">
-                <div class="search-wrapper">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" name="q" class="search-input" placeholder="{{ search_placeholder|default:'Buscar...' }}" value="{{ request.GET.q|default:'' }}">
-                </div>
-            </form>
+        {% if request.user.tipo == 'DEMO' %}
+            <a class="{% if request.resolver_match.url_name == 'kai_chat' %}is-current{% endif %}" href="{% url 'kai_chat' %}">
+                <span class="mk-menu-icon mk-kai-icon"><img src="{% static 'core/img/kai.png' %}" alt=""></span><span>Falar com a Kai</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>
+            </a>
         {% endif %}
+
+        {% if request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'GESTOR_GERAL' or request.user.tipo == 'ADMIN' %}
+            <div class="mk-side-menu-divider"><span>ESPAÇO DO PROFESSOR</span></div>
+            <a class="mk-teacher-link {% if request.resolver_match.url_name == 'gerenciar' %}is-current{% endif %}" href="{% url 'gerenciar' %}">
+                <span class="mk-menu-icon"><i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i></span><span>Gerenciar</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>
+            </a>
+            <a class="{% if request.resolver_match.url_name == 'bncc_list' %}is-current{% endif %}" href="{% url 'bncc_list' %}">
+                <span class="mk-menu-icon"><i class="fa-solid fa-book-open" aria-hidden="true"></i></span><span>BNCC Computação</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>
+            </a>
+            <a class="{% if request.resolver_match.url_name == 'dashboard' %}is-current{% endif %}" href="{% url 'dashboard' %}">
+                <span class="mk-menu-icon"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i></span><span>Dashboard</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>
+            </a>
+            <a href="{% url 'vincular_cartoes' %}">
+                <span class="mk-menu-icon"><i class="fa-solid fa-id-card" aria-hidden="true"></i></span><span>Vincular Cartões</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>
+            </a>
+            {% if user.tipo == 'GESTOR_LOCAL' or user.tipo == 'ADMIN' %}
+                <a href="{% url 'criar_turma' %}"><span class="mk-menu-icon"><i class="fa-solid fa-school" aria-hidden="true"></i></span><span>Gerenciar Turmas</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i></a>
+            {% endif %}
+            <a class="{% if request.resolver_match.url_name == 'kai_chat' %}is-current{% endif %}" href="{% url 'kai_chat' %}">
+                <span class="mk-menu-icon mk-kai-icon"><img src="{% static 'core/img/kai.png' %}" alt=""></span><span>Falar com a Kai</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>
+            </a>
+        {% endif %}
+    </nav>
+
+    <div class="mk-side-menu-user">
+        <span class="mk-avatar" aria-hidden="true">{{ request.user.username|first|upper }}</span>
+        <span><small>Conectado como</small><strong>{{ request.user.username }}</strong></span>
     </div>
-
-    <div class="navbar-right">
-        
-        <div class="dropdown">
-            <button class="btn-nav dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fas fa-user-circle"></i>
-                <span class="hide-mobile">Olá, {{ request.user.username }}</span>
-            </button>
-            <ul class="dropdown-menu nav-dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                <li>
-                    <a class="dropdown-item" href="{% url 'alterar_senha' %}">
-                        <i class="fas fa-key icon-margin"></i> Alterar Senha
-                    </a>
-                </li>
-                <li>
-                    <form action="{% url 'logout' %}" method="post" style="margin: 0;">
-                        {% csrf_token %}
-                        <button type="submit" class="dropdown-item" style="width: 100%; border: none; background: transparent; text-align: left;">
-                            <i class="fas fa-sign-out-alt icon-margin"></i> Sair
-                        </button>
-                    </form>
-                </li>
-            </ul>
-        </div>
-
-        <!-- Dropdown de Ferramentas -->
-        <div class="dropdown">
-            <button class="btn-nav dropdown-toggle" type="button" id="toolsDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Ferramentas">
-                <i class="fas fa-wrench"></i>
-            </button>
-            <ul class="dropdown-menu nav-dropdown-menu dropdown-menu-end" aria-labelledby="toolsDropdown">
-                {% if ferramentas %}
-                    {% for ferramenta in ferramentas %}
-                    <li>
-                        <a class="dropdown-item" href="{% url 'ferramenta_detail' ferramenta.slug %}">
-                            <i class="fas fa-wrench icon-margin"></i> {{ ferramenta.nome }}
-                        </a>
-                    </li>
-                    {% endfor %}
-                {% else %}
-                    <li><span class="dropdown-item text-muted">Nenhuma ferramenta disponível</span></li>
-                {% endif %}
-            </ul>
-        </div>
-
-        <div class="dropdown">
-            <button class="btn-nav dropdown-toggle" type="button" id="navDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fas fa-bars"></i>
-            </button>
-            <ul class="dropdown-menu nav-dropdown-menu dropdown-menu-end" aria-labelledby="navDropdown">
-                <li>
-                    <a class="dropdown-item" href="{% url 'estante' %}">
-                        <i class="fas fa-book icon-margin"></i> Livros
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item" href="{% url 'galeria_videos' %}">
-                        <i class="fas fa-video icon-margin"></i> Vídeos
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item" href="{% url 'jogos' %}">
-                        <i class="fas fa-gamepad icon-margin"></i> MiniGames
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item" href="{% url 'livros_interativos' %}">
-                        <i class="fas fa-book-reader icon-margin"></i> Livros Interativos
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item btn-inativo" href="#">
-                        <i class="fas fa-newspaper icon-margin"></i> Atividades
-                    </a>
-                </li>
-                
-                {% if request.user.tipo == 'ALUNO' %}
-                <li>
-                    <a class="dropdown-item" href="{% url 'dashboard' %}">
-                        <i class="fas fa-chart-pie icon-margin"></i> Dashboard
-                    </a>
-                </li>
-                {% endif %}
-
-                {% if request.user.tipo == 'DEMO'%}
-                <li>
-                    <a class="dropdown-item" href="{% url 'kai_chat' %}">
-                        <img src="{% static 'core/img/kai.png' %}" alt="Kai" class="kai-menu-icon"> Falar com a Kai
-                    </a>
-                </li>
-                {% endif %}
-                
-                {% if request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'GESTOR_GERAL' or request.user.tipo == 'ADMIN' %}
-
-                    <li>
-                        <a class="dropdown-item" href="{% url 'gerenciar' %}">
-                            <i class="fas fa-chart-line icon-margin"></i> Gerenciar
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{% url 'bncc_list' %}">
-                            <i class="fas fa-book-open icon-margin"></i> BNCC Computação
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{% url 'dashboard' %}">
-                            <i class="fas fa-chart-pie icon-margin"></i> Dashboard
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{% url 'vincular_cartoes' %}">
-                            <i class="fas fa-id-card icon-margin"></i> Vincular Cartões
-                        </a>
-                    </li>
-                    {% if user.tipo == 'GESTOR_LOCAL' or user.tipo == 'ADMIN' %}
-                        <li>
-                            <a class="dropdown-item" href="{% url 'criar_turma' %}">
-                                <i class="fas fa-chalkboard icon-margin"></i> Gerenciar Turmas
-                            </a>
-                        </li>
-                    {% endif %}
-                    <li>
-                        <a class="dropdown-item" href="{% url 'kai_chat' %}">
-                            <img src="{% static 'core/img/kai.png' %}" alt="Kai" class="kai-menu-icon"> Falar com a Kai
-                        </a>
-                    </li>
-                {% endif %}
-            </ul>
-        </div>
-
-    </div>
-</nav>
+</aside>
 
 {% if request.resolver_match.url_name == 'estante' %}
-    <div id="kai-popup-container" class="kai-floating-popup" style="display: none;">
-        
-        <div class="kai-speech-bubble">
-            <button onclick="fecharKaiPopup()" class="kai-close-btn" title="Fechar">
-                <i class="fas fa-times"></i>
-            </button>
-            <p style="margin-bottom: 8px; color: var(--search-text); line-height: 1.4;">
-                <strong style="color: var(--nav-bg);">Olá! Sou a Kai! 👋</strong><br>
-                Precisa de ideias novas para a sua aula de hoje? Vamos conversar!
-            </p>
-            <a href="{% url 'kai_chat' %}" class="btn-nav" style="width: 100%; font-size: 0.8rem; background: var(--nav-bg);">
-                Falar com a Kai 🚀
-            </a>
+    <div id="kai-popup-container" class="mk-kai-popup" hidden>
+        <div class="mk-kai-bubble">
+            <button type="button" class="mk-kai-close" data-kai-close aria-label="Fechar mensagem da Kai"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+            <strong>Olá! Sou a Kai 👋</strong>
+            <p>Precisa de ideias novas para a sua aula de hoje?</p>
+            <a href="{% url 'kai_chat' %}">Falar com a Kai <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
         </div>
-
-        <a href="{% url 'kai_chat' %}">
-            <img src="{% static 'core/img/kai.png' %}" alt="Kai" class="kai-mascote-img">
-        </a>
+        <a href="{% url 'kai_chat' %}" aria-label="Conversar com a Kai"><img src="{% static 'core/img/kai.png' %}" alt="" class="mk-kai-mascot"></a>
     </div>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            setTimeout(() => {
-                const popup = document.getElementById('kai-popup-container');
-                if (popup) popup.style.display = 'flex';
-            }, 1500);
-        });
-
-        function fecharKaiPopup() {
-            document.getElementById('kai-popup-container').style.display = 'none';
-        }
-    </script>
 {% endif %}
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-{% if request.user.is_authenticated and request.user.tipo == 'DEMO' %}
-    <script src="{% static 'core/js/geo_tracker.js' %}"></script>
-{% endif %}
+<script src="{% static 'core/js/navbar.js' %}?v=20260901a"></script>
+{% if request.user.is_authenticated and request.user.tipo == 'DEMO' %}<script src="{% static 'core/js/geo_tracker.js' %}"></script>{% endif %}

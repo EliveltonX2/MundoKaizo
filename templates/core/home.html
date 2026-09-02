@@ -4,94 +4,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="{% static 'core/ico/favicon/favicon-96x96.png' %}" sizes="96x96" />
-    <link rel="icon" type="image/svg+xml" href="{% static 'core/ico/favicon/favicon.svg' %}" />
-    <link rel="shortcut icon" href="{% static 'core/ico/favicon/favicon.ico' %}" />
-    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'core/ico/favicon/apple-touch-icon.png' %}" />
-    <title>Hub Inicial - KaizoEdu</title>
-    
-    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'core/css/app.css' %}">
-
-    <link rel="stylesheet" href="{% static 'core/css/home.css' %}">
+    <meta name="theme-color" content="#f3f7fa">
+    <link rel="icon" type="image/png" href="{% static 'core/ico/favicon/favicon-96x96.png' %}" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="{% static 'core/ico/favicon/favicon.svg' %}">
+    <link rel="shortcut icon" href="{% static 'core/ico/favicon/favicon.ico' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'core/ico/favicon/apple-touch-icon.png' %}">
+    <title>Início | MundoKaizo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/css/home.css' %}?v=20260901a">
 </head>
-<body>
-
-    <!-- Incluímos a Navbar normal da plataforma -->
+<body class="home-page">
+    <a class="skip-link" href="#conteudo-principal">Ir para o conteúdo</a>
     {% include "includes/navbar.html" %}
 
-    <div class="hub-container">
-        <div class="hub-header">
-            <h1>Mundo Kaizo</h1>
-            <p>Explore as possibilidades da sua plataforma educacional.</p>
-        </div>
+    <main id="conteudo-principal" class="home-shell">
+        <header class="welcome-panel" data-reveal>
+            <div class="welcome-copy">
+                <span class="welcome-eyebrow"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Seu universo de aprendizagem</span>
+                <h1>Olá, {{ request.user.username }}!<br><span>O que vamos explorar hoje?</span></h1>
+                <div class="welcome-pills" aria-label="Características da plataforma">
+                    <span><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> Ambiente seguro</span>
+                    <span><i class="fa-solid fa-bolt" aria-hidden="true"></i> Aprenda fazendo</span>
+                </div>
+            </div>
+            <div class="welcome-orbit" aria-hidden="true">
+                <span class="orbit-line orbit-line-one"></span>
+                <span class="orbit-line orbit-line-two"></span>
+                <span class="orbit-item orbit-book"><i class="fa-solid fa-book-open"></i></span>
+                <span class="orbit-item orbit-game"><i class="fa-solid fa-gamepad"></i></span>
+                <span class="orbit-item orbit-star"><i class="fa-solid fa-star"></i></span>
+                <span class="orbit-core"><i class="fa-solid fa-rocket"></i></span>
+            </div>
+        </header>
 
-        <div class="hub-grid">
-            
-            <a href="{% url 'estante' %}" class="hub-card c-livros">
-                <i class="fas fa-book"></i>
-                <h3>Livros</h3>
-                <p>Acesse o acervo de livros didáticos digitais.</p>
-            </a>
+        <section class="journey-section" aria-labelledby="journey-title">
+            <div class="section-heading" data-reveal>
+                <div>
+                    <span class="section-kicker">ESCOLHA SEU CAMINHO</span>
+                    <h2 id="journey-title">Onde a aventura começa</h2>
+                </div>
+                <p>Cada espaço abre uma forma diferente de aprender.</p>
+            </div>
 
-            <a href="{% url 'livros_interativos' %}" class="hub-card c-interativos">
-                <i class="fas fa-book-reader"></i>
-                <h3>Livros Interativos</h3>
-                <p>Experiências educacionais animadas e gamificadas.</p>
-            </a>
+            <div class="experience-grid">
+                <a href="{% url 'livros_interativos' %}" class="experience-card card-interactive card-featured" data-tilt data-reveal>
+                    <span class="card-pattern pattern-circles" aria-hidden="true"></span>
+                    <span class="card-topline"><i class="fa-solid fa-wand-magic-sparkles"></i> Experiência em destaque</span>
+                    <span class="card-icon"><i class="fa-solid fa-book-open-reader" aria-hidden="true"></i></span>
+                    <span class="card-copy"><strong>Livros Interativos</strong><small>Histórias, desafios e descobertas que ganham vida na tela.</small></span>
+                    <span class="card-action">Começar a explorar <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+                    <span class="floating-symbol symbol-one" aria-hidden="true">A+</span>
+                    <span class="floating-symbol symbol-two" aria-hidden="true">✦</span>
+                </a>
 
-            <a href="{% url 'jogos' %}" class="hub-card c-jogos">
-                <i class="fas fa-gamepad"></i>
-                <h3>MiniGames</h3>
-                <p>Aprenda jogando com desafios incríveis.</p>
-            </a>
+                <a href="{% url 'jogos' %}" class="experience-card card-games card-featured" data-tilt data-reveal>
+                    <span class="card-pattern pattern-grid" aria-hidden="true"></span>
+                    <span class="card-topline"><i class="fa-solid fa-trophy"></i> Aprenda jogando</span>
+                    <span class="card-icon"><i class="fa-solid fa-gamepad" aria-hidden="true"></i></span>
+                    <span class="card-copy"><strong>MiniGames</strong><small>Supere desafios, teste ideias e conquiste novos conhecimentos.</small></span>
+                    <span class="card-action">Escolher um desafio <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+                    <span class="floating-symbol symbol-one" aria-hidden="true">+50</span>
+                    <span class="floating-symbol symbol-two" aria-hidden="true"><i class="fa-solid fa-star"></i></span>
+                </a>
 
-            <a href="{% url 'galeria_videos' %}" class="hub-card c-videos">
-                <i class="fas fa-video"></i>
-                <h3>Vídeos</h3>
-                <p>Assista a videoaulas e complemente seus estudos.</p>
-            </a>
+                <a href="{% url 'ferramentas_index' %}" class="experience-card card-tools" data-tilt data-reveal>
+                    <span class="card-icon"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></span>
+                    <span class="card-copy"><strong>Ferramentas</strong><small>Crie, experimente e transforme ideias em projetos.</small></span>
+                    <span class="card-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
+                </a>
 
-            <a href="{% url 'ferramentas_index' %}" class="hub-card c-ferramentas">
-                <i class="fas fa-wrench"></i>
-                <h3>Ferramentas</h3>
-                <p>Utilitários educacionais rápidos e práticos.</p>
-            </a>
+                {% if request.user.tipo == 'ALUNO' or request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'GESTOR_GERAL' or request.user.tipo == 'ADMIN' %}
+                <a href="{% url 'dashboard' %}" class="experience-card card-dashboard" data-tilt data-reveal>
+                    <span class="mini-chart" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                    <span class="card-icon"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i></span>
+                    <span class="card-copy"><strong>Meu progresso</strong><small>Veja suas conquistas e acompanhe sua evolução.</small></span>
+                    <span class="card-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
+                </a>
+                {% endif %}
 
-            {% if request.user.tipo == 'ALUNO' or request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'ADMIN' %}
-            <a href="{% url 'dashboard' %}" class="hub-card c-dashboard">
-                <i class="fas fa-chart-pie"></i>
-                <h3>Dashboard</h3>
-                <p>Acompanhe seu desempenho e estatísticas.</p>
-            </a>
-            {% endif %}
+                <a href="{% url 'galeria_videos' %}" class="experience-card card-videos" data-tilt data-reveal>
+                    <span class="video-rings" aria-hidden="true"></span>
+                    <span class="card-icon"><i class="fa-solid fa-play" aria-hidden="true"></i></span>
+                    <span class="card-copy"><strong>Vídeos</strong><small>Assista, entenda e leve a curiosidade ainda mais longe.</small></span>
+                    <span class="card-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
+                </a>
 
-            {% if request.user.tipo == 'DEMO' or request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'ADMIN' %}
-            <a href="{% url 'kai_chat' %}" class="hub-card">
-                <img src="{% static 'core/img/kai.png' %}" alt="Kai" class="kai-icon">
-                <h3>Falar com a Kai</h3>
-                <p>Sua assistente inteligente para ideias pedagógicas.</p>
-            </a>
-            {% endif %}
+                <a href="{% url 'estante' %}" class="experience-card card-books" data-tilt data-reveal>
+                    <span class="book-stack" aria-hidden="true"><i></i><i></i><i></i></span>
+                    <span class="card-icon"><i class="fa-solid fa-book" aria-hidden="true"></i></span>
+                    <span class="card-copy"><strong>Biblioteca</strong><small>Todos os seus livros em um só lugar.</small></span>
+                    <span class="card-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
+                </a>
 
-            {% if request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'ADMIN' %}
-            <a href="{% url 'gerenciar' %}" class="hub-card c-gerenciar">
-                <i class="fas fa-chart-line"></i>
-                <h3>Gerenciamento</h3>
-                <p>Relatórios, turmas e gestão escolar.</p>
-            </a>
-            
-            <a href="{% url 'bncc_list' %}" class="hub-card c-livros">
-                <i class="fas fa-book-open"></i>
-                <h3>BNCC Computação</h3>
-                <p>Consulte as habilidades de computação da BNCC.</p>
-            </a>
-            {% endif %}
+                {% if request.user.tipo == 'DEMO' or request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'GESTOR_GERAL' or request.user.tipo == 'ADMIN' %}
+                <a href="{% url 'kai_chat' %}" class="experience-card card-kai" data-tilt data-reveal>
+                    <span class="kai-glow" aria-hidden="true"></span>
+                    <img src="{% static 'core/img/kai.png' %}" alt="" class="kai-character">
+                    <span class="card-copy"><span class="card-topline"><i class="fa-solid fa-comment-dots"></i> Sua parceira de ideias</span><strong>Fale com a Kai</strong><small>Pergunte, crie e encontre novos caminhos para aprender.</small></span>
+                    <span class="card-action">Iniciar conversa <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+                </a>
+                {% endif %}
 
-        </div>
-    </div>
+                {% if request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'GESTOR_GERAL' or request.user.tipo == 'ADMIN' %}
+                <a href="{% url 'gerenciar' %}" class="experience-card card-professor" data-tilt data-reveal>
+                    <span class="teacher-badge"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Área exclusiva</span>
+                    <span class="card-icon"><i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i></span>
+                    <span class="card-copy"><strong>Espaço do Professor</strong><small>Turmas, acompanhamento e recursos pedagógicos para transformar cada aula.</small></span>
+                    <span class="card-action">Entrar no espaço docente <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+                </a>
+                {% endif %}
+            </div>
+        </section>
 
-    <script src="{% static 'core/js/home.js' %}"></script>
+        <footer class="home-footer">
+            <span><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> Feito para aprender com segurança e alegria.</span>
+            <strong>MundoKaizo</strong>
+        </footer>
+    </main>
+    <script src="{% static 'core/js/home.js' %}?v=20260901a"></script>
 </body>
 </html>
