@@ -75,7 +75,7 @@
         <a class="{% if request.resolver_match.url_name == 'lista' and request.resolver_match.app_name == 'livros_interativos' %}is-current{% endif %}" href="{% url 'livros_interativos:lista' %}">
             <span class="mk-menu-icon"><i class="fa-solid fa-book-open-reader" aria-hidden="true"></i></span><span>Livros Interativos</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>
         </a>
-        <a class="{% if request.resolver_match.url_name == 'jogos' %}is-current{% endif %}" href="{% url 'jogos' %}">
+        <a class="{% if request.resolver_match.url_name == 'lista' and request.resolver_match.app_name == 'jogos' %}is-current{% endif %}" href="{% url 'jogos:lista' %}">
             <span class="mk-menu-icon"><i class="fa-solid fa-gamepad" aria-hidden="true"></i></span><span>MiniGames</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>
         </a>
         <a class="{% if request.resolver_match.url_name == 'galeria_videos' %}is-current{% endif %}" href="{% url 'galeria_videos' %}">

@@ -1,0 +1,147 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sala de Jogos | MundoKaizo</title>
+<link rel="icon" href="{% static 'core/ico/favicon/favicon.svg' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="{% static 'jogos/css/jogos.css' %}?v=20260902a">
+</head>
+<body class="jg-page">
+<a class="jg-skip" href="#jogos-grid">Pular para os jogos</a>
+{% include 'includes/navbar.html' %}
+
+<main class="jg-shell">
+    <section class="jg-hero" aria-labelledby="page-title">
+        <div class="jg-hero-copy">
+            <span class="jg-eyebrow"><i class="fa-solid fa-gamepad" aria-hidden="true"></i> Aprender jogando</span>
+            <h1 id="page-title">Sala de<br><span>Jogos Educativos</span></h1>
+            <p>Supere desafios, teste ideias e conquiste novos conhecimentos de forma divertida.</p>
+        </div>
+        <div class="jg-hero-visual" aria-hidden="true">
+            <span class="jg-orbit jg-orbit-one"></span><span class="jg-orbit jg-orbit-two"></span>
+            <div class="jg-hero-icon jg-hero-main"><i class="fa-solid fa-trophy"></i></div>
+            <div class="jg-hero-icon jg-hero-star"><i class="fa-solid fa-star"></i></div>
+            <div class="jg-hero-icon jg-hero-puzzle"><i class="fa-solid fa-puzzle-piece"></i></div>
+        </div>
+    </section>
+
+    <section class="jg-catalog-section" aria-labelledby="catalog-title">
+        <div class="jg-catalog-heading">
+            <div>
+                <span class="jg-section-kicker">PRONTOS PARA JOGAR</span>
+                <h2 id="catalog-title">Escolha um desafio</h2>
+                <p>Todos os jogos rodam direto no navegador, sem precisar instalar nada.</p>
+            </div>
+            {% if jogos %}
+                <label class="jg-search" for="jogoSearch">
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    <span class="jg-sr-only">Buscar jogo</span>
+                    <input id="jogoSearch" type="search" placeholder="Buscar jogo..." autocomplete="off">
+                </label>
+            {% endif %}
+        </div>
+
+        {% if jogos %}
+            <div class="jg-catalog-meta" aria-live="polite">
+                <span id="jogoCount">{{ jogos|length }} jogo{{ jogos|length|pluralize }}</span>
+                <span class="jg-meta-dot" aria-hidden="true"></span><span>Conteúdo MundoKaizo</span>
+            </div>
+            <div class="jg-grid" id="jogos-grid">
+                {% for jogo in jogos %}
+                    <article class="jg-card" data-search="{{ jogo.titulo|lower }} {{ jogo.descricao|default:''|lower }}">
+                        <a href="{% url 'jogos:jogar' jogo.id %}" class="jg-card-link" aria-label="Jogar {{ jogo.titulo }}">
+                            <div class="jg-media">
+                                {% if jogo.capa %}
+                                    <img src="{{ jogo.capa.url }}" alt="" class="jg-thumb" loading="lazy">
+                                {% else %}
+                                    <div class="jg-thumb jg-no-thumb" aria-hidden="true"><span></span><i class="fa-solid fa-gamepad"></i></div>
+                                {% endif %}
+                                <span class="jg-badge"><i class="fa-solid fa-play" aria-hidden="true"></i></span>
+                            </div>
+                            <div class="jg-info">
+                                <div class="jg-copy">
+                                    <h3 class="jg-title">{{ jogo.titulo }}</h3>
+                                    <p class="jg-desc">{{ jogo.descricao|default:"Um desafio incrível para você aprender brincando."|truncatewords:20 }}</p>
+                                </div>
+                                <span class="jg-action">Jogar agora <span class="jg-action-icon" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span></span>
+                            </div>
+                        </a>
+                    </article>
+                {% endfor %}
+            </div>
+            <div class="jg-search-empty" id="searchEmpty" hidden>
+                <span class="jg-empty-icon" aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <h3>Nenhum jogo encontrado</h3><p>Tente buscar usando outra palavra.</p>
+                <button type="button" id="clearSearch" class="jg-btn-clear">Limpar busca</button>
+            </div>
+        {% else %}
+            <div class="jg-catalog-empty">
+                <div class="jg-empty-illustration" aria-hidden="true">
+                    <span class="jg-empty-spark jg-spark-one">✦</span><span class="jg-empty-spark jg-spark-two">✦</span>
+                    <i class="fa-solid fa-ghost"></i>
+                </div>
+                <div>
+                    <span class="jg-section-kicker">EM PREPARAÇÃO</span>
+                    <h3>Os jogos estão chegando</h3>
+                    <p>Logo teremos novos desafios disponíveis para você explorar e se divertir.</p>
+                </div>
+            </div>
+        {% endif %}
+    </section>
+
+    <footer class="jg-footer">
+        <span><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> Ambiente seguro para jogar e aprender</span>
+        <span>MundoKaizo</span>
+    </footer>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('jogoSearch');
+    const cards = document.querySelectorAll('.jg-card');
+    const emptyState = document.getElementById('searchEmpty');
+    const clearBtn = document.getElementById('clearSearch');
+    const countEl = document.getElementById('jogoCount');
+
+    if (!searchInput) return;
+
+    function filterJogos(query) {
+        let count = 0;
+        const normalizedQuery = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+        cards.forEach(card => {
+            const searchable = card.dataset.search.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            if (searchable.includes(normalizedQuery)) {
+                card.style.display = 'flex';
+                count++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        if (count === 0) {
+            emptyState.hidden = false;
+        } else {
+            emptyState.hidden = true;
+        }
+        
+        if (countEl) {
+            countEl.textContent = `${count} jogo${count !== 1 ? 's' : ''}`;
+        }
+    }
+
+    searchInput.addEventListener('input', (e) => filterJogos(e.target.value));
+
+    if(clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            filterJogos('');
+            searchInput.focus();
+        });
+    }
+});
+</script>
+</body>
+</html>

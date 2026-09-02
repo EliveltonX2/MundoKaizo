@@ -49,13 +49,13 @@ urlpatterns = [
     
     path('api/atualizar-gps/', views.atualizar_localizacao_gps, name='atualizar_gps'),
 
-    path('api/gerar-url-upload/', views.gerar_presigned_url_view, name='gerar_presigned_url'),
-    path('api/salvar-jogo/', views.salvar_registro_jogo, name='salvar_registro_jogo'),
-    path('ferramentas/upload-jogos/', views.upload_jogos_view, name='upload_jogos'),
-    path('jogos/', views.jogos_list_view, name='jogos'),
-    path('jogos/<int:jogo_id>/', views.jogar_view, name='jogar'),
+    path('old/api/gerar-url-upload/', views.gerar_presigned_url_view, name='gerar_presigned_url'),
+    path('old/api/salvar-jogo/', views.salvar_registro_jogo, name='salvar_registro_jogo'),
+    path('old/ferramentas/upload-jogos/', views.upload_jogos_view, name='upload_jogos'),
+    path('old/jogos/', views.jogos_list_view, name='jogos'),
+    path('old/jogos/<int:jogo_id>/', views.jogar_view, name='jogar'),
     
-    path('api/jogo/salvar-sessao/', views.api_salvar_sessao_jogo, name='api_salvar_sessao_jogo'),
+    path('old/api/jogo/salvar-sessao/', views.api_salvar_sessao_jogo, name='api_salvar_sessao_jogo'),
     path('dashboard/', views.estatisticas_view, name='dashboard'),
     
 

@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'core',
     'ferramentas',
     'livros_interativos',
+    'jogos',
     'django_cleanup.apps.CleanupConfig',
 ]
 

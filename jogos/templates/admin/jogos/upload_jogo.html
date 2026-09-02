@@ -1,0 +1,202 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Estilos do nosso uploader */
+    #upload-container { max-width: 600px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+    .form-group input[type="text"] { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .form-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; height: 100px; }
+    .file-drop-area { border: 2px dashed #007bff; border-radius: 8px; padding: 40px 20px; text-align: center; cursor: pointer; background: #f8f9fa; transition: background 0.3s; margin-bottom: 20px; }
+    .file-drop-area:hover, .file-drop-area.dragover { background: #e9ecef; }
+    .file-drop-area i { font-size: 3rem; color: #007bff; margin-bottom: 10px; }
+    .file-drop-area span { display: block; color: #6c757d; }
+    #file-input { display: none; }
+    #upload-btn { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; }
+    #upload-btn:disabled { background: #6c757d; cursor: not-allowed; }
+    #progress-container { margin-top: 20px; display: none; }
+    #progress-bar { width: 100%; height: 20px; background: #e9ecef; border-radius: 10px; overflow: hidden; }
+    #progress-fill { height: 100%; background: #007bff; width: 0%; transition: width 0.1s linear; }
+    #status-text { margin-top: 10px; text-align: center; font-weight: bold; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="upload-container">
+    <h2>Upload de Jogo para S3</h2>
+    <p>A pasta do jogo (WebGL) será enviada para o bucket configurado.</p>
+    
+    <div class="form-group">
+        <label for="jogo_titulo">Título do Jogo</label>
+        <input type="text" id="jogo_titulo" placeholder="Ex: Quebra-Cabeça Espacial" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="jogo_descricao">Descrição Curta</label>
+        <input type="text" id="jogo_descricao" placeholder="Ex: Um jogo sobre o espaço e além...">
+    </div>
+    
+    <div class="form-group" style="display: none;">
+        <!-- Pode adicionar seleção de habilidades se quiser -->
+    </div>
+    
+    <div class="file-drop-area" id="drop-area">
+        <i class="fa-solid fa-cloud-arrow-up"></i>
+        <span id="file-count">Clique ou arraste a pasta (Build WebGL) aqui</span>
+        <!-- webkitdirectory permite selecionar uma pasta inteira! -->
+        <input type="file" id="file-input" webkitdirectory directory multiple>
+    </div>
+
+    <button id="upload-btn" disabled>Iniciar Upload Seguro</button>
+
+    <div id="progress-container">
+        <div id="progress-bar"><div id="progress-fill"></div></div>
+        <div id="status-text">Preparando...</div>
+    </div>
+</div>
+
+<!-- SDK da AWS -->
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.1221.0.min.js"></script>
+
+<script>
+    // Configuração simplificada herdando os dados da sessão (na prática em prod deveríamos usar presigned POST, mas para o admin podemos usar este método confiável).
+    // Usaremos as rotas da nossa API para gerar os Presigned POST.
+    
+    const dropArea = document.getElementById('drop-area');
+    const fileInput = document.getElementById('file-input');
+    const fileCountText = document.getElementById('file-count');
+    const uploadBtn = document.getElementById('upload-btn');
+    const progressContainer = document.getElementById('progress-container');
+    const progressFill = document.getElementById('progress-fill');
+    const statusText = document.getElementById('status-text');
+    
+    let selectedFiles = [];
+
+    // Tratamento de clique e drag
+    dropArea.addEventListener('click', () => fileInput.click());
+    dropArea.addEventListener('dragover', (e) => { e.preventDefault(); dropArea.classList.add('dragover'); });
+    dropArea.addEventListener('dragleave', () => dropArea.classList.remove('dragover'));
+    dropArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropArea.classList.remove('dragover');
+        // Drag de pasta é complexo no browser, então orientamos clicar
+        statusText.innerText = "Por favor, use o clique para selecionar a pasta.";
+        progressContainer.style.display = 'block';
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        selectedFiles = Array.from(e.target.files);
+        if (selectedFiles.length > 0) {
+            // Verifica se tem o index.html na raiz da seleção
+            const hasIndex = selectedFiles.some(f => f.webkitRelativePath.split('/').length === 2 && f.name === 'index.html');
+            if(!hasIndex) {
+                alert("A pasta selecionada não parece conter o arquivo 'index.html' na raiz.");
+            }
+            fileCountText.innerText = `${selectedFiles.length} arquivos selecionados na pasta.`;
+            uploadBtn.disabled = false;
+        } else {
+            fileCountText.innerText = "Clique ou arraste a pasta (Build WebGL) aqui";
+            uploadBtn.disabled = true;
+        }
+    });
+
+    uploadBtn.addEventListener('click', async () => {
+        const titulo = document.getElementById('jogo_titulo').value;
+        const descricao = document.getElementById('jogo_descricao').value;
+        
+        if (!titulo) {
+            alert('Preencha o título do jogo.');
+            return;
+        }
+
+        uploadBtn.disabled = true;
+        progressContainer.style.display = 'block';
+        
+        // Pasta onde os arquivos serão salvos (URL safe)
+        const slug = titulo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-");
+        
+        // 1. Fazer upload dos arquivos via Presigned URL um a um
+        let uploadedCount = 0;
+        
+        for (const file of selectedFiles) {
+            const relPath = file.webkitRelativePath; // "BuildFolderName/index.html"
+            const parts = relPath.split('/');
+            parts.shift(); // Remove o nome da pasta raiz que o usuário selecionou
+            const cleanPath = parts.join('/');
+            
+            // O caminho final que queremos no S3
+            const objectKey = `jogos_web/jogo_${slug}/${cleanPath}`;
+            
+            statusText.innerText = `Enviando: ${file.name} (${uploadedCount}/${selectedFiles.length})`;
+            
+            try {
+                // Solicita permissão e URL para este arquivo
+                const resp = await fetch(`/api/gerar-url-upload/?file_name=${encodeURIComponent(objectKey)}&file_type=${encodeURIComponent(file.type || 'application/octet-stream')}`);
+                const data = await resp.json();
+                
+                if (data.erro) {
+                    throw new Error(data.erro);
+                }
+                
+                // Envia o arquivo direto para a AWS
+                const formData = new FormData();
+                Object.keys(data.presigned_post.fields).forEach(key => {
+                    formData.append(key, data.presigned_post.fields[key]);
+                });
+                formData.append('file', file);
+                
+                const uploadResp = await fetch(data.presigned_post.url, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!uploadResp.ok) throw new Error("Falha no upload");
+                
+                uploadedCount++;
+                progressFill.style.width = `${(uploadedCount / selectedFiles.length) * 100}%`;
+                
+            } catch (err) {
+                console.error(err);
+                statusText.innerText = `Erro ao enviar ${file.name}. Parando upload.`;
+                return; // Para tudo
+            }
+        }
+        
+        statusText.innerText = "Upload concluído! Registrando jogo no banco de dados...";
+        
+        // 2. Salva no banco de dados chamando nossa API interna
+        try {
+            const saveResp = await fetch("{% url 'jogos:api_salvar_jogo' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    titulo: titulo,
+                    descricao: descricao,
+                    pasta_jogo: slug,
+                    habilidades: []
+                })
+            });
+            
+            const saveData = await saveResp.json();
+            if (saveData.status === 'sucesso') {
+                statusText.innerText = "Sucesso! O jogo foi cadastrado.";
+                statusText.style.color = "green";
+                setTimeout(() => {
+                    window.location.href = "{% url 'admin:jogos_jogo_changelist' %}";
+                }, 1500);
+            } else {
+                throw new Error(saveData.mensagem);
+            }
+        } catch (err) {
+            statusText.innerText = `Erro ao salvar registro: ${err.message}`;
+            statusText.style.color = "red";
+        }
+    });
+</script>
+{% endblock %}

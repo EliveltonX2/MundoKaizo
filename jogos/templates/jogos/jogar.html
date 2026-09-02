@@ -1,0 +1,109 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ jogo.titulo }} | MundoKaizo</title>
+<link rel="icon" href="{% static 'core/ico/favicon/favicon.svg' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+    /* Estilos mínimos para fullscreen com navbar */
+    :root {
+        --nav-height: 64px; /* Altura da navbar padrão do MundoKaizo */
+    }
+    body, html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden; /* Remove rolagem extra */
+        background-color: #000;
+        font-family: 'Nunito', sans-serif;
+    }
+    
+    .player-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        width: 100vw;
+    }
+
+    /* Oculta navbar durante modo tela cheia real (se solicitado pelo jogo) */
+    .player-iframe-wrapper {
+        flex: 1;
+        width: 100%;
+        position: relative;
+        background-color: #1a1a2e;
+    }
+    
+    .player-iframe {
+        border: none;
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+    
+    /* Um loader bonitinho enquanto o iframe não carrega */
+    .player-loader {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        z-index: 0;
+    }
+    
+    .player-loader i {
+        font-size: 2rem;
+        animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 0.5; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.2); }
+    }
+    
+    .player-iframe {
+        position: relative;
+        z-index: 1;
+    }
+</style>
+</head>
+<body>
+<div class="player-container">
+    {% include 'includes/navbar.html' %}
+    
+    <div class="player-iframe-wrapper">
+        <div class="player-loader" aria-hidden="true">
+            <i class="fa-solid fa-gamepad"></i>
+            <span>Carregando jogo...</span>
+        </div>
+        
+        <iframe 
+            src="{{ jogo.url_jogar }}" 
+            class="player-iframe"
+            allow="autoplay; fullscreen; microphone; camera"
+            allowfullscreen>
+        </iframe>
+    </div>
+</div>
+
+<!-- Kaizo API Scripts para gerenciar progresso -->
+<script src="{% static 'core/js/kaizo_api.js' %}"></script>
+<script>
+    // Inicializa a API do Kaizo para escutar os eventos do iframe
+    window.addEventListener('load', function() {
+        const kaizoAPI = new KaizoAPI({
+            gameId: {{ jogo.id }},
+            saveUrl: "{% url 'jogos:api_salvar_sessao' %}",
+            loadUrl: "{% url 'jogos:api_carregar_progresso' jogo.id %}",
+            csrfToken: '{{ csrf_token }}'
+        });
+    });
+</script>
+</body>
+</html>
