@@ -5,7 +5,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib import messages
 from django.core.cache import cache
 from django.core.files.storage import default_storage
-from .models import Livro, Pagina, User, VideoAula, Turma, TokenCadastro, SessaoChat, Mensagem, Jogo, EstatisticasUsuario, RegistroAcessoDemo, SessaoJogo, SessaoAulaInterativa
+from .models import Livro, Pagina, User, VideoAula, Turma, TokenCadastro, SessaoChat, Mensagem, Jogo, EstatisticasUsuario, RegistroAcessoDemo, SessaoJogo
 from .services import adicionar_watermark
 from django.db.models import Q
 from django.urls import reverse
@@ -167,6 +167,7 @@ def detalhes_aluno_view(request, aluno_id):
         raise PermissionDenied("Você não tem permissão para visualizar os detalhes deste aluno.")
 
     # 2. Resgatar Estatísticas
+    from livros_interativos.models import SessaoAulaInterativa
     estatisticas, _ = EstatisticasUsuario.objects.get_or_create(user=aluno)
     sessoes_jogos = SessaoJogo.objects.filter(user=aluno).order_by('-atualizado_em')[:50]
     sessoes_livros = SessaoAulaInterativa.objects.filter(user=aluno).order_by('-atualizado_em')[:50]
@@ -797,70 +798,6 @@ def jogos_list_view(request):
 
 
 @login_required
-def livros_interativos_list_view(request):
-    user = request.user
-    query = request.GET.get('q', '')
-    
-    from django.db.models import Prefetch, Q
-    from .models import Livro, Colecao, AulaInterativa, EstatisticasUsuario, SessaoAulaInterativa
-    import json
-    
-    aulas_prefetch = AulaInterativa.objects.all().order_by('capitulo', 'numero_aula')
-    livros_prefetch = Livro.objects.filter(formato='INTERATIVO').prefetch_related(
-        Prefetch('aulas_interativas', queryset=aulas_prefetch)
-    ).order_by('titulo')
-    
-    ano_atual_id = None
-    if user.tipo == 'ALUNO':
-        turma = user.turmas.first()
-        ano_atual = turma.ano_escolar if (turma and turma.ano_escolar) else None
-        if ano_atual:
-            ano_atual_id = ano_atual.id
-        livros_prefetch = livros_prefetch.filter(is_versao_professor=False, is_demo=False)
-    elif user.tipo == 'DEMO':
-        livros_prefetch = livros_prefetch.filter(is_demo=True)
-        
-    if query:
-        livros_prefetch = livros_prefetch.filter(titulo__icontains=query)
-
-    colecoes = Colecao.objects.all().prefetch_related(
-        Prefetch('livros', queryset=livros_prefetch)
-    ).order_by('ordem', 'nome')
-    
-    sessoes_dict = {sessao.aula_id: sessao for sessao in SessaoAulaInterativa.objects.filter(user=user)}
-    
-    # Processa os livros para saber se são do ano escolar do aluno
-    for colecao in colecoes:
-        for livro in colecao.livros.all():
-            livro.is_reference_year = False
-            if user.tipo != 'ALUNO':
-                livro.is_reference_year = True
-            elif ano_atual_id:
-                for ano in livro.anos_escolares.all():
-                    if ano.id == ano_atual_id:
-                        livro.is_reference_year = True
-                        break
-                        
-            # Adiciona o status diretamente na aula
-            for aula in livro.aulas_interativas.all():
-                sessao = sessoes_dict.get(aula.id)
-                if sessao:
-                    aula.status_progresso = 'completed' if sessao.pontuacao >= 100 else 'in-progress'
-                else:
-                    aula.status_progresso = 'not-started'
-        
-    estatisticas, _ = EstatisticasUsuario.objects.get_or_create(user=request.user)
-    ranking = EstatisticasUsuario.objects.filter(pontuacao_geral__gt=estatisticas.pontuacao_geral).count() + 1
-        
-    return render(request, 'core/livros_interativos_list.html', {
-        'colecoes': colecoes,
-        'query': query,
-        'estatisticas': estatisticas,
-        'ranking': ranking,
-        'ano_atual_id': ano_atual_id
-    })
-
-@login_required
 def jogar_view(request, jogo_id):
     # Busca o jogo ou retorna página 404 se não existir
     jogo = get_object_or_404(Jogo, id=jogo_id, ativo=True)
@@ -1068,7 +1005,7 @@ def estatisticas_view(request):
                 'pontuacao': 100 if conquistou else 0 # Mock visual para o template que esperava pontuação
             })
             
-    sessoes_aulas = request.user.sessoes_aulas_interativas.all().order_by('-atualizado_em')
+    sessoes_aulas = request.user.sessoes_aulas_interativas_novo.all().order_by('-atualizado_em')
     
     context = {
         'estatisticas': estatisticas,
@@ -1080,113 +1017,6 @@ def estatisticas_view(request):
     }
     return render(request, 'core/estatisticas.html', context)
 
-
-from .models import SessaoAulaInterativa
-
-@login_required
-def ler_aula_interativa_view(request, aula_id):
-    from .models import AulaInterativa
-    aula = get_object_or_404(AulaInterativa, id=aula_id)
-    return render(request, 'core/ler_aula_interativa.html', {'aula': aula})
-
-
-@login_required
-@require_POST
-def api_salvar_progresso_aula(request):
-    try:
-        dados = json.loads(request.body)
-        aula_id = dados.get('aula_id')
-        
-        from .models import AulaInterativa
-        aula = get_object_or_404(AulaInterativa, id=aula_id)
-        
-        # A pontuação vai até 150 pontos por chamada
-        pontuacao_recebida = float(dados.get('pontuacao', dados.get('score', 0.0)))
-        pontuacao_sessao = min(pontuacao_recebida, 150.0)
-        
-        rubrica_enviada = dados.get('rubrica', '')
-        
-        habilidades_recebidas = dados.get('habilidades', [])
-        # Tratamento caso o frontend envie como dicionário (retrocompatibilidade)
-        if isinstance(habilidades_recebidas, dict):
-            habilidades_recebidas = list(habilidades_recebidas.keys())
-
-        # Verifica se as habilidades recebidas já estão listadas na aula e, se não, adiciona
-        from .models import HabilidadeBNCC
-        for codigo_hab in habilidades_recebidas:
-            if not aula.habilidades_relacionadas.filter(codigo=codigo_hab).exists():
-                hab_obj = HabilidadeBNCC.objects.filter(codigo=codigo_hab).first()
-                if hab_obj:
-                    aula.habilidades_relacionadas.add(hab_obj)
-
-        sessao, created = SessaoAulaInterativa.objects.get_or_create(
-            user=request.user,
-            aula=aula,
-            defaults={
-                'pontuacao': pontuacao_sessao,
-                'tempo_gasto': float(dados.get('time', 0)),
-                'rubrica': rubrica_enviada
-            }
-        )
-
-        if not created:
-            sessao.tempo_gasto += float(dados.get('time', 0))
-            sessao.rubrica = rubrica_enviada
-                
-            # Pontuação é sobrescrita apenas se for maior
-            if pontuacao_sessao > sessao.pontuacao:
-                diferenca = pontuacao_sessao - sessao.pontuacao
-                sessao.pontuacao = pontuacao_sessao
-                
-                if sessao.pontuacao > sessao.recorde_pontuacao:
-                    sessao.recorde_pontuacao = sessao.pontuacao
-                    
-                # Soma pontuação eterna (apenas a diferença para não duplicar)
-                estatisticas, _ = EstatisticasUsuario.objects.get_or_create(user=request.user)
-                estatisticas.pontuacao_eterna += diferenca
-                estatisticas.save()
-                
-            sessao.save()
-            
-        else:
-            sessao.recorde_pontuacao = sessao.pontuacao
-            sessao.save()
-            estatisticas, _ = EstatisticasUsuario.objects.get_or_create(user=request.user)
-            estatisticas.pontuacao_eterna += sessao.pontuacao
-            estatisticas.save()
-            
-        estatisticas, _ = EstatisticasUsuario.objects.get_or_create(user=request.user)
-
-        # Atualiza a pontuação por habilidade (só carimba no M2M)
-        for codigo_hab in habilidades_recebidas:
-            hab_obj = HabilidadeBNCC.objects.filter(codigo=codigo_hab).first()
-            if hab_obj:
-                sessao.habilidades_conquistadas.add(hab_obj)
-                estatisticas.habilidades_conquistadas.add(hab_obj)
-            
-        return JsonResponse({'status': 'sucesso'})
-    except Exception as e:
-        return JsonResponse({'status': 'erro', 'mensagem': str(e)}, status=400)
-
-
-@login_required
-def api_carregar_progresso_aula(request, aula_id):
-    from .models import AulaInterativa
-    aula = get_object_or_404(AulaInterativa, id=aula_id)
-    sessao = SessaoAulaInterativa.objects.filter(user=request.user, aula=aula).first()
-    
-    if sessao:
-        progress = {
-            'time': sessao.tempo_gasto,
-            'pontuacao': sessao.pontuacao,
-            'recorde_pontuacao': sessao.recorde_pontuacao
-        }
-    else:
-        progress = {
-            'time': 0, 'pontuacao': 0, 'recorde_pontuacao': 0
-        }
-        
-    return JsonResponse({'status': 'sucesso', 'progress': progress})
 
 
 @login_required
@@ -1228,95 +1058,6 @@ def relatorios_desempenho_view(request):
     }
     return render(request, 'core/relatorios_desempenho.html', context)
 
-
-@login_required
-def api_salvar_livro_interativo(request):
-    if not (request.user.is_superuser or request.user.is_staff or getattr(request.user, 'tipo', '') in ['GESTOR_GERAL', 'ADMIN']):
-        return JsonResponse({'erro': 'Sem permissão.'}, status=403)
-
-    if request.method == 'POST':
-        try:
-            dados = json.loads(request.body)
-            livro = Livro.objects.create(
-                titulo=dados.get('titulo'),
-                descricao=dados.get('descricao', ''),
-                caminho_s3=f"jogos_web/{dados.get('pasta_s3')}",
-                formato='INTERATIVO',
-                rubricas_atividades=dados.get('rubricas', {})
-            )
-            
-            anos_ids = dados.get('anos_escolares', [])
-            if anos_ids:
-                livro.anos_escolares.set(anos_ids)
-            
-            # Constrói o modelo relacional para performance em relatórios
-            from .models import AtividadeLivro, RubricaAlternativa
-            rubricas_json = dados.get('rubricas', {})
-            for key_atividade, alternativas in rubricas_json.items():
-                if key_atividade.startswith('Atividade_'):
-                    try:
-                        num = int(key_atividade.split('_')[1])
-                        atividade = AtividadeLivro.objects.create(livro=livro, numero=num)
-                        
-                        rubricas_para_salvar = []
-                        for alt, texto in alternativas.items():
-                            rubricas_para_salvar.append(RubricaAlternativa(
-                                atividade=atividade,
-                                alternativa=alt,
-                                texto_rubrica=texto
-                            ))
-                        RubricaAlternativa.objects.bulk_create(rubricas_para_salvar)
-                    except ValueError:
-                        pass
-                        
-            # Associa as habilidades selecionadas
-            habilidades_ids = dados.get('habilidades', [])
-            if habilidades_ids:
-                livro.habilidades_relacionadas.set(habilidades_ids)
-                
-            return JsonResponse({'status': 'sucesso', 'livro_id': livro.id})
-        except Exception as e:
-            return JsonResponse({'status': 'erro', 'mensagem': str(e)}, status=400)
-    return JsonResponse({'status': 'metodo_invalido'}, status=405)
-
-
-@login_required
-def api_salvar_aula_interativa(request):
-    if not (request.user.is_superuser or request.user.is_staff or getattr(request.user, 'tipo', '') in ['GESTOR_GERAL', 'ADMIN']):
-        return JsonResponse({'erro': 'Sem permissão.'}, status=403)
-
-    if request.method == 'POST':
-        try:
-            dados = json.loads(request.body)
-            
-            from .models import AulaInterativa, Colecao, Livro, AnoEscolar
-            
-            colecao = Colecao.objects.filter(id=dados.get('colecao_id')).first()
-            livro = Livro.objects.filter(id=dados.get('livro_id')).first()
-            ano = AnoEscolar.objects.filter(id=dados.get('ano_escolar_id')).first()
-
-            aula = AulaInterativa.objects.create(
-                titulo=dados.get('titulo'),
-                descricao=dados.get('descricao', ''),
-                numero_aula=int(dados.get('numero_aula', 1)),
-                capitulo=int(dados.get('capitulo', 1)),
-                paginas_referencia=dados.get('paginas_referencia', ''),
-                tem_desafio=dados.get('tem_desafio', False),
-                colecao=colecao,
-                livro=livro,
-                ano_escolar=ano,
-                caminho_s3=f"jogos_web/{dados.get('pasta_s3')}"
-            )
-            
-            # Associa as habilidades selecionadas
-            habilidades_ids = dados.get('habilidades', [])
-            if habilidades_ids:
-                aula.habilidades_relacionadas.set(habilidades_ids)
-                
-            return JsonResponse({'status': 'sucesso', 'aula_id': aula.id})
-        except Exception as e:
-            return JsonResponse({'status': 'erro', 'mensagem': str(e)}, status=400)
-    return JsonResponse({'status': 'metodo_invalido'}, status=405)
 
 
 from django.db.models import Q

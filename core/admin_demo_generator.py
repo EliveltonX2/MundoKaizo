@@ -5,7 +5,7 @@ import random
 import datetime
 from .models import (
     User, Pais, Estado, Cidade, Escola, Turma, AnoEscolar, 
-    Livro, Jogo, EstatisticasUsuario, SessaoJogo, SessaoAulaInterativa, AulaInterativa
+    Livro, Jogo, EstatisticasUsuario, SessaoJogo
 )
 
 NOME_ANIMAIS = [
@@ -46,7 +46,7 @@ def gerar_dados_demo_view(request):
             total_alunos_criados = 0
 
             # 3. Para cada ano escolar, cria uma turma e alunos
-            for ano in anos_escolares:
+            for ano in anos_escolares[:3]: # Limita a no máximo 3 turmas para evitar timeout
                 nome_turma = f"{PREFIXO_MOCK} Turma {ano.nome}"
                 turma, _ = Turma.objects.get_or_create(
                     nome=nome_turma, 
@@ -54,8 +54,8 @@ def gerar_dados_demo_view(request):
                     ano_escolar=ano
                 )
                 
-                # Gera de 5 a 10 alunos por turma
-                qnt_alunos = random.randint(5, 10)
+                # Gera de 3 a 5 alunos por turma para evitar sobrecarga
+                qnt_alunos = random.randint(3, 5)
                 random.shuffle(NOME_ANIMAIS)
                 nomes_selecionados = NOME_ANIMAIS[:qnt_alunos]
                 
@@ -95,19 +95,18 @@ def gerar_dados_demo_view(request):
                                     recorde_pontuacao=random.randint(100, 500)
                                 )
                                 
-                        # 6. Gera Sessões de Aulas Falsas
-                        if livros:
-                            livros_lidos = random.sample(list(livros), min(len(livros), random.randint(1, 3)))
-                            for livro in livros_lidos:
-                                aulas = list(AulaInterativa.objects.filter(livro=livro))
-                                if aulas:
-                                    aula_lida = random.choice(aulas)
-                                    SessaoAulaInterativa.objects.create(
-                                        user=aluno,
-                                        aula=aula_lida,
-                                        pontuacao=random.randint(10, 150),
-                                        tempo_gasto=random.randint(300, 1800) # 5 a 30 min
-                                    )
+                        # 6. Gera Sessões de Aulas Falsas (Nova Arquitetura)
+                        from livros_interativos.models import AulaInterativa, SessaoAulaInterativa
+                        todas_aulas = list(AulaInterativa.objects.all())
+                        if todas_aulas:
+                            aulas_sorteadas = random.sample(todas_aulas, min(len(todas_aulas), random.randint(1, 3)))
+                            for aula_lida in aulas_sorteadas:
+                                SessaoAulaInterativa.objects.create(
+                                    user=aluno,
+                                    aula=aula_lida,
+                                    pontuacao=random.randint(10, 150),
+                                    tempo_gasto=random.randint(300, 1800) # 5 a 30 min
+                                )
                                 
                         total_alunos_criados += 1
 

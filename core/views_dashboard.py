@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.db.models import Avg, Sum, Count, F, ExpressionWrapper, fields
 from django.utils import timezone
 from datetime import timedelta
-from core.models import User, Turma, Escola, Cidade, Estado, Pais, EstatisticasUsuario, SessaoJogo, SessaoAulaInterativa, RegistroAcessoDemo
+from core.models import User, Turma, Escola, Cidade, Estado, Pais, EstatisticasUsuario, SessaoJogo, RegistroAcessoDemo
 
 @login_required
 # ==============================================================
@@ -92,6 +92,7 @@ def relatorios_avancados_view(request):
             for h in sj.jogo.habilidades_relacionadas.all():
                 tempo_hab_jogos[h.codigo] = tempo_hab_jogos.get(h.codigo, 0) + minutos
                 
+    from livros_interativos.models import SessaoAulaInterativa
     sessoes_livros = SessaoAulaInterativa.objects.filter(user__in=alunos).select_related('aula').prefetch_related('aula__habilidades_relacionadas')
     for sl in sessoes_livros:
         minutos = sl.tempo_gasto / 60.0 if sl.tempo_gasto else 0
@@ -107,6 +108,7 @@ def relatorios_avancados_view(request):
     labels_hab = [h[0] for h in hab_ordenada]
     data_jogos_hab = [round(tempo_hab_jogos.get(h[0], 0) / (total_alunos if total_alunos > 0 else 1), 1) for h in hab_ordenada]
     data_livros_hab = [round(tempo_hab_livros.get(h[0], 0) / (total_alunos if total_alunos > 0 else 1), 1) for h in hab_ordenada]
+
 
     # 4 & 5. Heatmap (30d) e Gráfico (7d)
     hoje = timezone.now().date()
