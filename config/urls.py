@@ -22,5 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('favicon.ico', RedirectView.as_view(url='/static/core/img/favicon.png')),
     path('ferramentas/', include('ferramentas.urls')),
+    path('livros-novo/', include('livros_interativos.urls')),
     path('', include('core.urls')), # Inclui as URLs do core
 ]
