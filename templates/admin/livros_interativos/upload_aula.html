@@ -5,7 +5,7 @@
 <div style="max-width: 800px; margin: 20px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
     <h1 style="color: #2288c4; margin-bottom: 20px;">📚 Upload de Aula Interativa</h1>
     
-    <p style="color: #555;">Selecione a pasta completa da Aula Interativa. Os arquivos irão diretamente para o S3 (pasta livros/).</p>
+    <p style="color: #555;">Selecione a pasta completa da Aula Interativa. Os arquivos irão diretamente para o S3 (pasta jogos_web/livros_interativos/).</p>
 
     <hr style="border: 0; height: 1px; background: #eee; margin: 20px 0;">
     
@@ -112,7 +112,7 @@
                 ficheiroAtual.innerText = `A enviar: ${caminhoRelativoLimpo}`;
 
                 // Usa a API existente de presigned URL do core
-                const respostaDjango = await fetch(`/api/gerar-url-upload/?file_name=${encodeURIComponent(caminhoRelativoLimpo)}&file_type=${encodeURIComponent(ficheiro.type || 'application/octet-stream')}&pasta_jogo=${pastaAulaS3}&pasta_base=livros`);
+                const respostaDjango = await fetch(`/api/gerar-url-upload/?file_name=${encodeURIComponent(caminhoRelativoLimpo)}&file_type=${encodeURIComponent(ficheiro.type || 'application/octet-stream')}&pasta_jogo=livros_interativos/${pastaAulaS3}&pasta_base=jogos_web`);
                 
                 if (!respostaDjango.ok) throw new Error("Falha ao obter permissão do servidor.");
                 const presignedData = await respostaDjango.json();

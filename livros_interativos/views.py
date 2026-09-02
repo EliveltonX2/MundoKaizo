@@ -80,7 +80,7 @@ def api_salvar_aula(request):
             capitulo=capitulo,
             titulo=titulo,
             numero_aula=numero_aula,
-            caminho_s3=f"livros/{pasta_aula}"
+            caminho_s3=f"jogos_web/livros_interativos/{pasta_aula}"
         )
         return JsonResponse({'status': 'sucesso', 'aula_id': aula.id})
     except Exception as e:
