@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Biblioteca Interativa | MundoKaizo</title>
+<link rel="icon" href="{% static 'core/ico/favicon/favicon.svg' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="{% static 'livros_interativos/css/livros.css' %}?v=20260902b">
+<script defer src="{% static 'livros_interativos/js/temas.js' %}?v=20260902b"></script>
+<script defer src="{% static 'livros_interativos/js/livros.js' %}?v=20260902b"></script>
+</head>
+<body class="li-page">
+<a class="li-skip" href="#biblioteca">Pular para a biblioteca</a>
+{% include 'includes/navbar.html' %}
+<main class="li-shell" id="biblioteca">
+<header class="li-hero" id="libraryHero">
+<div><span class="li-eyebrow">SEU ESPAÇO DE DESCOBERTAS</span><h1>Biblioteca <span>Interativa</span></h1><p>Explore os livros, descubra novas ideias<br class="li-desktop-break"> e aprenda fazendo, uma aula de cada vez.</p></div>
+<div class="li-book-art" aria-hidden="true"><span class="li-spark">✦</span><span class="li-art-book li-art-one"><i class="fa-solid fa-code"></i></span><span class="li-art-book li-art-two"><i class="fa-solid fa-lightbulb"></i></span><span class="li-art-book li-art-three"><i class="fa-solid fa-book-open"></i></span><span class="li-art-caption">Leia. Explore. Descubra.</span></div>
+</header>
+<div class="li-journey-bar"><ol class="li-steps" aria-label="Etapas da biblioteca"><li data-step="0"><span>1</span> Coleção</li><li data-step="1"><span>2</span> Livro</li><li data-step="2"><span>3</span> Capítulo</li><li data-step="3"><span>4</span> Aula</li></ol><a class="li-dashboard-link" href="{% url 'dashboard' %}"><i class="fa-solid fa-chart-simple" aria-hidden="true"></i> Meu painel <span aria-hidden="true">↗</span></a></div>
+<nav class="li-breadcrumb" id="libraryBreadcrumb" aria-label="Você está em" hidden></nav>
+<div class="li-toolbar" id="libraryToolbar" hidden><span id="libraryCount" role="status"></span><label class="li-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><span class="li-sr-only">Buscar nesta etapa</span><input id="librarySearch" type="search" placeholder="Buscar coleção..." autocomplete="off"></label></div>
+<section class="li-panel" id="colecoes" data-panel data-level="0" data-label="Coleções" aria-labelledby="title-colecoes">
+<div class="li-section-heading"><div><span class="li-eyebrow">O COMEÇO DA JORNADA</span><h2 id="title-colecoes" tabindex="-1">Escolha uma coleção</h2><p>Cada coleção reúne livros para explorar e aprender.</p></div><span class="li-heading-icon" aria-hidden="true"><i class="fa-solid fa-layer-group"></i></span></div>
+<div class="li-grid li-collections-grid">
+{% for colecao in colecoes %}
+<article class="li-tile li-collection-card" data-item data-search="{{ colecao.nome }}"><a class="li-tile-link" href="#colecao-{{ colecao.id }}"><div class="li-collection-art" aria-hidden="true"><span></span><span></span><span><i class="fa-solid fa-book-open"></i></span><i class="li-small-spark">✦</i></div><div class="li-tile-copy"><span class="li-eyebrow">COLEÇÃO</span><h3>{{ colecao.nome }}</h3><p>{{ colecao.livros.all|length }} livro{{ colecao.livros.all|length|pluralize }} nesta coleção</p><span class="li-card-action">Explorar coleção <span aria-hidden="true">↗</span></span></div></a></article>
+{% empty %}<div class="li-empty"><span class="li-empty-icon" aria-hidden="true"><i class="fa-solid fa-book-open"></i></span><h3>As próximas descobertas vêm aí</h3><p>Assim que uma coleção for disponibilizada, seus livros aparecerão aqui.</p></div>{% endfor %}
+</div></section>
+{% for colecao in colecoes %}
+<section class="li-panel" id="colecao-{{ colecao.id }}" data-panel data-level="1" data-parent="colecoes" data-label="{{ colecao.nome }}" aria-labelledby="title-colecao-{{ colecao.id }}">
+<div class="li-section-heading"><div><a class="li-back" href="#colecoes">← Todas as coleções</a><span class="li-eyebrow">COLEÇÃO</span><h2 id="title-colecao-{{ colecao.id }}" tabindex="-1">{{ colecao.nome }}</h2><p>Escolha o livro que vai acompanhar sua próxima descoberta.</p></div></div>
+<div class="li-grid">
+{% for livro in colecao.livros.all %}
+<article class="li-tile li-book-card" data-item data-search="{{ livro.titulo }} {{ livro.volume|default_if_none:'' }}" data-theme data-book-id="{{ livro.id }}" data-book-title="{{ livro.titulo }}" data-collection-id="{{ colecao.id }}" data-volume="{{ livro.volume|default_if_none:'' }}">
+<a class="li-tile-link" href="#livro-{{ livro.id }}"><div class="li-cover-area">
+{% if livro.capa %}<img class="li-book-cover" src="{{ livro.capa.url }}" alt="Capa de {{ livro.titulo }}" loading="lazy">{% else %}<div class="li-cover-placeholder" aria-hidden="true"><span>MUNDOKAIZO</span><i class="fa-solid fa-book-open"></i><strong>{% if livro.volume %}{{ livro.volume|stringformat:'02d' }}{% else %}MK{% endif %}</strong><small>LIVRO INTERATIVO</small></div>{% endif %}
+{% if livro.volume %}<span class="li-volume">Volume {{ livro.volume }}</span>{% endif %}</div>
+<div class="li-tile-copy"><span class="li-eyebrow">LIVRO INTERATIVO</span><h3>{{ livro.titulo }}</h3><p>{{ livro.capitulos.all|length }} capítulo{{ livro.capitulos.all|length|pluralize }} para explorar</p><span class="li-card-action">Abrir livro <span aria-hidden="true">→</span></span></div></a></article>
+{% empty %}<div class="li-empty"><span class="li-empty-icon" aria-hidden="true"><i class="fa-solid fa-book"></i></span><h3>Esta coleção está ganhando forma</h3><p>Os livros aparecerão aqui quando forem disponibilizados.</p></div>{% endfor %}
+</div></section>
+{% for livro in colecao.livros.all %}
+<section class="li-panel" id="livro-{{ livro.id }}" data-panel data-level="2" data-parent="colecao-{{ colecao.id }}" data-label="{{ livro.titulo }}" data-theme data-book-id="{{ livro.id }}" data-book-title="{{ livro.titulo }}" data-collection-id="{{ colecao.id }}" data-volume="{{ livro.volume|default_if_none:'' }}" aria-labelledby="title-livro-{{ livro.id }}">
+<header class="li-book-heading"><div><a class="li-back" href="#colecao-{{ colecao.id }}">← Livros da coleção</a><span class="li-eyebrow">{% if livro.volume %}VOLUME {{ livro.volume }} · {% endif %}SEU LIVRO INTERATIVO</span><h2 id="title-livro-{{ livro.id }}" tabindex="-1">{{ livro.titulo }}</h2><p>Um capítulo de cada vez. Muitas descobertas pelo caminho.</p></div><span class="li-book-heading-number" aria-hidden="true">{% if livro.volume %}{{ livro.volume|stringformat:'02d' }}{% else %}<i class="fa-solid fa-book-open"></i>{% endif %}</span></header>
+<div class="li-section-heading li-compact"><div><span class="li-eyebrow">EXPLORE SEU LIVRO</span><h3>Por onde vamos começar?</h3></div></div>
+<div class="li-grid li-chapters-grid">
+{% for capitulo in livro.capitulos.all %}
+<article class="li-tile li-chapter-card" data-item data-search="{{ capitulo.titulo }} {{ capitulo.numero }}" data-theme data-book-id="{{ livro.id }}" data-book-title="{{ livro.titulo }}" data-collection-id="{{ colecao.id }}" data-volume="{{ livro.volume|default_if_none:'' }}" data-chapter="{{ capitulo.numero }}">
+<a class="li-tile-link" href="#capitulo-{{ capitulo.id }}"><div class="li-chapter-top"><span class="li-chapter-number">{{ capitulo.numero|stringformat:'02d' }}</span><i class="fa-solid fa-route" aria-hidden="true"></i></div><div class="li-tile-copy"><span class="li-eyebrow">CAPÍTULO {{ capitulo.numero }}</span><h3>{{ capitulo.titulo }}</h3><p>{{ capitulo.aulas.all|length }} aula{{ capitulo.aulas.all|length|pluralize }}</p><div class="li-chapter-progress" data-progress-for="capitulo-{{ capitulo.id }}" hidden><span></span><progress value="0" max="1" aria-label="Aulas concluídas neste capítulo"></progress></div><span class="li-card-action">Explorar capítulo <span aria-hidden="true">→</span></span></div></a></article>
+{% empty %}<div class="li-empty"><span class="li-empty-icon" aria-hidden="true"><i class="fa-solid fa-route"></i></span><h3>Os capítulos estão chegando</h3><p>Este livro ainda não tem capítulos disponíveis.</p></div>{% endfor %}
+</div></section>
+{% for capitulo in livro.capitulos.all %}
+<section class="li-panel" id="capitulo-{{ capitulo.id }}" data-panel data-level="3" data-parent="livro-{{ livro.id }}" data-label="Capítulo {{ capitulo.numero }} · {{ capitulo.titulo }}" data-theme data-book-id="{{ livro.id }}" data-book-title="{{ livro.titulo }}" data-collection-id="{{ colecao.id }}" data-volume="{{ livro.volume|default_if_none:'' }}" data-chapter="{{ capitulo.numero }}" aria-labelledby="title-capitulo-{{ capitulo.id }}">
+<header class="li-book-heading li-chapter-heading"><div><a class="li-back" href="#livro-{{ livro.id }}">← Capítulos do livro</a><span class="li-eyebrow">{{ livro.titulo }} · CAPÍTULO {{ capitulo.numero }}</span><h2 id="title-capitulo-{{ capitulo.id }}" tabindex="-1">{{ capitulo.titulo }}</h2><p>Explore as aulas no seu ritmo. Você pode voltar para rever o que aprendeu.</p></div><span class="li-book-heading-number" aria-hidden="true">{{ capitulo.numero|stringformat:'02d' }}</span></header>
+<div class="li-section-heading li-compact"><div><span class="li-eyebrow">APRENDER FAZENDO</span><h3>Suas próximas descobertas</h3></div><div class="li-status-legend"><span><i class="fa-regular fa-circle" aria-hidden="true"></i> Não iniciada</span><span><i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i> Em andamento</span><span><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Concluída</span></div></div>
+<div class="li-grid li-lessons-grid">
+{% for aula in capitulo.aulas.all %}
+<article class="li-tile li-lesson-card" data-item data-search="{{ aula.titulo }} {{ aula.numero_aula }} {% for hab in aula.habilidades_bncc.all %}{{ hab.codigo }} {% endfor %}" data-status="{{ aula.status_progresso|default:'not-started' }}">
+<div class="li-lesson-top"><span class="li-lesson-number">AULA {{ aula.numero_aula|stringformat:'02d' }}</span><span class="li-lesson-symbol" aria-hidden="true"><i class="fa-solid fa-lightbulb"></i></span></div>
+<div class="li-tile-copy"><h3>{{ aula.titulo }}</h3><div class="li-skills">{% for hab in aula.habilidades_bncc.all %}<span class="li-skill" title="{{ hab.descricao }}"><i class="fa-solid fa-seedling" aria-hidden="true"></i> {{ hab.codigo }}</span>{% endfor %}</div></div>
+<div class="li-lesson-footer">
+{% if aula.status_progresso == 'completed' %}<span class="li-status li-completed"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Concluída</span>{% elif aula.status_progresso == 'in-progress' %}<span class="li-status li-in-progress"><i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i> Em andamento</span>{% else %}<span class="li-status"><i class="fa-regular fa-circle" aria-hidden="true"></i> Não iniciada</span>{% endif %}
+{% if aula.caminho_s3 %}<a class="li-launch" href="{% url 'livros_interativos:ler' aula.id %}">{% if aula.status_progresso == 'completed' %}Revisitar aula{% elif aula.status_progresso == 'in-progress' %}Continuar aula{% else %}Começar aula{% endif %}<span aria-hidden="true">→</span></a>{% else %}<span class="li-launch li-unavailable" aria-disabled="true">Conteúdo em preparação</span>{% endif %}
+</div></article>
+{% empty %}<div class="li-empty"><span class="li-empty-icon" aria-hidden="true"><i class="fa-solid fa-lightbulb"></i></span><h3>Novas aulas vêm aí</h3><p>As aulas deste capítulo aparecerão aqui quando forem disponibilizadas.</p></div>{% endfor %}
+</div></section>
+{% endfor %}{% endfor %}{% endfor %}
+<div class="li-empty li-search-empty" id="librarySearchEmpty" hidden><span class="li-empty-icon" aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></span><h3>Nenhum resultado nesta etapa</h3><p>Tente outra palavra ou volte uma etapa para explorar.</p><button class="li-text-button" type="button" id="clearLibrarySearch">Limpar busca</button></div>
+<footer class="li-footer"><span><i class="fa-solid fa-compass" aria-hidden="true"></i> Cada descoberta conta.</span><span>MundoKaizo · Biblioteca Interativa</span></footer>
+</main></body></html>
