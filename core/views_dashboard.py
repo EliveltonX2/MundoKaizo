@@ -94,11 +94,11 @@ def relatorios_avancados_view(request):
                 tempo_hab_jogos[h.codigo] = tempo_hab_jogos.get(h.codigo, 0) + minutos
                 
     from livros_interativos.models import SessaoAulaInterativa
-    sessoes_livros = SessaoAulaInterativa.objects.filter(user__in=alunos).select_related('aula').prefetch_related('aula__habilidades_relacionadas')
+    sessoes_livros = SessaoAulaInterativa.objects.filter(user__in=alunos).select_related('aula').prefetch_related('aula__habilidades_bncc')
     for sl in sessoes_livros:
         minutos = sl.tempo_gasto / 60.0 if sl.tempo_gasto else 0
         if minutos > 0:
-            for h in sl.aula.habilidades_relacionadas.all():
+            for h in sl.aula.habilidades_bncc.all():
                 tempo_hab_livros[h.codigo] = tempo_hab_livros.get(h.codigo, 0) + minutos
                 
     todas_habs = set(tempo_hab_jogos.keys()).union(set(tempo_hab_livros.keys()))
