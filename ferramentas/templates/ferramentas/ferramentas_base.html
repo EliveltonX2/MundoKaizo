@@ -66,8 +66,8 @@
         <nav class="side-menu-nav" aria-label="Áreas do sistema">
             <a href="{% url 'estante' %}"><span class="menu-icon"><i class="fa-solid fa-book" aria-hidden="true"></i></span><span>Livros</span><i class="fa-solid fa-chevron-right menu-arrow" aria-hidden="true"></i></a>
             <a href="{% url 'galeria_videos' %}"><span class="menu-icon"><i class="fa-solid fa-video" aria-hidden="true"></i></span><span>Vídeos</span><i class="fa-solid fa-chevron-right menu-arrow" aria-hidden="true"></i></a>
-            <a href="{% url 'jogos' %}"><span class="menu-icon"><i class="fa-solid fa-gamepad" aria-hidden="true"></i></span><span>MiniGames</span><i class="fa-solid fa-chevron-right menu-arrow" aria-hidden="true"></i></a>
-            <a href="{% url 'livros_interativos' %}"><span class="menu-icon"><i class="fa-solid fa-book-open-reader" aria-hidden="true"></i></span><span>Livros Interativos</span><i class="fa-solid fa-chevron-right menu-arrow" aria-hidden="true"></i></a>
+            <a href="{% url 'jogos:lista' %}"><span class="menu-icon"><i class="fa-solid fa-gamepad" aria-hidden="true"></i></span><span>MiniGames</span><i class="fa-solid fa-chevron-right menu-arrow" aria-hidden="true"></i></a>
+            <a href="{% url 'livros_interativos:lista' %}"><span class="menu-icon"><i class="fa-solid fa-book-open-reader" aria-hidden="true"></i></span><span>Livros Interativos</span><i class="fa-solid fa-chevron-right menu-arrow" aria-hidden="true"></i></a>
             <a class="is-current" href="{% url 'ferramentas_index' %}" aria-current="page"><span class="menu-icon"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></span><span>Ferramentas</span><span class="current-label">Você está aqui</span></a>
             <span class="side-menu-item is-disabled" aria-disabled="true"><span class="menu-icon"><i class="fa-solid fa-newspaper" aria-hidden="true"></i></span><span>Atividades</span><span class="soon-label">Em breve</span></span>
 

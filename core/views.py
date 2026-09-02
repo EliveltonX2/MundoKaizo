@@ -211,11 +211,11 @@ def detalhes_aluno_view(request, aluno_id):
                 label = f"{h.codigo}"
                 tempo_habilidades[label] = tempo_habilidades.get(label, 0) + minutos
                 
-    sessoes_l_all = SessaoAulaInterativa.objects.filter(user=aluno).select_related('aula').prefetch_related('aula__habilidades_relacionadas')
+    sessoes_l_all = SessaoAulaInterativa.objects.filter(user=aluno).select_related('aula').prefetch_related('aula__habilidades_bncc')
     for sl in sessoes_l_all:
         minutos = sl.tempo_gasto / 60.0 if sl.tempo_gasto else 0
         if minutos > 0:
-            for h in sl.aula.habilidades_relacionadas.all():
+            for h in sl.aula.habilidades_bncc.all():
                 label = f"{h.codigo}"
                 tempo_habilidades[label] = tempo_habilidades.get(label, 0) + minutos
                 
