@@ -1,0 +1,126 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f3f7fa">
+    <link rel="icon" type="image/png" href="{% static 'core/ico/favicon/favicon-96x96.png' %}" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="{% static 'core/ico/favicon/favicon.svg' %}">
+    <link rel="shortcut icon" href="{% static 'core/ico/favicon/favicon.ico' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'core/ico/favicon/apple-touch-icon.png' %}">
+    <title>Painel do Educador | MundoKaizo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/css/home.css' %}?v=20260901a">
+    
+    <style>
+        /* Ajustes específicos para o painel do educador, aproveitando as classes do home.css */
+        .welcome-panel.educator-panel {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: #ffffff;
+        }
+        .welcome-panel.educator-panel .welcome-eyebrow {
+            color: #bfdbfe;
+        }
+        .educator-card-stats {
+            background: linear-gradient(145deg, #f8fafc, #eff6ff);
+            border-left: 4px solid #3b82f6;
+        }
+        .educator-card-bncc {
+            background: linear-gradient(145deg, #f8fafc, #f0fdf4);
+            border-left: 4px solid #22c55e;
+        }
+        .educator-card-support {
+            background: linear-gradient(145deg, #f8fafc, #fef2f2);
+            border-left: 4px solid #ef4444;
+        }
+        .educator-card-kai {
+            background: linear-gradient(145deg, #f8fafc, #fdf4ff);
+            border-left: 4px solid #d946ef;
+        }
+        /* Fix for grid columns */
+        .educator-card-stats, .educator-card-bncc, .educator-card-support, .educator-card-kai {
+            grid-column: span 6;
+            min-height: 285px;
+        }
+        @media (max-width: 720px) {
+            .educator-card-stats, .educator-card-bncc, .educator-card-support, .educator-card-kai {
+                grid-column: 1 !important;
+                min-height: 255px;
+            }
+        }
+    </style>
+</head>
+<body class="home-page">
+    <a class="skip-link" href="#conteudo-principal">Ir para o conteúdo</a>
+    {% include "includes/navbar.html" %}
+
+    <main id="conteudo-principal" class="home-shell">
+        <header class="welcome-panel educator-panel" data-reveal>
+            <div class="welcome-copy">
+                <span class="welcome-eyebrow"><i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i> Espaço de Gestão Pedagógica</span>
+                <h1>Painel do Educador<br><span>Bem-vindo, {{ request.user.username }}!</span></h1>
+                <div class="welcome-pills" aria-label="Características da plataforma">
+                    <span><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Área Exclusiva</span>
+                    <span><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Acompanhamento</span>
+                </div>
+            </div>
+            <div class="welcome-orbit" aria-hidden="true">
+                <span class="orbit-line orbit-line-one"></span>
+                <span class="orbit-line orbit-line-two"></span>
+                <span class="orbit-item orbit-book"><i class="fa-solid fa-book-open"></i></span>
+                <span class="orbit-item orbit-game"><i class="fa-solid fa-users"></i></span>
+                <span class="orbit-item orbit-star"><i class="fa-solid fa-lightbulb"></i></span>
+                <span class="orbit-core"><i class="fa-solid fa-chalkboard-teacher"></i></span>
+            </div>
+        </header>
+
+        <section class="journey-section" aria-labelledby="journey-title">
+            <div class="section-heading" data-reveal>
+                <div>
+                    <span class="section-kicker">FERRAMENTAS</span>
+                    <h2 id="journey-title">Recursos para sua gestão</h2>
+                </div>
+                <p>Acesse rapidamente as principais funcionalidades pedagógicas.</p>
+            </div>
+
+            <div class="experience-grid">
+                
+                <a href="#" class="experience-card educator-card-stats" data-tilt data-reveal>
+                    <span class="card-icon"><i class="fa-solid fa-chart-column" style="color: #3b82f6;" aria-hidden="true"></i></span>
+                    <span class="card-copy"><strong>Estatísticas e Relatórios</strong><small>Acompanhe o desempenho, progresso e engajamento das turmas.</small></span>
+                    <span class="card-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
+                </a>
+
+                <a href="#" class="experience-card educator-card-bncc" data-tilt data-reveal>
+                    <span class="card-icon"><i class="fa-solid fa-map-location-dot" style="color: #22c55e;" aria-hidden="true"></i></span>
+                    <span class="card-copy"><strong>BNCC Digital</strong><small>Consulte habilidades e alinhe suas práticas à Base Nacional.</small></span>
+                    <span class="card-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
+                </a>
+
+                <a href="#" class="experience-card educator-card-kai" data-tilt data-reveal>
+                    <span class="card-icon"><i class="fa-solid fa-robot" style="color: #d946ef;" aria-hidden="true"></i></span>
+                    <span class="card-copy"><strong>Assistente IA (Kai)</strong><small>Gere ideias, planos de aula e tire dúvidas pedagógicas.</small></span>
+                    <span class="card-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
+                </a>
+
+                <a href="#" class="experience-card educator-card-support" data-tilt data-reveal>
+                    <span class="card-icon"><i class="fa-solid fa-headset" style="color: #ef4444;" aria-hidden="true"></i></span>
+                    <span class="card-copy"><strong>Suporte</strong><small>Precisa de ajuda? Fale com nossa equipe técnica e pedagógica.</small></span>
+                    <span class="card-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
+                </a>
+
+            </div>
+        </section>
+
+        <footer class="home-footer">
+            <span><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> MundoKaizo - Gestão Educacional</span>
+            <strong>MundoKaizo</strong>
+        </footer>
+    </main>
+    <script src="{% static 'core/js/home.js' %}?v=20260901a"></script>
+</body>
+</html>

@@ -109,7 +109,7 @@
                 {% endif %}
 
                 {% if request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'GESTOR_GERAL' or request.user.tipo == 'ADMIN' %}
-                <a href="{% url 'gerenciar' %}" class="experience-card card-professor" data-tilt data-reveal>
+                <a href="{% url 'painel_educador:dashboard' %}" class="experience-card card-professor" data-tilt data-reveal>
                     <span class="teacher-badge"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Área exclusiva</span>
                     <span class="card-icon"><i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i></span>
                     <span class="card-copy"><strong>Espaço do Professor</strong><small>Turmas, acompanhamento e recursos pedagógicos para transformar cada aula.</small></span>

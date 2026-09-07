@@ -24,5 +24,6 @@ urlpatterns = [
     path('ferramentas/', include('ferramentas.urls')),
     path('livros-interativos/', include('livros_interativos.urls')),
     path('jogos/', include('jogos.urls')),
+    path('painel-educador/', include('painel_educador.urls')),
     path('', include('core.urls')), # Inclui as URLs do core
 ]

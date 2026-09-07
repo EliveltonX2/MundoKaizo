@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'ferramentas',
     'livros_interativos',
     'jogos',
+    'painel_educador',
     'django_cleanup.apps.CleanupConfig',
 ]
 
