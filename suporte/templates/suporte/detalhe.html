@@ -1,0 +1,72 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat | MundoKaizo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { margin: 0; padding: 20px; font-family: 'Nunito', sans-serif; background-color: #fff; color: #0a2b49; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; }
+        .ticket-header { border-bottom: 1px solid #e5e7eb; padding-bottom: 15px; margin-bottom: 15px; flex-shrink: 0; }
+        h2 { margin: 0 0 5px 0; font-size: 22px; font-weight: 800; }
+        p { margin: 0; color: #4b5563; font-size: 14px; }
+        
+        .chat-container { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-right: 10px; margin-bottom: 15px; }
+        .msg-bubble { padding: 12px 18px; border-radius: 15px; max-width: 85%; line-height: 1.4; font-size: 15px; }
+        .msg-autor { background: #eff6ff; border-left: 4px solid #3b82f6; align-self: flex-start; }
+        .msg-minha { background: #f3f4f6; border-right: 4px solid #9ca3af; align-self: flex-end; text-align: right; }
+        
+        .chat-input { flex-shrink: 0; }
+        textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #d1d5db; font-family: 'Nunito', sans-serif; resize: none; box-sizing: border-box; }
+        .btn-enviar { margin-top: 10px; padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+    </style>
+</head>
+<body>
+    <div class="ticket-header">
+        <h2>Ticket #{{ ticket.id }}: {{ ticket.assunto }}</h2>
+        <p><strong>Status:</strong> {{ ticket.get_status_display }} | <strong>Solicitante:</strong> {{ ticket.solicitante.username }}</p>
+    </div>
+
+    <div class="chat-container" id="chatContainer">
+        {% for msg in mensagens %}
+            <div class="msg-bubble {% if msg.autor == request.user %}msg-minha{% else %}msg-autor{% endif %}">
+                <strong>{{ msg.autor.username }}</strong> <small style="color:#6b7280;">({{ msg.criado_em|date:"d/m/Y H:i" }})</small>
+                {% if is_admin and not msg.lida and msg.autor != ticket.solicitante %}
+                    <span style="color:#ef4444; font-size: 11px; margin-left: 5px;">(Não lida)</span>
+                {% endif %}
+                <div style="margin-top: 5px;">{{ msg.texto|linebreaksbr }}</div>
+            </div>
+        {% empty %}
+            <p style="text-align:center; color:#9ca3af; margin-top: 40px;">Inicie a conversa escrevendo a primeira mensagem.</p>
+        {% endfor %}
+    </div>
+
+    <div class="chat-input">
+        {% if not bloqueado %}
+            <form method="POST">
+                {% csrf_token %}
+                <textarea name="texto" rows="3" required placeholder="Digite sua mensagem aqui..."></textarea>
+                <button type="submit" class="btn-enviar"><i class="fa-solid fa-paper-plane"></i> Enviar Mensagem</button>
+            </form>
+        {% else %}
+            <div style="background-color: #fee2e2; color: #991b1b; padding: 12px; border-radius: 10px; border-left: 4px solid #ef4444; font-size: 14px;">
+                <strong><i class="fa-solid fa-lock"></i> Ticket Resolvido:</strong> Este chat foi encerrado e não aceita mais mensagens.
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Auto-scroll to bottom of chat
+        var chatContainer = document.getElementById("chatContainer");
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    </script>
+</body>
+</html>

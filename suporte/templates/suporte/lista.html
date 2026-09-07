@@ -1,0 +1,170 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Tickets | MundoKaizo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/css/home.css' %}?v=20260901a">
+    <style>
+        .suporte-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 30px;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 10px 28px rgba(10,43,73,.07);
+        }
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background-color: #f3f7fa; font-weight: 800; }
+        .badge-nao-lidas { background-color: #ef4444; color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+        .btn-primary { display: inline-block; padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; text-decoration: none; font-weight: bold; }
+        .btn-abrir { display: inline-block; padding: 6px 12px; background: #10b981; color: white; border-radius: 6px; cursor: pointer; border: none; text-decoration: none; font-weight: bold; }
+        
+        /* Modal Styles */
+        .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+        .modal-content { background-color: #fff; margin: 5% auto; padding: 25px; border-radius: 15px; width: 90%; max-width: 600px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        .modal-iframe-content { max-width: 800px; height: 80vh; padding: 0; overflow: hidden; }
+        .close-modal { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1; margin-top: -10px; }
+        .close-modal:hover, .close-modal:focus { color: black; text-decoration: none; cursor: pointer; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-family: 'Nunito', sans-serif; }
+        .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .btn-cancel { padding: 10px 20px; background: #f3f4f6; color: #4b5563; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body class="home-page">
+    {% include "includes/navbar.html" %}
+
+    <main id="conteudo-principal" class="home-shell">
+        <div class="suporte-container">
+            <div class="header-actions">
+                <div>
+                    <h2><i class="fa-solid fa-headset"></i> Meus Chamados de Suporte</h2>
+                    <p>Acompanhe aqui o andamento das suas solicitações.</p>
+                </div>
+                <button class="btn-primary" onclick="abrirModalNovo()">+ Novo Chamado</button>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Assunto</th>
+                        <th>Categoria</th>
+                        <th>Status</th>
+                        <th>Mensagens</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                    <tr>
+                        <td>#{{ ticket.id }}</td>
+                        <td><strong>{{ ticket.assunto }}</strong></td>
+                        <td>{{ ticket.get_categoria_display }}</td>
+                        <td>
+                            {% if ticket.status == 'ABERTO' %}
+                                <span style="color: #f59e0b; font-weight: bold;">{{ ticket.get_status_display }}</span>
+                            {% elif ticket.status == 'EM_ANALISE' %}
+                                <span style="color: #3b82f6; font-weight: bold;">{{ ticket.get_status_display }}</span>
+                            {% else %}
+                                <span style="color: #10b981; font-weight: bold;">{{ ticket.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if ticket.nao_lidas > 0 %}
+                                <span class="badge-nao-lidas">{{ ticket.nao_lidas }} Nova(s)</span>
+                            {% else %}
+                                <span style="color: #9ca3af;">0</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button onclick="abrirModalChat('{% url 'suporte:detalhe_ticket' ticket.id %}')" class="btn-abrir">Abrir Chat</button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 20px;">Nenhum chamado de suporte encontrado.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Modal Novo Chamado -->
+    <div id="modalNovo" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModalNovo()">&times;</span>
+            <h2>Abrir Novo Chamado</h2>
+            <form method="POST" action="{% url 'suporte:novo_ticket' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Assunto</label>
+                    <input type="text" name="assunto" required placeholder="Resumo do problema">
+                </div>
+                <div class="form-group">
+                    <label>Categoria</label>
+                    <select name="categoria" required>
+                        <option value="">Selecione uma categoria...</option>
+                        {% for value, label in categorias %}
+                            <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Mensagem Inicial</label>
+                    <textarea name="mensagem" rows="5" required placeholder="Descreva sua solicitação com detalhes..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="fecharModalNovo()">Cancelar</button>
+                    <button type="submit" class="btn-primary">Abrir Chamado</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Chat (Iframe) -->
+    <div id="modalChat" class="modal">
+        <div class="modal-content modal-iframe-content">
+            <span class="close-modal" onclick="fecharModalChat()" style="position:absolute; right: 15px; top: 15px; z-index:10;">&times;</span>
+            <iframe id="iframeChat" src="" style="width: 100%; height: 100%; border: none; border-radius: 15px;"></iframe>
+        </div>
+    </div>
+
+    <script>
+        function abrirModalNovo() {
+            document.getElementById('modalNovo').style.display = 'block';
+        }
+        function fecharModalNovo() {
+            document.getElementById('modalNovo').style.display = 'none';
+        }
+        function abrirModalChat(url) {
+            document.getElementById('iframeChat').src = url;
+            document.getElementById('modalChat').style.display = 'block';
+        }
+        function fecharModalChat() {
+            document.getElementById('modalChat').style.display = 'none';
+            document.getElementById('iframeChat').src = '';
+            // Atualiza a página atual para recarregar a tabela (badges e etc) ao fechar o chat
+            window.location.reload();
+        }
+        // Fechar ao clicar fora
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('modalNovo')) {
+                fecharModalNovo();
+            }
+            if (event.target == document.getElementById('modalChat')) {
+                fecharModalChat();
+            }
+        }
+    </script>
+</body>
+</html>
