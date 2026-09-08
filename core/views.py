@@ -110,7 +110,7 @@ def visualizar_livro(request, livro_id):
     
     if request.user.tipo == 'DEMO' and not livro.is_demo:
         messages.error(request, "Este livro é exclusivo para alunos matriculados e não está disponível na demonstração.")
-        return redirect('estante')
+        return redirect('home')
 
     # 1. Busca Páginas
     paginas_db = livro.paginas.all().order_by('numero')
@@ -145,7 +145,7 @@ def detalhes_aluno_view(request, aluno_id):
     user = request.user
     
     if user.tipo == 'ALUNO':
-        return redirect('estante')
+        return redirect('home')
         
     aluno = get_object_or_404(User, pk=aluno_id, tipo='ALUNO')
     
@@ -420,7 +420,7 @@ def ativar_conta_view(request):
             login(request, user)
             
             # Todos vão para a estante inicialmente (você pode mudar depois)
-            return redirect('estante') 
+            return redirect('home') 
     else:
         form = RegistroUsuarioForm()
         
@@ -451,7 +451,7 @@ def api_turmas_por_escola(request, escola_id):
 def vincular_cartoes_view(request):
     # Apenas Professores ou Gestores podem acessar
     if request.user.tipo not in ['PROFESSOR', 'GESTOR_LOCAL', 'GESTOR_GERAL', 'ADMIN']:
-        return redirect('estante')
+        return redirect('home')
 
     if request.method == 'POST':
         form = VincularCartoesForm(request.POST, professor=request.user)
@@ -493,7 +493,7 @@ def criar_turma_view(request):
     # Apenas Gestores e Admins podem criar turmas
     if request.user.tipo not in ['GESTOR_LOCAL', 'ADMIN']:
         messages.error(request, "Você não tem permissão para acessar esta página.")
-        return redirect('estante')
+        return redirect('home')
 
     if request.method == 'POST':
         # Passamos o request.user para o form aplicar a trava de segurança
@@ -1023,7 +1023,7 @@ def estatisticas_view(request):
 @login_required
 def relatorios_desempenho_view(request):
     if request.user.tipo not in ['PROFESSOR', 'GESTOR_LOCAL', 'GESTOR_GERAL', 'ADMIN']:
-        return redirect('estante')
+        return redirect('home')
         
     # Inicialmente simples, carregando turmas do usuário
     if request.user.tipo == 'PROFESSOR':
@@ -1066,7 +1066,7 @@ from django.db.models import Q
 @login_required
 def bncc_list_view(request):
     if request.user.tipo not in ['PROFESSOR', 'GESTOR_LOCAL', 'GESTOR_REGIONAL', 'GESTOR_KAIZO', 'ADMIN']:
-        return redirect('estante')
+        return redirect('home')
         
     query = request.GET.get('q', '')
     from .models import HabilidadeBNCC
@@ -1089,7 +1089,7 @@ def bncc_list_view(request):
 @login_required
 def bncc_detail_view(request, bncc_id):
     if request.user.tipo not in ['PROFESSOR', 'GESTOR_LOCAL', 'GESTOR_REGIONAL', 'GESTOR_KAIZO', 'ADMIN']:
-        return redirect('estante')
+        return redirect('home')
         
     from .models import HabilidadeBNCC
     habilidade = get_object_or_404(HabilidadeBNCC, id=bncc_id)

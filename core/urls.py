@@ -34,7 +34,7 @@ urlpatterns = [
     path('alterar-senha/', 
          auth_views.PasswordChangeView.as_view(
              template_name='core/alterar_senha.html', 
-             success_url='/estante/'
+             success_url='/'
          ), 
          name='alterar_senha'),
     path('ativar/', views.ativar_conta_view, name='ativar_conta'),

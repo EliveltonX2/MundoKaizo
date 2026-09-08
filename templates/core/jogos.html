@@ -15,7 +15,7 @@
 
 <body style="background-color: #f9fafb; min-height: 100vh; display: flex; flex-direction: column;">
 
-    {% url 'estante' as estante_url %}
+    {% url 'home' as estante_url %}
     {% include 'includes/navbar.html' with back_url=estante_url custom_title="MiniGames Kaizo" show_search=True search_action='jogos' search_placeholder="Buscar jogo..." current_query=query %}
 
     <div class="container" style="flex: 1; padding-top: 30px; padding-bottom: 50px;">

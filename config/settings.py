@@ -190,6 +190,6 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 #Onde esta o app dos usuarios
 AUTH_USER_MODEL = 'core.User'
-LOGIN_REDIRECT_URL = 'estante'
+LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'login'
 LOGIN_URL = 'login'

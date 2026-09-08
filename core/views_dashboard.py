@@ -19,7 +19,7 @@ def relatorios_avancados_view(request):
     
     # Restringe acesso apenas para Professores e Gestores
     if tipo not in ['PROFESSOR', 'GESTOR_LOCAL', 'GESTOR_REGIONAL', 'GESTOR_KAIZO', 'ADMIN'] and not request.user.is_superuser:
-        return redirect('estante')
+        return redirect('home')
         
     turmas_base = Turma.objects.all()
     escolas_base = Escola.objects.all()

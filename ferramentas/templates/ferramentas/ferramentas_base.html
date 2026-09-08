@@ -15,12 +15,12 @@
     <a class="skip-link" href="#conteudo-principal">Ir para o conteúdo</a>
     <header class="site-header">
         <nav class="navbar" aria-label="Navegação principal">
-            <a class="navbar-brand" href="{% url 'estante' %}" aria-label="MundoKaizo — início">
+            <a class="navbar-brand" href="{% url 'home' %}" aria-label="MundoKaizo — início">
                 <span class="brand-mark" aria-hidden="true"><i class="fa-solid fa-rocket"></i></span>
                 <span class="brand-copy"><strong>MundoKaizo</strong><small>Central de ferramentas</small></span>
             </a>
             <div class="navbar-actions">
-                <a class="back-home" href="{% url 'estante' %}">
+                <a class="back-home" href="{% url 'home' %}">
                     <i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Voltar ao MundoKaizo</span>
                 </a>
                 {% if user.is_authenticated %}
@@ -31,7 +31,7 @@
                             <i class="fa-solid fa-chevron-down dropdown-chevron" aria-hidden="true"></i>
                         </button>
                         <div class="user-dropdown-content" id="userMenu">
-                            <a href="{% url 'estante' %}"><i class="fa-solid fa-house" aria-hidden="true"></i> Início</a>
+                            <a href="{% url 'home' %}"><i class="fa-solid fa-house" aria-hidden="true"></i> Início</a>
                             <a href="{% url 'alterar_senha' %}"><i class="fa-solid fa-key" aria-hidden="true"></i> Alterar senha</a>
                             <form action="{% url 'logout' %}" method="post">
                                 {% csrf_token %}
