@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ formacao.titulo }} | Formações</title>
+    <link rel="icon" href="{% static 'core/ico/favicon/favicon.svg' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'painel_educador/css/dashboard.css' %}?v=20260907a">
+</head>
+<body class="pe-page">
+    {% url 'painel_educador:formacoes' as formacoes_url %}
+    {% include "includes/navbar.html" with back_url=formacoes_url custom_title="Formações" %}
+    <main class="pe-shell pe-training-shell">
+        <header class="pe-course-hero">
+            <div class="pe-course-hero-number" aria-hidden="true"><i class="fa-solid fa-laptop-code"></i></div>
+            <div><span class="pe-eyebrow"><i class="fa-solid fa-graduation-cap"></i> Formação Kaizo</span><h1>{{ formacao.titulo }}</h1><p>{{ formacao.descricao|default:formacao.resumo }}</p></div>
+            <div class="pe-course-hours"><strong>{{ formacao.carga_horaria }}</strong><span>horas</span></div>
+        </header>
+        <section class="pe-modules" aria-labelledby="modules-title">
+            <div class="pe-course-heading"><div><span class="pe-section-kicker">PERCURSO COMPLETO</span><h2 id="modules-title">Módulos e aulas</h2></div><p>Todo o conteúdo está aberto para você visualizar o percurso.</p></div>
+            {% for modulo in formacao.modulos.all %}
+                <article class="pe-module">
+                    <header><span>{{ modulo.numero|stringformat:'02d' }}</span><div><small>MÓDULO {{ modulo.numero }}</small><h3>{{ modulo.titulo }}</h3><p>{{ modulo.descricao }}</p></div><strong>{{ modulo.aulas.all|length }} aulas</strong></header>
+                    <div class="pe-module-lessons">
+                        {% for aula in modulo.aulas.all %}
+                            <article class="pe-training-lesson">
+                                <span class="pe-training-lesson-number">{{ aula.numero|stringformat:'02d' }}</span>
+                                <div><small>AULA {{ aula.numero }}</small><h4>{{ aula.titulo }}</h4><p>{{ aula.resumo }}</p></div>
+                                {% if aula.caminho_conteudo %}<a href="{{ aula.caminho_conteudo }}">Começar <i class="fa-solid fa-arrow-right"></i></a>{% else %}<span class="pe-training-pending">Em preparação</span>{% endif %}
+                            </article>
+                        {% empty %}<div class="pe-module-empty">As aulas deste módulo serão cadastradas em breve.</div>{% endfor %}
+                    </div>
+                </article>
+            {% empty %}<div class="pe-course-empty"><span><i class="fa-solid fa-layer-group"></i></span><h3>O percurso está sendo organizado</h3><p>Os módulos aparecerão aqui depois do cadastro no Django.</p></div>{% endfor %}
+        </section>
+        <footer class="pe-footer"><span><i class="fa-solid fa-shield-heart"></i> Aprenda no seu ritmo e aplique na sua prática.</span><strong>MundoKaizo</strong></footer>
+    </main>
+</body>
+</html>

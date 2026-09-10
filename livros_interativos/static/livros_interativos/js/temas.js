@@ -28,7 +28,7 @@
         collections: {},
         titles: {
             'livro 3': 'livro3',
-            'livro 3 — educacao infantil / fundamental': 'livro3'
+            'livro 3: educacao infantil / fundamental': 'livro3'
         }
     };
     const normalize = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();

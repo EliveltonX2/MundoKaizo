@@ -13,7 +13,7 @@
 </head>
 <body class="li-page li-reader" data-theme data-book-id="{{ aula.capitulo.livro.id }}" data-book-title="{{ aula.capitulo.livro.titulo }}" data-collection-id="{{ aula.capitulo.livro.colecao.id }}" data-volume="{{ aula.capitulo.livro.volume|default_if_none:'' }}" data-chapter="{{ aula.capitulo.numero }}">
 <header class="li-reader-header">
-<a class="li-reader-back" href="{% url 'livros_interativos:lista' %}#capitulo-{{ aula.capitulo.id }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Voltar às aulas</span></a>
+<a class="li-reader-back" href="{% url 'livros_interativos:lista' %}#livro-{{ aula.capitulo.livro.id }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Voltar às aulas</span></a>
 <div class="li-reader-title"><span>{{ aula.capitulo.livro.titulo }} · Capítulo {{ aula.capitulo.numero }} · Aula {{ aula.numero_aula }}</span><h1>{{ aula.titulo }}</h1></div>
 <button class="li-reader-expand" type="button" id="readerFullscreen" hidden aria-pressed="false"><i class="fa-solid fa-expand" aria-hidden="true"></i><span>Tela cheia</span></button>
 </header>
@@ -21,7 +21,7 @@
 {% if aula.caminho_s3 %}
 <iframe id="aula-iframe" src="{{ aula.url_interativa }}" title="Aula {{ aula.numero_aula }}: {{ aula.titulo }}" allowfullscreen></iframe>
 {% else %}
-<div class="li-reader-empty"><span class="li-empty-icon" aria-hidden="true"><i class="fa-solid fa-book-open"></i></span><h2>Esta aula está em preparação</h2><p>O conteúdo ainda não foi disponibilizado. Enquanto isso, você pode explorar as outras aulas do capítulo.</p><a class="li-launch" href="{% url 'livros_interativos:lista' %}#capitulo-{{ aula.capitulo.id }}">Explorar outras aulas <span aria-hidden="true">→</span></a></div>
+<div class="li-reader-empty"><span class="li-empty-icon" aria-hidden="true"><i class="fa-solid fa-book-open"></i></span><h2>Esta aula está em preparação</h2><p>O conteúdo ainda não foi disponibilizado. Enquanto isso, você pode explorar as outras aulas do capítulo.</p><a class="li-launch" href="{% url 'livros_interativos:lista' %}#livro-{{ aula.capitulo.livro.id }}">Explorar outras aulas <span aria-hidden="true">→</span></a></div>
 {% endif %}
 </main>
 <p class="li-reader-notice" id="readerNotice" role="status" hidden></p>

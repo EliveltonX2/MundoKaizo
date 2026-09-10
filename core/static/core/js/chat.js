@@ -12,6 +12,34 @@ function rolarParaBaixo() {
 }
 
 async function enviarMensagem() {
+    // Efeito de Digitação HTML interativo
+    function typeWriterHTML(element, html, speed = 15) {
+        let i = 0;
+        let isTag = false;
+        let text = "";
+        element.innerHTML = "";
+        
+        function type() {
+            if (i < html.length) {
+                text += html.charAt(i);
+                if (html.charAt(i) === '<') isTag = true;
+                if (html.charAt(i) === '>') isTag = false;
+                
+                i++;
+                if (isTag) {
+                    type(); 
+                } else {
+                    element.innerHTML = text;
+                    rolarParaBaixo();
+                    setTimeout(type, speed);
+                }
+            } else {
+                element.innerHTML = html;
+                rolarParaBaixo();
+            }
+        }
+        type();
+    }
     const input = document.getElementById('mensagem-input');
     const caixaContent = document.getElementById('mensagens-content'); 
     const boasVindas = document.getElementById('msg-boas-vindas');
@@ -22,17 +50,17 @@ async function enviarMensagem() {
     if (boasVindas) boasVindas.remove();
 
     // 1. Adiciona o texto do usuário na tela
-    caixaContent.innerHTML += `
+    caixaContent.insertAdjacentHTML('beforeend', `
         <div class="balao balao-usuario">
             ${texto}
-        </div>`;
+        </div>`);
         
     input.value = ''; 
     rolarParaBaixo(); 
 
     // 2. Adiciona o balão animado da KAI "Pensando..." com um ID único
     const idPensando = `pensando-${Date.now()}`;
-    caixaContent.innerHTML += `
+    caixaContent.insertAdjacentHTML('beforeend', `
         <div id="${idPensando}" class="balao balao-ia typing-indicator">
             <img src="${kaiAvatarUrl}" alt="Kai" style="width: 24px; height: 24px; object-fit: contain; margin-right: 8px;">
             <b style="color: #2288c4; margin-right: 8px;">Kai:</b>
@@ -40,7 +68,7 @@ async function enviarMensagem() {
             <div class="dot"></div>
             <div class="dot"></div>
             <div class="dot"></div>
-        </div>`;
+        </div>`);
         
     rolarParaBaixo();
 
@@ -69,16 +97,21 @@ async function enviarMensagem() {
                 window.history.replaceState({}, '', `?sessao=${sessaoAtualId}`);
             }
 
-            caixaContent.innerHTML += `
+            const idResposta = `resposta-${Date.now()}`;
+            caixaContent.insertAdjacentHTML('beforeend', `
                 <div class="balao balao-ia">
                     <div style="display: flex; align-items: center; margin-bottom: 6px;">
                         <img src="${kaiAvatarUrl}" alt="Kai" style="width: 24px; height: 24px; margin-right: 8px; object-fit: contain;">
                         <b style="color: #2288c4;">Kai:</b>
                     </div>
-                    ${data.resposta}
-                </div>`;
+                    <div id="${idResposta}"></div>
+                </div>`);
+                
+            // Efeito de digitação em tempo real
+            typeWriterHTML(document.getElementById(idResposta), data.resposta, 15);
+            
         } else {
-            caixaContent.innerHTML += `<div class="balao balao-ia text-danger"><b>Erro:</b> ${data.mensagem}</div>`;
+            caixaContent.insertAdjacentHTML('beforeend', `<div class="balao balao-ia text-danger"><b>Erro:</b> ${data.mensagem}</div>`);
         }
     } catch (error) {
         console.error('Erro:', error);
@@ -86,7 +119,7 @@ async function enviarMensagem() {
         const balaoPensando = document.getElementById(idPensando);
         if (balaoPensando) balaoPensando.remove();
         
-        caixaContent.innerHTML += `<div class="balao balao-ia text-danger">Falha ao conectar com o servidor.</div>`;
+        caixaContent.insertAdjacentHTML('beforeend', `<div class="balao balao-ia text-danger">Falha ao conectar com o servidor.</div>`);
     }
     
     rolarParaBaixo(); 

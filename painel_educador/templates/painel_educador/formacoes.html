@@ -1,0 +1,45 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Formações | Espaço do Professor</title>
+    <link rel="icon" href="{% static 'core/ico/favicon/favicon.svg' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'painel_educador/css/dashboard.css' %}?v=20260907a">
+</head>
+<body class="pe-page">
+    {% url 'painel_educador:dashboard' as painel_url %}
+    {% include "includes/navbar.html" with back_url=painel_url custom_title="Formações" %}
+    <main class="pe-shell pe-training-shell">
+        <header class="pe-training-hero">
+            <div><span class="pe-section-kicker">DESENVOLVIMENTO PROFISSIONAL</span><h1>Suas formações</h1><p>Escolha um curso e avance no seu ritmo. Todos os módulos ficam organizados em um único percurso.</p></div>
+            <span class="pe-training-mark" aria-hidden="true"><i class="fa-solid fa-graduation-cap"></i></span>
+        </header>
+        <section class="pe-course-section" aria-labelledby="course-title">
+            <div class="pe-course-heading"><div><span class="pe-section-kicker">CATÁLOGO</span><h2 id="course-title">Cursos disponíveis</h2></div><span>{{ formacoes|length }} curso{{ formacoes|length|pluralize }}</span></div>
+            <div class="pe-course-grid">
+                {% for formacao in formacoes %}
+                    <a class="pe-course-card" href="{% url 'painel_educador:formacao_detalhe' formacao.slug %}">
+                        <div class="pe-course-cover">
+                            {% if formacao.capa %}<img src="{{ formacao.capa.url }}" alt="Capa de {{ formacao.titulo }}">{% else %}<span><i class="fa-solid fa-laptop-code"></i></span>{% endif %}
+                            <small>FORMAÇÃO KAIZO</small>
+                        </div>
+                        <div class="pe-course-copy">
+                            <span class="pe-course-status"><i class="fa-solid fa-circle-play"></i> Disponível</span>
+                            <h3>{{ formacao.titulo }}</h3>
+                            <p>{{ formacao.resumo|default:"Uma formação preparada para apoiar sua prática." }}</p>
+                            <div class="pe-course-facts"><span><i class="fa-regular fa-clock"></i> {{ formacao.carga_horaria }} horas</span><span><i class="fa-solid fa-layer-group"></i> {{ formacao.total_modulos }} módulos</span><span><i class="fa-regular fa-file-lines"></i> {{ formacao.total_aulas }} aulas</span></div>
+                            <strong>Explorar formação <i class="fa-solid fa-arrow-right"></i></strong>
+                        </div>
+                    </a>
+                {% empty %}
+                    <div class="pe-course-empty"><span><i class="fa-solid fa-graduation-cap"></i></span><h3>Novas formações estão sendo preparadas</h3><p>Quando um curso for cadastrado e ativado no Django, ele aparecerá aqui.</p></div>
+                {% endfor %}
+            </div>
+        </section>
+        <footer class="pe-footer"><span><i class="fa-solid fa-shield-heart"></i> Formação continuada para transformar a prática.</span><strong>MundoKaizo</strong></footer>
+    </main>
+</body>
+</html>

@@ -1,126 +1,128 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#f3f7fa">
-    <link rel="icon" type="image/png" href="{% static 'core/ico/favicon/favicon-96x96.png' %}" sizes="96x96">
-    <link rel="icon" type="image/svg+xml" href="{% static 'core/ico/favicon/favicon.svg' %}">
-    <link rel="shortcut icon" href="{% static 'core/ico/favicon/favicon.ico' %}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'core/ico/favicon/apple-touch-icon.png' %}">
-    <title>Painel do Educador | MundoKaizo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4f7fa">
+    <title>Espaço do Professor | MundoKaizo</title>
+    <link rel="icon" href="{% static 'core/ico/favicon/favicon.svg' %}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'core/css/home.css' %}?v=20260901a">
-    
-    <style>
-        /* Ajustes específicos para o painel do educador, aproveitando as classes do home.css */
-        .welcome-panel.educator-panel {
-            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
-            color: #ffffff;
-        }
-        .welcome-panel.educator-panel .welcome-eyebrow {
-            color: #bfdbfe;
-        }
-        .educator-card-stats {
-            background: linear-gradient(145deg, #f8fafc, #eff6ff);
-            border-left: 4px solid #3b82f6;
-        }
-        .educator-card-bncc {
-            background: linear-gradient(145deg, #f8fafc, #f0fdf4);
-            border-left: 4px solid #22c55e;
-        }
-        .educator-card-support {
-            background: linear-gradient(145deg, #f8fafc, #fef2f2);
-            border-left: 4px solid #ef4444;
-        }
-        .educator-card-kai {
-            background: linear-gradient(145deg, #f8fafc, #fdf4ff);
-            border-left: 4px solid #d946ef;
-        }
-        /* Fix for grid columns */
-        .educator-card-stats, .educator-card-bncc, .educator-card-support, .educator-card-kai {
-            grid-column: span 6;
-            min-height: 285px;
-        }
-        @media (max-width: 720px) {
-            .educator-card-stats, .educator-card-bncc, .educator-card-support, .educator-card-kai {
-                grid-column: 1 !important;
-                min-height: 255px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'painel_educador/css/dashboard.css' %}?v=20260907a">
+    <script defer src="{% static 'painel_educador/js/dashboard.js' %}?v=20260907a"></script>
 </head>
-<body class="home-page">
-    <a class="skip-link" href="#conteudo-principal">Ir para o conteúdo</a>
+
+<body class="pe-page">
+    <a class="pe-skip" href="#conteudo-principal">Ir para o conteúdo</a>
     {% include "includes/navbar.html" %}
 
-    <main id="conteudo-principal" class="home-shell">
-        <header class="welcome-panel educator-panel" data-reveal>
-            <div class="welcome-copy">
-                <span class="welcome-eyebrow"><i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i> Espaço de Gestão Pedagógica</span>
-                <h1>Painel do Educador<br><span>Bem-vindo, {{ request.user.username }}!</span></h1>
-                <div class="welcome-pills" aria-label="Características da plataforma">
-                    <span><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Área Exclusiva</span>
-                    <span><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Acompanhamento</span>
-                </div>
+    <main id="conteudo-principal" class="pe-shell">
+        <header class="pe-hero" data-reveal>
+            <div class="pe-hero-copy">
+                <span class="pe-eyebrow"><i class="fa-solid fa-key" aria-hidden="true"></i> Área exclusiva do
+                    educador</span>
+                <h1>Espaço do Professor</h1>
+                <p class="pe-room-name">Sua sala dos professores digital</p>
+                <p class="pe-welcome">Bem-vindo, {{ request.user.first_name|default:request.user.username }}. Acompanhe
+                    suas turmas, organize o trabalho pedagógico e encontre apoio para cada etapa.</p>
             </div>
-            <div class="welcome-orbit" aria-hidden="true">
-                <span class="orbit-line orbit-line-one"></span>
-                <span class="orbit-line orbit-line-two"></span>
-                <span class="orbit-item orbit-book"><i class="fa-solid fa-book-open"></i></span>
-                <span class="orbit-item orbit-game"><i class="fa-solid fa-users"></i></span>
-                <span class="orbit-item orbit-star"><i class="fa-solid fa-lightbulb"></i></span>
-                <span class="orbit-core"><i class="fa-solid fa-chalkboard-teacher"></i></span>
+            <div class="pe-command" aria-hidden="true">
+                <div class="pe-command-top"><span></span><span></span><span></span><small>VISÃO PEDAGÓGICA</small></div>
+                <div class="pe-command-grid">
+                    <span class="pe-command-feature"><i
+                            class="fa-solid fa-chart-line"></i><b>Progresso</b><small>acompanhar</small></span>
+                    <span><i class="fa-solid fa-users"></i><b>Turmas</b></span>
+                    <span><i class="fa-solid fa-book-open"></i><b>BNCC</b></span>
+                    <span><i class="fa-solid fa-graduation-cap"></i><b>Formações</b></span>
+                </div>
             </div>
         </header>
 
-        <section class="journey-section" aria-labelledby="journey-title">
-            <div class="section-heading" data-reveal>
+        <section class="pe-workspace" aria-labelledby="pe-resources-title">
+            <div class="pe-section-heading" data-reveal>
                 <div>
-                    <span class="section-kicker">FERRAMENTAS</span>
-                    <h2 id="journey-title">Recursos para sua gestão</h2>
+                    <span class="pe-section-kicker">SEU AMBIENTE DE TRABALHO</span>
+                    <h2 id="pe-resources-title">O que você precisa hoje?</h2>
                 </div>
-                <p>Acesse rapidamente as principais funcionalidades pedagógicas.</p>
+                <p>Acessos diretos para acompanhar, planejar, aprender e pedir ajuda.</p>
             </div>
 
-            <div class="experience-grid">
-                
-                <a href="#" class="experience-card educator-card-stats" data-tilt data-reveal>
-                    <span class="card-icon"><i class="fa-solid fa-chart-column" style="color: #3b82f6;" aria-hidden="true"></i></span>
-                    <span class="card-copy"><strong>Estatísticas e Relatórios</strong><small>Acompanhe o desempenho, progresso e engajamento das turmas.</small></span>
-                    <span class="card-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
+            <div class="pe-grid">
+                <a href="{% url 'gerenciar' %}" class="pe-card pe-card-reports" data-reveal>
+                    <span class="pe-card-index">01</span>
+                    <span class="pe-card-icon"><i class="fa-solid fa-chart-column" aria-hidden="true"></i></span>
+                    <span class="pe-card-copy">
+                        <small>Acompanhamento pedagógico</small>
+                        <strong>Estatísticas e relatórios</strong>
+                        <span>Visualize o desempenho, o progresso e o engajamento das suas turmas.</span>
+                    </span>
+                    <span class="pe-card-action">Abrir relatórios <i class="fa-solid fa-arrow-right"
+                            aria-hidden="true"></i></span>
+                    <span class="pe-chart" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
                 </a>
 
-                <a href="{% url 'bncc_list' %}" class="experience-card educator-card-bncc" data-tilt data-reveal>
-                    <span class="card-icon"><i class="fa-solid fa-map-location-dot" style="color: #22c55e;" aria-hidden="true"></i></span>
-                    <span class="card-copy"><strong>BNCC Digital</strong><small>Consulte habilidades e alinhe suas práticas à Base Nacional.</small></span>
-                    <span class="card-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
+                <a href="{% url 'bncc_list' %}" class="pe-card pe-card-bncc" data-reveal>
+                    <span class="pe-card-index">02</span>
+                    <span class="pe-card-icon"><i class="fa-solid fa-map" aria-hidden="true"></i></span>
+                    <span class="pe-card-copy">
+                        <small>Referência curricular</small>
+                        <strong>BNCC Digital</strong>
+                        <span>Consulte habilidades e encontre caminhos para o seu planejamento.</span>
+                    </span>
+                    <span class="pe-card-action">Consultar habilidades <i class="fa-solid fa-arrow-right"
+                            aria-hidden="true"></i></span>
+                    <span class="pe-map-lines" aria-hidden="true"></span>
                 </a>
 
-                <a href="{% url 'kai_chat' %}" class="experience-card educator-card-kai" data-tilt data-reveal>
-                    <span class="card-icon"><i class="fa-solid fa-robot" style="color: #d946ef;" aria-hidden="true"></i></span>
-                    <span class="card-copy"><strong>Assistente IA (Kai)</strong><small>Gere ideias, planos de aula e tire dúvidas pedagógicas.</small></span>
-                    <span class="card-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
+                <a href="{% url 'kai_chat' %}" class="pe-card pe-card-kai" data-reveal>
+                    <span class="pe-card-index">03</span>
+                    <span class="pe-kai-glow" aria-hidden="true"></span>
+                    <img src="{% static 'core/img/kai.png' %}" alt="" class="pe-kai-character">
+                    <span class="pe-card-copy">
+                        <small><i class="fa-solid fa-sparkles" aria-hidden="true"></i> Sua parceira de ideias</small>
+                        <strong>Assistente Kai</strong>
+                        <span>Crie planos, organize propostas e encontre novas possibilidades para suas aulas.</span>
+                    </span>
+                    <span class="pe-card-action">Conversar com a Kai <i class="fa-solid fa-arrow-right"
+                            aria-hidden="true"></i></span>
                 </a>
 
-                <a href="{% url 'suporte:lista_tickets' %}" class="experience-card educator-card-support" data-tilt data-reveal>
-                    <span class="card-icon"><i class="fa-solid fa-headset" style="color: #ef4444;" aria-hidden="true"></i></span>
-                    <span class="card-copy"><strong>Suporte</strong><small>Precisa de ajuda? Fale com nossa equipe técnica e pedagógica.</small></span>
-                    <span class="card-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
+                <a href="#" class="pe-card pe-card-training" data-reveal>
+                    <span class="pe-card-index">04</span>
+                    <span class="pe-card-icon"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i></span>
+                    <span class="pe-card-copy">
+                        <small>Desenvolvimento profissional</small>
+                        <strong>Formações</strong>
+                        <span>Acesse seus cursos e continue avançando na sua jornada profissional.</span>
+                    </span>
+                    <span class="pe-card-action">Ver formações <i class="fa-solid fa-arrow-right"
+                            aria-hidden="true"></i></span>
+                    <span class="pe-certificate" aria-hidden="true"><i class="fa-solid fa-award"></i></span>
                 </a>
 
+                <a href="{% url 'suporte:lista_tickets' %}" class="pe-card pe-card-support" data-reveal>
+                    <span class="pe-card-index">05</span>
+                    <span class="pe-card-icon"><i class="fa-solid fa-headset" aria-hidden="true"></i></span>
+                    <span class="pe-card-copy">
+                        <small>Apoio técnico e pedagógico</small>
+                        <strong>Suporte</strong>
+                        <span>Fale com nossa equipe sempre que precisar.</span>
+                    </span>
+                    <span class="pe-card-action">Pedir ajuda <i class="fa-solid fa-arrow-right"
+                            aria-hidden="true"></i></span>
+                </a>
             </div>
         </section>
 
-        <footer class="home-footer">
-            <span><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> MundoKaizo - Gestão Educacional</span>
-            <strong>MundoKaizo</strong>
-        </footer>
+        <footer class="pe-footer"><span><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> Um espaço preparado
+                para apoiar o seu trabalho.</span><strong>MundoKaizo</strong></footer>
     </main>
-    <script src="{% static 'core/js/home.js' %}?v=20260901a"></script>
 </body>
+
 </html>
