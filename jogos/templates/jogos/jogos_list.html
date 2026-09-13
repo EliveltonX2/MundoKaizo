@@ -6,7 +6,7 @@
 <title>Sala de Jogos | MundoKaizo</title>
 <link rel="icon" href="{% static 'core/ico/favicon/favicon.svg' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link rel="stylesheet" href="{% static 'jogos/css/jogos.css' %}?v=20260902a">
+<link rel="stylesheet" href="{% static 'jogos/css/jogos_kaizo.css' %}?v=20260912a">
 </head>
 <body class="jg-page">
 <a class="jg-skip" href="#jogos-grid">Pular para os jogos</a>
@@ -16,8 +16,9 @@
     <section class="jg-hero" aria-labelledby="page-title">
         <div class="jg-hero-copy">
             <span class="jg-eyebrow"><i class="fa-solid fa-gamepad" aria-hidden="true"></i> Aprender jogando</span>
-            <h1 id="page-title">Sala de<br><span>Jogos Educativos</span></h1>
+            <h1 id="page-title">Minigames para <span>aprender jogando.</span></h1>
             <p>Supere desafios, teste ideias e conquiste novos conhecimentos de forma divertida.</p>
+            <div class="jg-hero-meta"><span><i class="fa-solid fa-gamepad" aria-hidden="true"></i> {{ jogos|length }} jogo{{ jogos|length|pluralize }}</span><span><i class="fa-solid fa-bolt" aria-hidden="true"></i> Jogue no navegador</span></div>
         </div>
         <div class="jg-hero-visual" aria-hidden="true">
             <span class="jg-orbit jg-orbit-one"></span><span class="jg-orbit jg-orbit-two"></span>
@@ -114,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cards.forEach(card => {
             const searchable = card.dataset.search.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             if (searchable.includes(normalizedQuery)) {
-                card.style.display = 'flex';
+                card.style.removeProperty('display');
                 count++;
             } else {
                 card.style.display = 'none';

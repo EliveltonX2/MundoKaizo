@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Nunito:wght@700;800;900&display=swap');
+/* PLACAR ARCADE KAIZO */
+.dashboard-stats-link{display:block;color:inherit;text-decoration:none}
+.dashboard-arena-label{min-height:34px;margin-bottom:8px;padding:0 8px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.dashboard-arena-label span{display:inline-flex;align-items:center;gap:8px;color:#6d36d9;font:900 10px 'Nunito','Segoe UI',sans-serif;letter-spacing:.11em;text-transform:uppercase}
+.dashboard-arena-label span i{width:25px;height:25px;display:grid;place-items:center;border-radius:9px;background:linear-gradient(145deg,#ff4778,#ff7a3d);box-shadow:0 5px 12px rgba(239,71,112,.28);color:#fff;animation:gamepadWiggle 2.7s ease-in-out infinite}
+.dashboard-arena-label small{padding:5px 9px;border:1px solid #e2d9ff;border-radius:999px;background:#f7f3ff;color:#765e9c;font:900 8px 'Nunito','Segoe UI',sans-serif;letter-spacing:.04em;text-transform:uppercase}
+.dashboard-stats{position:relative;isolation:isolate;min-height:142px;padding:8px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;overflow:hidden;border:4px solid #14284a;border-radius:27px;background:#14284a;box-shadow:0 9px 0 #091b35,0 18px 38px rgba(20,40,74,.26),inset 0 2px 0 rgba(255,255,255,.18)}
+.dashboard-stats::before{position:absolute;inset:4px;z-index:5;border:1px solid rgba(255,255,255,.2);border-radius:19px;content:'';pointer-events:none}
+.dashboard-stats::after{position:absolute;top:-70%;left:-28%;z-index:6;width:18%;height:240%;content:'';background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);transform:rotate(18deg);pointer-events:none;animation:arcadeShine 5.8s ease-in-out infinite}
+.dashboard-stat{position:relative;min-width:0;min-height:118px;margin-left:-9px;padding:18px 18px 17px 27px;display:grid;grid-template-columns:48px minmax(0,1fr);align-items:center;gap:12px;overflow:hidden;color:#fff;clip-path:polygon(8% 0,100% 0,92% 100%,0 100%);transition:filter .2s ease,transform .2s ease}
+.dashboard-stat:first-child{margin-left:0;padding-left:18px;clip-path:polygon(0 0,100% 0,92% 100%,0 100%);border-radius:18px 0 0 18px}
+.dashboard-stat:last-child{padding-right:16px;clip-path:polygon(8% 0,100% 0,100% 100%,0 100%);border-radius:0 18px 18px 0}
+.dashboard-stat::before{position:absolute;inset:0;content:'';background-image:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px);background-size:18px 18px;opacity:.55;pointer-events:none}
+.dashboard-stat::after{position:absolute;top:-35px;left:8%;width:86px;height:190px;content:'';background:rgba(255,255,255,.1);transform:rotate(19deg);pointer-events:none}
+.dashboard-stat-score{z-index:4;background:linear-gradient(135deg,#00a879,#11d98c)}
+.dashboard-stat-streak{z-index:3;background:linear-gradient(135deg,#f32969,#ff5b7c)}
+.dashboard-stat-record{z-index:2;background:linear-gradient(135deg,#ff8a16,#ffc329)}
+.dashboard-stat-ranking{z-index:1;background:linear-gradient(135deg,#5966ed,#9a43e8)}
+.dashboard-stat-icon{position:relative;z-index:2;width:48px;height:48px;display:grid;place-items:center;border:3px solid rgba(255,255,255,.75);border-radius:16px;background:rgba(13,28,57,.24);box-shadow:0 6px 0 rgba(8,26,53,.26),0 10px 18px rgba(8,26,53,.18),inset 0 2px 0 rgba(255,255,255,.25);color:#fff;font-size:20px;text-shadow:0 3px 0 rgba(7,25,49,.24);transform:rotate(-6deg);animation:statIconBounce 2.8s ease-in-out infinite}
+.dashboard-stat-streak .dashboard-stat-icon{animation-delay:-.55s}.dashboard-stat-record .dashboard-stat-icon{animation-delay:-1.1s}.dashboard-stat-ranking .dashboard-stat-icon{animation-delay:-1.65s}
+.dashboard-stat-copy{position:relative;z-index:2;min-width:0}
+.dashboard-stat-copy>span{display:block;color:#fff;font:900 9px 'Nunito','Segoe UI',sans-serif;letter-spacing:.085em;line-height:1.1;text-shadow:0 2px 2px rgba(9,29,55,.26);text-transform:uppercase}
+.dashboard-stat-copy strong{margin-top:7px;display:flex;align-items:baseline;gap:5px;color:#fff;font:700 38px 'Fredoka','Nunito',sans-serif;letter-spacing:-.04em;line-height:.9;text-shadow:0 4px 0 rgba(8,28,54,.25),0 8px 12px rgba(8,28,54,.17)}
+.dashboard-stat-copy small{color:rgba(255,255,255,.95);font:900 9px 'Nunito','Segoe UI',sans-serif;letter-spacing:.04em;text-transform:uppercase}
+.dashboard-stat-watermark{position:absolute;right:-7px;bottom:-19px;z-index:1;color:#fff;font-size:72px;opacity:.13;transform:rotate(-11deg);animation:watermarkPulse 3.3s ease-in-out infinite}
+.dashboard-stat-streak .dashboard-stat-watermark{animation-delay:-.7s}.dashboard-stat-record .dashboard-stat-watermark{animation-delay:-1.4s}.dashboard-stat-ranking .dashboard-stat-watermark{animation-delay:-2.1s}
+.dashboard-stats-link:hover .dashboard-stat{filter:saturate(1.13) brightness(1.04)}
+.dashboard-stats-link:hover .dashboard-stat:hover{z-index:8;filter:saturate(1.22) brightness(1.1);transform:translateY(-4px) scale(1.025)}
+.dashboard-stats-link:focus-visible{outline:4px solid rgba(109,54,217,.25);outline-offset:5px;border-radius:28px}
+@keyframes statIconBounce{0%,100%{transform:translateY(0) rotate(-6deg)}45%,55%{transform:translateY(-5px) rotate(4deg)}}
+@keyframes watermarkPulse{0%,100%{opacity:.1;transform:rotate(-11deg) scale(.94)}50%{opacity:.18;transform:rotate(-5deg) scale(1.06)}}
+@keyframes gamepadWiggle{0%,82%,100%{transform:translateY(0) rotate(0)}87%{transform:translateY(-2px) rotate(-12deg)}93%{transform:translateY(-2px) rotate(12deg)}}
+@keyframes arcadeShine{0%,58%{left:-28%;opacity:0}63%{opacity:.9}82%{left:116%;opacity:.65}100%{left:116%;opacity:0}}
+@media(max-width:940px){.dashboard-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:9px}.dashboard-stat,.dashboard-stat:first-child,.dashboard-stat:last-child{margin:0;padding:16px;clip-path:none;border-radius:16px}}
+@media(max-width:540px){.dashboard-arena-label small{display:none}.dashboard-stats{grid-template-columns:1fr}.dashboard-stat,.dashboard-stat:first-child,.dashboard-stat:last-child{min-height:94px;grid-template-columns:44px minmax(0,1fr)}.dashboard-stat-icon{width:44px;height:44px}.dashboard-stat-copy strong{font-size:33px}}
+@media(prefers-reduced-motion:reduce){.dashboard-stat-icon,.dashboard-stat-watermark,.dashboard-arena-label i,.dashboard-stats::after{animation:none!important}.dashboard-stat{transition-duration:.01ms!important}}

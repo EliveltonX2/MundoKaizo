@@ -8,30 +8,32 @@
     <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'core/css/app.css' %}">
-    <link rel="stylesheet" href="{% static 'core/css/dashboard_master.css' %}">
+    <link rel="stylesheet" href="{% static 'core/css/gerenciar_dashboard.css' %}?v=20260912c">
+    <script defer src="{% static 'core/js/gerenciar_dashboard.js' %}?v=20260912a"></script>
 </head>
-<body class="bg-light min-vh-100">
+<body class="master-page">
 
     {% url 'home' as back_url %}
     {% include 'includes/navbar.html' with back_url=back_url custom_title="Gerenciar" show_search=False %}
 
-    <div class="container-fluid px-4 py-4 dashboard-container">
+    <main class="master-shell">
         <!-- Header & Filtros -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold text-dark mb-0"><i class="fas fa-chart-line text-primary me-2"></i> Gerenciamento de Turmas</h2>
-            <a href="{% url 'dashboard_exportar_csv' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">
-                <i class="fas fa-download me-1"></i> Exportar CSV
-            </a>
-        </div>
+        <header class="master-heading">
+            <div class="master-heading-copy"><span class="master-eyebrow">Visão administrativa</span><h1>Gerenciar</h1><p>Acompanhe cidades, escolas, turmas e resultados em um só lugar.</p></div>
+            <div class="master-heading-actions">
+                <a href="{% url 'dashboard_exportar_csv' %}" class="master-export-button"><i class="fa-solid fa-file-csv" aria-hidden="true"></i> Exportar CSV</a>
+                <button type="button" class="master-pdf-button" id="createPdfButton" data-logo="{% static 'core/img/logokaizo2.png' %}"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Criar PDF</button>
+            </div>
+        </header>
 
-        <div class="card border-0 shadow-sm rounded-4 mb-4 filter-card">
+        <div class="master-filter-panel filter-card">
             <div class="card-body p-4">
-                <form method="GET" action="{% url 'gerenciar' %}" class="row g-3 align-items-end" id="filterForm">
+                <form method="GET" action="{% url 'gerenciar' %}" class="master-filter-grid" id="filterForm">
                     
                     {% if request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'ADMIN' %}
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold text-muted small">Estado / Cidade</label>
-                        <select name="cidade" class="form-select rounded-pill bg-light border-0" onchange="document.getElementById('filterForm').submit()">
+                    <div class="master-filter-field">
+                        <label class="master-filter-label">Estado / Cidade</label>
+                        <select name="cidade" class="master-filter-select" onchange="document.getElementById('filterForm').submit()">
                             <option value="">Todas as Cidades</option>
                             {% for c in cidades %}
                             <option value="{{ c.id }}" {% if sel_cidade == c.id %}selected{% endif %}>{{ c.nome }} - {{ c.estado.sigla }}</option>
@@ -41,9 +43,9 @@
                     {% endif %}
 
                     {% if request.user.tipo != 'PROFESSOR' %}
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold text-muted small">Escola</label>
-                        <select name="escola" class="form-select rounded-pill bg-light border-0" onchange="document.getElementById('filterForm').submit()">
+                    <div class="master-filter-field">
+                        <label class="master-filter-label">Escola</label>
+                        <select name="escola" class="master-filter-select" onchange="document.getElementById('filterForm').submit()">
                             <option value="">Todas as Escolas</option>
                             {% for e in escolas %}
                             <option value="{{ e.id }}" {% if sel_escola == e.id %}selected{% endif %}>{{ e.nome }}</option>
@@ -52,9 +54,9 @@
                     </div>
                     {% endif %}
 
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold text-muted small">Turma</label>
-                        <select name="turma" class="form-select rounded-pill bg-light border-0" onchange="document.getElementById('filterForm').submit()">
+                    <div class="master-filter-field">
+                        <label class="master-filter-label">Turma</label>
+                        <select name="turma" class="master-filter-select" onchange="document.getElementById('filterForm').submit()">
                             <option value="">Todas as Turmas</option>
                             {% for t in turmas %}
                             <option value="{{ t.id }}" {% if sel_turma == t.id %}selected{% endif %}>{{ t.nome }} ({{ t.escola.nome }})</option>
@@ -62,15 +64,15 @@
                         </select>
                     </div>
 
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-outline-primary rounded-pill w-100 fw-bold">Filtrar</button>
+                    <div class="master-filter-action">
+                        <button type="submit" class="master-filter-button">Filtrar</button>
                     </div>
                 </form>
             </div>
         </div>
 
         <!-- Metrics Cards -->
-        <div class="row g-4 mb-4">
+        <div class="row g-4 mb-4 master-metrics">
             <div class="col-xl-3 col-sm-6">
                 <div class="card metric-card border-0 shadow-sm rounded-4 h-100 bg-white">
                     <div class="card-body p-4 d-flex align-items-center">
@@ -126,9 +128,9 @@
         </div>
 
         <!-- Charts Area -->
-        <div class="row g-4 mb-4">
+        <div class="row g-4 mb-4 master-charts master-charts-primary">
             <div class="col-lg-7">
-                <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card master-chart-panel">
                     <div class="card-body p-4">
                         <h5 class="fw-bold text-dark mb-4">Domínio de Habilidades BNCC (Top 6)</h5>
                         <div class="chart-container" style="position: relative; height: 350px;">
@@ -138,7 +140,7 @@
                 </div>
             </div>
             <div class="col-lg-5">
-                <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card master-chart-panel">
                     <div class="card-body p-4">
                         <h5 class="fw-bold text-dark mb-4">Evolução do Engajamento (Alunos Ativos)</h5>
                         <div class="chart-container" style="position: relative; height: 350px; display: flex; justify-content: center; align-items: center;">
@@ -150,16 +152,16 @@
         </div>
 
         <!-- Second Row of Charts -->
-        <div class="row g-4 mb-4">
+        <div class="row g-4 mb-4 master-charts master-charts-secondary">
             <!-- Calendário Heatmap (30 dias) -->
             <div class="col-lg-6">
-                <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card master-chart-panel">
                     <div class="card-body p-4">
                         <h5 class="fw-bold text-dark mb-4"><i class="fas fa-calendar-check text-success me-2"></i> Acessos da Rede (Últimos 30 Dias)</h5>
                         <div style="max-width: 320px; margin: 0 auto;">
                             <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;">
                                 {% for dia in mapa_30dias %}
-                                    <div title="{{ dia.data }} - {{ dia.total }} acessos" style="
+                                    <div class="master-heat-day" title="{{ dia.data }} - {{ dia.total }} acessos" style="
                                         aspect-ratio: 1;
                                         border-radius: 6px; 
                                         background-color: rgba(46, 160, 67, {{ dia.intensidade }});
@@ -190,7 +192,7 @@
             
             <!-- Gráfico de Tempo Diário (7 Dias) -->
             <div class="col-lg-6">
-                <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card master-chart-panel">
                     <div class="card-body p-4">
                         <h5 class="fw-bold text-dark mb-4"><i class="fas fa-clock text-primary me-2"></i> Tempo Médio Diário (Últimos 7 Dias)</h5>
                         <div class="chart-container" style="position: relative; height: 350px;">
@@ -202,11 +204,11 @@
         </div>
 
         <!-- Detailed List Area -->
-        <div class="card border-0 shadow-sm rounded-4 mb-5">
+        <div class="master-table-panel">
             <div class="card-body p-4">
                 <h5 class="fw-bold text-dark mb-4">Detalhamento de Alunos (Filtro Atual)</h5>
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle">
+                    <table class="table table-hover align-middle" id="studentsReportTable">
                         <thead class="bg-light text-muted">
                             <tr>
                                 <th class="border-0 rounded-start">Nome</th>
@@ -242,12 +244,15 @@
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            Chart.defaults.font.family = "Nunito, Segoe UI, sans-serif";
+            Chart.defaults.color = "#5d7488";
+            Chart.defaults.borderColor = "rgba(10, 43, 73, 0.08)";
             const labelsHab = JSON.parse('{{ labels_hab|safe }}');
             const dataJogosHab = JSON.parse('{{ data_jogos_hab|safe }}');
             const dataLivrosHab = JSON.parse('{{ data_livros_hab|safe }}');
@@ -263,13 +268,13 @@
                             {
                                 label: 'Média de Prática em Jogos (min)',
                                 data: dataJogosHab,
-                                backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                                backgroundColor: 'rgba(39, 143, 196, 0.82)',
                                 borderRadius: 6
                             },
                             {
                                 label: 'Média de Prática em Livros (min)',
                                 data: dataLivrosHab,
-                                backgroundColor: 'rgba(155, 89, 182, 0.7)',
+                                backgroundColor: 'rgba(239, 71, 112, 0.72)',
                                 borderRadius: 6
                             }
                         ]
@@ -302,7 +307,7 @@
                         labels: ['Ativos (30d)', 'Inativos'],
                         datasets: [{
                             data: [ativos, inativos],
-                            backgroundColor: ['#2ecc71', '#3498db'],
+                            backgroundColor: ['#49b8df', '#dce8ef'],
                             borderWidth: 0,
                             hoverOffset: 4
                         }]
@@ -333,7 +338,7 @@
                         datasets: [{
                             label: 'Tempo Médio (minutos)',
                             data: data7d,
-                            backgroundColor: '#e67e22',
+                            backgroundColor: '#ffb83f',
                             borderRadius: 6
                         }]
                     },

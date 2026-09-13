@@ -3,7 +3,7 @@
     --coral: #ff6673;
     --aqua: #44c9bd;
     --yellow: #ffd85c;
-    --shell-height: 58px;
+    --shell-height: 76px;
 }
 
 * { box-sizing: border-box; }
@@ -152,6 +152,7 @@ html, body {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 600px) {
+    :root { --shell-height: 68px; }
     .tool-shell {
         padding: 0 10px;
         grid-template-columns: auto 1fr;

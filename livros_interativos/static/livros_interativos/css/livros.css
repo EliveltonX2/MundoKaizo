@@ -226,3 +226,14 @@
 @media (prefers-reduced-motion: reduce) {
     .li-page *, .li-page *::before, .li-page *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
 }
+
+/* PADRAO COMPACTO DE BANNER — mesma régua visual da página Início */
+@media (min-width:701px) {
+    .li-shell { margin-top:16px; }
+    .li-hero { min-height:176px; padding:20px 40px; }
+    .li-hero h1 { font-size:clamp(29px,2.8vw,36px); }
+    .li-hero p { margin-top:7px; font-size:12px; line-height:1.42; }
+    .li-hero-tags { margin-top:10px; }
+    .li-hero-tags span { padding:5px 9px; font-size:8px; }
+    .li-computer-scene { transform:scale(.84); transform-origin:right center; }
+}

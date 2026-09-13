@@ -1,5 +1,7 @@
 {% load static %}
-<link rel="stylesheet" href="{% static 'core/css/navbar.css' %}?v=20260901a">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="{% static 'core/css/navbar.css' %}?v=20260914b">
 
 <header class="mk-header">
     <nav class="mk-navbar" aria-label="Navegação principal">
@@ -8,9 +10,11 @@
                 <a href="{{ back_url }}" class="mk-icon-btn mk-back-btn" aria-label="Voltar" title="Voltar"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
             {% endif %}
             <a class="mk-brand" href="{% url 'home' %}" aria-label="MundoKaizo — página inicial">
-                <span class="mk-brand-mark" aria-hidden="true"><i class="fa-solid fa-rocket"></i></span>
+                <span class="mk-brand-mark" aria-hidden="true" data-mk-brand-mascot data-mascots="{% static 'core/img/navbar-mascots/planet-happy.png' %}|{% static 'core/img/navbar-mascots/planet-book.png' %}|{% static 'core/img/navbar-mascots/planet-glasses.png' %}|{% static 'core/img/navbar-mascots/planet-cookie.png' %}|{% static 'core/img/navbar-mascots/earth-satellites.png' %}|{% static 'core/img/navbar-mascots/earth-laptop.png' %}|{% static 'core/img/navbar-mascots/earth-chip.png' %}|{% static 'core/img/navbar-mascots/earth-tablet.png' %}|{% static 'core/img/navbar-mascots/moon-telescope.png' %}|{% static 'core/img/navbar-mascots/moon-flag.png' %}|{% static 'core/img/navbar-mascots/sun-laptop.png' %}|{% static 'core/img/navbar-mascots/sun-tablet.png' %}" data-rare-mascots="moon-telescope.png|moon-flag.png|sun-laptop.png|sun-tablet.png">
+                    <img class="mk-brand-mascot" alt="" draggable="false">
+                </span>
                 <span class="mk-brand-copy">
-                    <strong>{% if custom_title %}{{ custom_title }}{% else %}MundoKaizo{% endif %}</strong>
+                    <strong><span class="mk-brand-world">Mundo</span><span class="mk-brand-kaizo">Kaizo</span></strong>
                     <small>Aprender é uma aventura</small>
                 </span>
             </a>
@@ -36,7 +40,8 @@
         </div>
 
         <div class="mk-navbar-actions">
-            <div class="mk-user-dropdown">
+            {% if request.user.is_authenticated %}
+                <div class="mk-user-dropdown">
                 <button class="mk-user-btn" type="button" aria-expanded="false" aria-controls="mkUserMenu">
                     <span class="mk-avatar" aria-hidden="true">{{ request.user.username|first|upper }}</span>
                     <span class="mk-user-name">{{ request.user.username }}</span>
@@ -50,7 +55,12 @@
                         <button type="submit"><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> Sair</button>
                     </form>
                 </div>
-            </div>
+                </div>
+            {% else %}
+                <a class="mk-login-link" href="{% url 'login' %}?next={{ request.path|urlencode }}">
+                    <i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i><span>Entrar</span>
+                </a>
+            {% endif %}
             <button class="mk-menu-btn" type="button" aria-expanded="false" aria-controls="mkMainMenu" aria-label="Abrir menu principal">
                 <i class="fa-solid fa-bars" aria-hidden="true"></i>
             </button>
@@ -72,16 +82,16 @@
         <a class="{% if request.resolver_match.url_name == 'estante' %}is-current{% endif %}" href="{% url 'estante' %}">
             <span class="mk-menu-icon"><i class="fa-solid fa-book" aria-hidden="true"></i></span><span>Livros</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>
         </a>
-        <a class="{% if request.resolver_match.url_name == 'lista' and request.resolver_match.app_name == 'livros_interativos' %}is-current{% endif %}" href="{% url 'livros_interativos:lista' %}">
+        <a class="{% if request.resolver_match.namespace == 'livros_interativos' %}is-current{% endif %}" href="{% url 'livros_interativos:lista' %}" {% if request.resolver_match.namespace == 'livros_interativos' %}aria-current="page"{% endif %}>
             <span class="mk-menu-icon"><i class="fa-solid fa-book-open-reader" aria-hidden="true"></i></span><span>Livros Interativos</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>
         </a>
-        <a class="{% if request.resolver_match.url_name == 'lista' and request.resolver_match.app_name == 'jogos' %}is-current{% endif %}" href="{% url 'jogos:lista' %}">
+        <a class="{% if request.resolver_match.namespace == 'jogos' %}is-current{% endif %}" href="{% url 'jogos:lista' %}" {% if request.resolver_match.namespace == 'jogos' %}aria-current="page"{% endif %}>
             <span class="mk-menu-icon"><i class="fa-solid fa-gamepad" aria-hidden="true"></i></span><span>MiniGames</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>
         </a>
         <a class="{% if request.resolver_match.url_name == 'galeria_videos' %}is-current{% endif %}" href="{% url 'galeria_videos' %}">
             <span class="mk-menu-icon"><i class="fa-solid fa-video" aria-hidden="true"></i></span><span>Vídeos</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>
         </a>
-        <a href="{% url 'ferramentas_index' %}">
+        <a class="{% if request.resolver_match.url_name == 'ferramentas_index' or request.resolver_match.url_name == 'ferramenta_detail' %}is-current{% endif %}" href="{% url 'ferramentas_index' %}" {% if request.resolver_match.url_name == 'ferramentas_index' or request.resolver_match.url_name == 'ferramenta_detail' %}aria-current="page"{% endif %}>
             <span class="mk-menu-icon"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></span><span>Ferramentas</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>
         </a>
         <span class="mk-side-menu-item is-disabled" aria-disabled="true">
@@ -124,10 +134,12 @@
         {% endif %}
     </nav>
 
-    <div class="mk-side-menu-user">
-        <span class="mk-avatar" aria-hidden="true">{{ request.user.username|first|upper }}</span>
-        <span><small>Conectado como</small><strong>{{ request.user.username }}</strong></span>
-    </div>
+    {% if request.user.is_authenticated %}
+        <div class="mk-side-menu-user">
+            <span class="mk-avatar" aria-hidden="true">{{ request.user.username|first|upper }}</span>
+            <span><small>Conectado como</small><strong>{{ request.user.username }}</strong></span>
+        </div>
+    {% endif %}
 </aside>
 
 {% if request.resolver_match.url_name == 'estante' %}
@@ -142,5 +154,5 @@
     </div>
 {% endif %}
 
-<script src="{% static 'core/js/navbar.js' %}?v=20260901a"></script>
+<script src="{% static 'core/js/navbar.js' %}?v=20260914b"></script>
 {% if request.user.is_authenticated and request.user.tipo == 'DEMO' %}<script src="{% static 'core/js/geo_tracker.js' %}"></script>{% endif %}

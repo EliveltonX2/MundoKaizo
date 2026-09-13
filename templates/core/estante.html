@@ -4,94 +4,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="{% static 'core/ico/favicon/favicon-96x96.png' %}" sizes="96x96" />
-    <link rel="icon" type="image/svg+xml" href="{% static 'core/ico/favicon/favicon.svg' %}" />
-    <link rel="shortcut icon" href="{% static 'core/ico/favicon/favicon.ico' %}" />
-    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'core/ico/favicon/apple-touch-icon.png' %}" />
-    <link rel="manifest" href="{% static 'core/ico/favicon/site.webmanifest' %}" />
-    <title>Estante - MundoKaizo</title>
-    
-    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
-    
+    <link rel="icon" type="image/png" href="{% static 'core/ico/favicon/favicon-96x96.png' %}" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="{% static 'core/ico/favicon/favicon.svg' %}">
+    <link rel="shortcut icon" href="{% static 'core/ico/favicon/favicon.ico' %}">
+    <title>Estante | MundoKaizo</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <link rel="stylesheet" href="{% static 'core/css/app.css' %}">
-    <link rel="stylesheet" href="{% static 'core/css/estante.css' %}">
-
+    <link rel="stylesheet" href="{% static 'core/css/estante.css' %}?v=20260912b">
 </head>
-<body>
-
+<body class="estante-page">
+    <a class="estante-skip" href="#acervo">Pular para os livros</a>
     {% include 'includes/navbar.html' with show_search=True search_placeholder="Filtrar livros..." %}
+    {% regroup livros by colecao as livros_por_colecao %}
 
-    <div class="estante-container">
-        {% if is_gestor %}
-            <div class="alert-gestor">
-                <i class="fas fa-info-circle"></i> Painel de Gestão: Você está vendo todos os livros disponíveis.
-            </div>
-        {% endif %}
-
-        {% regroup livros by colecao as livros_por_colecao %}
-
-        {% for colecao in livros_por_colecao %}
-            <div class="colecao-section">
-                <h4 class="colecao-title">
-                    {% if colecao.grouper %}
-                        {{ colecao.grouper.nome }}
-                    {% else %}
-                        Outros Manuais
-                    {% endif %}
-                </h4>
-                
-                <hr class="colecao-divider">
-
-                <div class="books-grid">
-                    
-                    {% for livro in colecao.list %}
-                        <div class="book-card">
-                            {% if livro.capa %}
-                                <img class="book-cover" src="{{ livro.capa.url }}" alt="{{ livro.titulo }}">
-                            {% else %}
-                                <div class="card-img-top" style="height: 250px; background: #2288c4; display: flex; align-items: center; justify-content: center; color: white;">
-                                    <i class="fas fa-book-open fa-3x"></i>
-                                    <span style="display: block; margin-top: 10px; font-weight: bold; font-size: 14px;"></span>
-                                </div>
-                            {% endif %}
-                         
-                            <div class="title-wrapper">
-                                <h5 class="book-title">{{ livro.titulo }}</h5>
-                            </div>
-
-                            {% if livro.is_versao_professor %}
-                                <span class="badge-professor">Professor</span>
-                            {% endif %}
-
-                            <div class="card-actions">
-                                <a href="{% url 'ler_livro' livro.id %}" class="btn-card">LER LIVRO</a>
-                                
-                                <!--
-                                    <a href="{% url 'lista_aulas' livro.id %}" class="btn-card">
-                                        <i class="fas fa-play-circle"></i> VIDEOAULAS
-                                    </a>
-                                -->
-                                
-                                {% if is_gestor or request.user.tipo == 'PROFESSOR' %}
-                                    {% if livro.versao_professor_relacionada %}
-                                        <a href="{% url 'ler_livro' livro.versao_professor_relacionada.id %}" class="btn-card btn-card-secondary">
-                                            <i class="fas fa-chalkboard-teacher"></i> VERSÃO PROFESSOR
-                                        </a>
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-
-                        </div>
-                    {% endfor %}
+    <main class="estante-shell" id="acervo">
+        <header class="estante-hero">
+            <div class="estante-hero-copy">
+                <span class="estante-eyebrow"><i class="fa-solid fa-book-open" aria-hidden="true"></i> Biblioteca MundoKaizo</span>
+                <h1>Histórias que viram <span>aventura.</span></h1>
+                <p>Explore sua estante, escolha uma leitura e descubra um novo mundo a cada página.</p>
+                <div class="estante-hero-pills" aria-label="Resumo da estante">
+                    <span><i class="fa-solid fa-book" aria-hidden="true"></i> {{ livros|length }} livro{{ livros|length|pluralize }}</span>
+                    <span><i class="fa-solid fa-layer-group" aria-hidden="true"></i> {{ livros_por_colecao|length }} coleç{{ livros_por_colecao|length|pluralize:"ão,ões" }}</span>
                 </div>
             </div>
-        {% empty %}
-            <div class="empty-state">
-                <p>Nenhum livro encontrado na estante.</p>
+            <div class="estante-book-scene" aria-hidden="true">
+                <span class="estante-spark estante-spark-one">✦</span><span class="estante-spark estante-spark-two">✦</span>
+                <div class="estante-book estante-book-back"><i class="fa-solid fa-star"></i></div>
+                <div class="estante-book estante-book-middle"><i class="fa-solid fa-lightbulb"></i></div>
+                <div class="estante-book estante-book-front"><i class="fa-solid fa-compass"></i><strong>MUNDO<br>KAIZO</strong><small>LER É EXPLORAR</small></div>
             </div>
+        </header>
+
+        {% if is_gestor %}
+            <aside class="estante-manager-note"><span><i class="fa-solid fa-circle-info" aria-hidden="true"></i></span><div><strong>Visão de gestão</strong><p>Você está vendo todos os livros disponíveis no acervo.</p></div></aside>
+        {% endif %}
+
+        {% if request.GET.q %}
+            <div class="estante-search-status" role="status"><span><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Resultados para <strong>“{{ request.GET.q }}”</strong></span><a href="{% url 'estante' %}">Limpar busca</a></div>
+        {% endif %}
+
+        {% for colecao in livros_por_colecao %}
+            <section class="estante-collection" aria-labelledby="colecao-{{ forloop.counter }}">
+                <header class="estante-collection-heading">
+                    <div class="estante-collection-icon" aria-hidden="true"><i class="fa-solid fa-book-bookmark"></i></div>
+                    <div><span class="estante-section-label">Coleção</span><h2 id="colecao-{{ forloop.counter }}">{% if colecao.grouper %}{{ colecao.grouper.nome }}{% else %}Outros Manuais{% endif %}</h2><p>{{ colecao.list|length }} título{{ colecao.list|length|pluralize }} disponível{{ colecao.list|length|pluralize }}</p></div>
+                </header>
+
+                <div class="estante-grid">
+                    {% for livro in colecao.list %}
+                        <article class="estante-card">
+                            <div class="estante-cover-area">
+                                {% if livro.capa %}<img class="estante-cover" src="{{ livro.capa.url }}" alt="Capa de {{ livro.titulo }}" loading="lazy">
+                                {% else %}<div class="estante-cover-placeholder" aria-hidden="true"><span>Biblioteca</span><i class="fa-solid fa-book-open"></i><strong>MundoKaizo</strong></div>{% endif %}
+                                {% if livro.is_versao_professor %}<span class="estante-teacher-badge"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Professor</span>{% endif %}
+                            </div>
+                            <div class="estante-card-copy"><span class="estante-card-kicker"><i class="fa-regular fa-bookmark" aria-hidden="true"></i> Livro digital</span><h3>{{ livro.titulo }}</h3><p>Abra o livro e continue sua jornada de aprendizagem.</p></div>
+                            <div class="estante-card-actions">
+                                <a href="{% url 'ler_livro' livro.id %}" class="estante-read-button"><span>Ler livro</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+                                {% if is_gestor or request.user.tipo == 'PROFESSOR' %}{% if livro.versao_professor_relacionada %}<a href="{% url 'ler_livro' livro.versao_professor_relacionada.id %}" class="estante-teacher-button"><i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i> Versão do professor</a>{% endif %}{% endif %}
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            </section>
+        {% empty %}
+            <section class="estante-empty"><span><i class="fa-solid fa-book-open-reader" aria-hidden="true"></i></span><h2>Nenhum livro encontrado</h2><p>{% if request.GET.q %}Tente buscar por outro título ou limpe a pesquisa.{% else %}Novos títulos serão adicionados à sua estante em breve.{% endif %}</p>{% if request.GET.q %}<a href="{% url 'estante' %}">Ver todos os livros</a>{% endif %}</section>
         {% endfor %}
-    </div>
+
+        <footer class="estante-footer"><span><i class="fa-solid fa-compass" aria-hidden="true"></i> Toda leitura abre um novo caminho.</span><span>MundoKaizo · Biblioteca digital</span></footer>
+    </main>
 </body>
 </html>

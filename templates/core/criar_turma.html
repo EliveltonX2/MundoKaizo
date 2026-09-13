@@ -4,89 +4,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciar Turmas - Gestão Kaizo</title>
-    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
+    <title>Gerenciar Turmas | MundoKaizo</title>
+    <link rel="icon" href="{% static 'core/ico/favicon/favicon.svg' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/css/gerenciar_turmas.css' %}?v=20260912a">
+    <script defer src="{% static 'core/js/gerenciar_turmas.js' %}?v=20260912a"></script>
 </head>
-<body class="bg-light">
+<body class="turmas-page">
+    <a class="turmas-skip" href="#gerenciarTurmas">Pular para o gerenciamento</a>
+    {% url 'gerenciar' as gerenciar_url %}
+    {% include 'includes/navbar.html' with back_url=gerenciar_url custom_title="Gerenciar Turmas" show_search=False %}
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-5">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="{% url 'home' %}">
-                <i class="fas fa-arrow-left me-2"></i> Voltar à Estante
-            </a>
-            <span class="navbar-text text-white fw-bold">
-                Painel do Gestor
-            </span>
-        </div>
-    </nav>
+    <main class="turmas-shell" id="gerenciarTurmas">
+        <header class="turmas-heading">
+            <div class="turmas-heading-icon" aria-hidden="true"><i class="fa-solid fa-people-roof"></i></div>
+            <div class="turmas-heading-copy">
+                <span class="turmas-eyebrow">Organização escolar</span>
+                <h1>Gerenciar turmas</h1>
+                <p>Crie novas turmas e acompanhe as que já fazem parte da sua escola.</p>
+            </div>
+            <div class="turmas-total" aria-label="Total de turmas cadastradas">
+                <strong>{{ turmas_existentes|length }}</strong>
+                <span>turma{{ turmas_existentes|length|pluralize }}</span>
+            </div>
+        </header>
 
-    <div class="container" style="max-width: 900px;">
-        
         {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
-                    <i class="fas fa-check-circle me-2"></i> {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
+            <section class="turmas-messages" aria-label="Avisos do sistema" aria-live="polite">
+                {% for message in messages %}
+                    <div class="turmas-message turmas-message-{{ message.tags|default:'info' }}" role="status">
+                        <span class="turmas-message-icon"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>
+                        <p>{{ message }}</p>
+                        <button type="button" class="turmas-message-close" aria-label="Fechar aviso"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+                    </div>
+                {% endfor %}
+            </section>
         {% endif %}
 
-        <div class="row">
-            <div class="col-md-5 mb-4">
-                <div class="card shadow-sm border-0 rounded-4 h-100">
-                    <div class="card-body p-4">
-                        <h5 class="fw-bold text-primary mb-3"><i class="fas fa-plus-circle me-2"></i> Nova Turma</h5>
-                        
-                        <form method="post">
-                            {% csrf_token %}
-                            <div class="mb-3">
-                                <label class="form-label small fw-bold text-muted">Nome da Turma</label>
-                                {{ form.nome }}
-                            </div>
-                            <div class="mb-4">
-                                <label class="form-label small fw-bold text-muted">Escola Pertencente</label>
-                                {{ form.escola }}
-                            </div>
-                            
-                            <button type="submit" class="btn btn-primary w-100 fw-bold rounded-pill">
-                                CRIAR TURMA
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
+        <div class="turmas-layout">
+            <section class="turmas-panel turmas-create-panel" aria-labelledby="novaTurmaTitle">
+                <header class="turmas-panel-heading">
+                    <span class="turmas-panel-icon turmas-panel-icon-create" aria-hidden="true"><i class="fa-solid fa-plus"></i></span>
+                    <div><span class="turmas-panel-label">Cadastro</span><h2 id="novaTurmaTitle">Nova turma</h2></div>
+                </header>
+                <p class="turmas-panel-intro">Preencha os dados abaixo para adicionar uma turma à escola.</p>
 
-            <div class="col-md-7 mb-4">
-                <div class="card shadow-sm border-0 rounded-4 h-100">
-                    <div class="card-body p-4">
-                        <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-list me-2"></i> Turmas Cadastradas</h5>
-                        
-                        {% if turmas_existentes %}
-                            <ul class="list-group list-group-flush">
-                                {% for turma in turmas_existentes %}
-                                    <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0 border-bottom">
-                                        <div>
-                                            <span class="fw-bold text-dark">{{ turma.nome }}</span><br>
-                                            <small class="text-muted"><i class="fas fa-school me-1"></i> {{ turma.escola.nome }}</small>
-                                        </div>
-                                        <span class="badge bg-light text-secondary rounded-pill border">
-                                            {{ turma.user_set.count }} alunos
-                                        </span>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        {% else %}
-                            <div class="text-center text-muted p-4">
-                                <i class="fas fa-folder-open fa-3x mb-3" style="opacity: 0.2;"></i>
-                                <p>Nenhuma turma cadastrada ainda.</p>
-                            </div>
-                        {% endif %}
+                <form method="post" class="turmas-form" novalidate>
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}<div class="turmas-form-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+                    <div class="turmas-field{% if form.nome.errors %} has-error{% endif %}">
+                        <label for="{{ form.nome.id_for_label }}"><i class="fa-solid fa-users" aria-hidden="true"></i> Nome da turma</label>
+                        {{ form.nome }}
+                        {% if form.nome.errors %}<div class="turmas-field-error">{{ form.nome.errors }}</div>{% else %}<small>Exemplo: 6º Ano A ou Turma Girassol</small>{% endif %}
                     </div>
-                </div>
-            </div>
+
+                    <div class="turmas-field{% if form.escola.errors %} has-error{% endif %}">
+                        <label for="{{ form.escola.id_for_label }}"><i class="fa-solid fa-school" aria-hidden="true"></i> Escola pertencente</label>
+                        {{ form.escola }}
+                        {% if form.escola.errors %}<div class="turmas-field-error">{{ form.escola.errors }}</div>{% else %}<small>Selecione onde esta turma será organizada.</small>{% endif %}
+                    </div>
+
+                    <button type="submit" class="turmas-submit">
+                        <span>Criar turma</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    </button>
+                </form>
+            </section>
+
+            <section class="turmas-panel turmas-list-panel" aria-labelledby="turmasCadastradasTitle">
+                <header class="turmas-panel-heading turmas-list-heading">
+                    <span class="turmas-panel-icon" aria-hidden="true"><i class="fa-solid fa-list-check"></i></span>
+                    <div><span class="turmas-panel-label">Visão geral</span><h2 id="turmasCadastradasTitle">Turmas cadastradas</h2></div>
+                    {% if turmas_existentes %}<span class="turmas-count">{{ turmas_existentes|length }} no total</span>{% endif %}
+                </header>
+
+                {% if turmas_existentes %}
+                    <div class="turmas-list">
+                        {% for turma in turmas_existentes %}
+                            <article class="turmas-item">
+                                <div class="turmas-item-avatar" aria-hidden="true">{{ turma.nome|first|upper }}</div>
+                                <div class="turmas-item-copy">
+                                    <h3>{{ turma.nome }}</h3>
+                                    <p><i class="fa-solid fa-school" aria-hidden="true"></i> {{ turma.escola.nome }}</p>
+                                </div>
+                                <div class="turmas-students">
+                                    <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+                                    <strong>{{ turma.user_set.count }}</strong>
+                                    <span>aluno{{ turma.user_set.count|pluralize }}</span>
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="turmas-empty">
+                        <span><i class="fa-solid fa-people-group" aria-hidden="true"></i></span>
+                        <h3>Nenhuma turma cadastrada</h3>
+                        <p>Use o formulário ao lado para criar a primeira turma da escola.</p>
+                    </div>
+                {% endif %}
+            </section>
         </div>
-        
-    </div>
+
+        <footer class="turmas-footer"><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> Organização simples para uma aprendizagem melhor.</footer>
+    </main>
 </body>
 </html>

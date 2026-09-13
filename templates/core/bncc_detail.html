@@ -1,81 +1,51 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/mkz.svg' %}">
-    <title>{{ habilidade.codigo }} - BNCC MundoKaizo</title>
-
-    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
+    <link rel="icon" href="{% static 'core/ico/favicon/favicon.svg' %}">
+    <title>{{ habilidade.codigo }} | BNCC MundoKaizo</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'core/css/app.css' %}">
-    <style>
-        .detail-card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-            padding: 30px;
-            margin-bottom: 30px;
-        }
-        .section-title {
-            color: #2288c4;
-            font-weight: bold;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 10px;
-        }
-        .info-text {
-            color: #555;
-            line-height: 1.6;
-            font-size: 1.1rem;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'core/css/bncc_kaizo.css' %}?v=20260912b">
 </head>
-
-<body style="background-color: #f9fafb; min-height: 100vh; display: flex; flex-direction: column;">
-
+<body class="bncc-page bncc-detail-page">
     {% url 'bncc_list' as bncc_list_url %}
     {% include 'includes/navbar.html' with back_url=bncc_list_url custom_title=habilidade.codigo show_search=False %}
 
-    <div class="container" style="flex: 1; padding-top: 40px; padding-bottom: 50px; max-width: 800px;">
-        
-        <div class="detail-card">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 style="font-weight: bold; color: #333; margin: 0;">{{ habilidade.codigo }}</h2>
-                <span class="badge bg-primary" style="font-size: 1rem; padding: 10px 15px;">{{ habilidade.ano_escolar }}</span>
-            </div>
+    <main class="bncc-detail-shell">
+        <nav class="bncc-breadcrumb" aria-label="Navegação estrutural">
+            <a href="{% url 'bncc_list' %}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> BNCC e BNCC Computação</a>
+            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i><span>{{ habilidade.codigo }}</span>
+        </nav>
 
-            <div class="mb-4">
-                <h4 class="section-title"><i class="fas fa-align-left me-2"></i> Descrição da Habilidade</h4>
-                <p class="info-text">{{ habilidade.descricao }}</p>
-            </div>
+        <article class="bncc-detail-card">
+            <header class="bncc-detail-heading">
+                <div class="bncc-detail-code"><span>Habilidade</span><h1>{{ habilidade.codigo }}</h1></div>
+                <span class="bncc-detail-year"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> {{ habilidade.ano_escolar }}</span>
+            </header>
+
+            <section class="bncc-detail-section">
+                <div class="bncc-detail-icon"><i class="fa-solid fa-align-left" aria-hidden="true"></i></div>
+                <div><span class="bncc-detail-label">Texto curricular</span><h2>Descrição da habilidade</h2><p>{{ habilidade.descricao }}</p></div>
+            </section>
 
             {% if habilidade.explicacao %}
-            <div class="mb-4">
-                <h4 class="section-title"><i class="fas fa-lightbulb me-2"></i> Explicação</h4>
-                <p class="info-text">{{ habilidade.explicacao }}</p>
-            </div>
+                <section class="bncc-detail-section">
+                    <div class="bncc-detail-icon bncc-detail-icon-yellow"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i></div>
+                    <div><span class="bncc-detail-label">Compreenda melhor</span><h2>Explicação</h2><p>{{ habilidade.explicacao }}</p></div>
+                </section>
             {% endif %}
 
             {% if habilidade.exemplo_uso %}
-            <div class="mb-2">
-                <h4 class="section-title"><i class="fas fa-chalkboard-teacher me-2"></i> Exemplo de Uso</h4>
-                <div class="p-3 rounded" style="background-color: #f8f9fa; border-left: 4px solid #28a745;">
-                    <p class="info-text mb-0">{{ habilidade.exemplo_uso }}</p>
-                </div>
-            </div>
+                <section class="bncc-detail-section bncc-example-section">
+                    <div class="bncc-detail-icon bncc-detail-icon-green"><i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i></div>
+                    <div><span class="bncc-detail-label">Aplicação prática</span><h2>Exemplo de uso</h2><p>{{ habilidade.exemplo_uso }}</p></div>
+                </section>
             {% endif %}
-        </div>
-        
-        <div class="text-center">
-            <a href="{% url 'bncc_list' %}" class="btn btn-outline-secondary rounded-pill px-4 py-2">
-                <i class="fas fa-arrow-left me-2"></i> Voltar para a lista
-            </a>
-        </div>
+        </article>
 
-    </div>
-
+        <a href="{% url 'bncc_list' %}" class="bncc-back-button"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Voltar para as habilidades</a>
+    </main>
 </body>
 </html>

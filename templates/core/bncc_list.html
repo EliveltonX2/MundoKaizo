@@ -1,56 +1,76 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/mkz.svg' %}">
-    <title>BNCC - MundoKaizo</title>
-
-    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
+    <link rel="icon" href="{% static 'core/ico/favicon/favicon.svg' %}">
+    <title>BNCC e BNCC Computação | MundoKaizo</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'core/css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'core/css/bncc_kaizo.css' %}?v=20260912b">
 </head>
+<body class="bncc-page">
+    <a class="bncc-skip" href="#habilidades">Pular para as habilidades</a>
+    {% url 'home' as home_url %}
+    {% include 'includes/navbar.html' with back_url=home_url custom_title="BNCC e BNCC Computação" show_search=True search_action='bncc_list' search_placeholder="Buscar habilidade..." current_query=query %}
 
-<body style="background-color: #f9fafb; min-height: 100vh; display: flex; flex-direction: column;">
-
-    {% url 'home' as estante_url %}
-    {% include 'includes/navbar.html' with back_url=estante_url custom_title="BNCC Computação Digital" show_search=True search_action='bncc_list' search_placeholder="Buscar habilidade..." current_query=query %}
-
-    <div class="container" style="flex: 1; padding-top: 30px; padding-bottom: 50px;">
-        
-        <div class="row mb-4">
-            <div class="col-12">
-                <h3 style="color: #333; font-weight: bold;">
-                    <i class="fas fa-book-open" style="color: #2288c4;"></i> Base Nacional Comum Curricular (BNCC)
-                </h3>
-                <p style="color: #666;">Explore as habilidades de Computação e Tecnologia para o Ensino Fundamental.</p>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-12">
-                <div class="list-group">
-                    {% for habilidade in habilidades %}
-                    <a href="{% url 'bncc_detail' habilidade.id %}" class="list-group-item list-group-item-action d-flex flex-column align-items-start shadow-sm mb-3 rounded" style="border-left: 5px solid #2288c4; padding: 20px; transition: all 0.2s;">
-                        <div class="d-flex w-100 justify-content-between mb-2">
-                            <h5 class="mb-1" style="font-weight: bold; color: #2288c4;">{{ habilidade.codigo }}</h5>
-                            <span class="badge bg-primary rounded-pill" style="font-size: 0.9rem;">{{ habilidade.ano_escolar }}</span>
-                        </div>
-                        <p class="mb-1 text-muted">{{ habilidade.descricao|truncatewords:20 }}</p>
-                    </a>
-                    {% empty %}
-                    <div class="text-center" style="margin-top: 50px;">
-                        <i class="fas fa-search fa-4x" style="color: #b8c1cd; margin-bottom: 20px;"></i>
-                        <h3 style="color: #555;">Nenhuma habilidade encontrada!</h3>
-                        <p style="color: #888;">Tente buscar por outro código ou palavra-chave.</p>
-                    </div>
-                    {% endfor %}
+    <main class="bncc-shell">
+        <header class="bncc-hero">
+            <div class="bncc-hero-copy">
+                <span class="bncc-eyebrow"><i class="fa-solid fa-book-open" aria-hidden="true"></i> Referência educacional</span>
+                <h1>BNCC <span>e BNCC Computação</span></h1>
+                <p>Consulte as habilidades da Base Nacional Comum Curricular e os conhecimentos de Computação para a Educação Básica.</p>
+                <div class="bncc-hero-meta">
+                    <span><i class="fa-solid fa-list-check" aria-hidden="true"></i> {{ habilidades|length }} habilidade{{ habilidades|length|pluralize }}</span>
+                    <span><i class="fa-solid fa-microchip" aria-hidden="true"></i> Foco em Computação</span>
                 </div>
             </div>
-        </div>
-    </div>
+            <div class="bncc-scene" aria-hidden="true">
+                <span class="bncc-orbit bncc-orbit-one"><i class="fa-solid fa-code"></i></span>
+                <span class="bncc-orbit bncc-orbit-two"><i class="fa-solid fa-lightbulb"></i></span>
+                <span class="bncc-orbit bncc-orbit-three"><i class="fa-solid fa-gears"></i></span>
+                <div class="bncc-scene-core"><i class="fa-solid fa-brain"></i><strong>BNCC</strong><small>COMPUTAÇÃO</small></div>
+            </div>
+        </header>
 
+        {% if query %}
+            <div class="bncc-search-status" role="status">
+                <span><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Resultados para <strong>“{{ query }}”</strong></span>
+                <a href="{% url 'bncc_list' %}">Limpar busca</a>
+            </div>
+        {% endif %}
+
+        <section class="bncc-catalog" id="habilidades" aria-labelledby="bnccCatalogTitle">
+            <header class="bncc-section-heading">
+                <div class="bncc-section-icon" aria-hidden="true"><i class="fa-solid fa-layer-group"></i></div>
+                <div><span>Base de habilidades</span><h2 id="bnccCatalogTitle">Habilidades cadastradas</h2><p>Selecione uma habilidade para consultar sua descrição e orientações.</p></div>
+                <strong class="bncc-count">{{ habilidades|length }} no total</strong>
+            </header>
+
+            {% if habilidades %}
+                <div class="bncc-list">
+                    {% for habilidade in habilidades %}
+                        <a href="{% url 'bncc_detail' habilidade.id %}" class="bncc-skill-card">
+                            <div class="bncc-code"><i class="fa-solid fa-terminal" aria-hidden="true"></i><strong>{{ habilidade.codigo }}</strong></div>
+                            <div class="bncc-skill-copy">
+                                <span class="bncc-year"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> {{ habilidade.ano_escolar }}</span>
+                                <p>{{ habilidade.descricao|truncatewords:24 }}</p>
+                            </div>
+                            <span class="bncc-open" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="bncc-empty">
+                    <span><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></span>
+                    <h3>Nenhuma habilidade encontrada</h3>
+                    <p>{% if query %}Tente outro código ou palavra-chave.{% else %}As habilidades cadastradas no Django aparecerão aqui.{% endif %}</p>
+                    {% if query %}<a href="{% url 'bncc_list' %}">Ver todas as habilidades</a>{% endif %}
+                </div>
+            {% endif %}
+        </section>
+
+        <footer class="bncc-footer"><span><i class="fa-solid fa-compass" aria-hidden="true"></i> Conhecimento curricular conectado à prática.</span><span>MundoKaizo · BNCC Computação</span></footer>
+    </main>
 </body>
 </html>

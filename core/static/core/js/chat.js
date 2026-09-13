@@ -1,76 +1,163 @@
-// core/static/core/js/chat.js
+// Experiência da Kai — somente comportamento de interface.
+let envioEmAndamento = false;
+let modalAtivo = null;
 
-function handleEnter(event) {
-    if (event.key === "Enter") enviarMensagem();
+function rolarChatParaFim(suave = false) {
+    const caixa = document.getElementById('caixa-chat');
+    if (!caixa) return;
+    caixa.scrollTo({ top: caixa.scrollHeight, behavior: suave ? 'smooth' : 'auto' });
 }
 
 function rolarParaBaixo() {
-    const caixa = document.getElementById('caixa-chat');
-    if (caixa) {
-        caixa.scrollTop = caixa.scrollHeight;
+    rolarChatParaFim(false);
+}
+
+function ajustarAlturaCampo() {
+    const input = document.getElementById('mensagem-input');
+    if (!input) return;
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 130) + 'px';
+}
+
+function criarAvatarKai() {
+    const avatar = document.createElement('span');
+    avatar.className = 'kai-message-avatar';
+    const imagem = document.createElement('img');
+    imagem.src = kaiAvatarUrl;
+    imagem.alt = 'Kai';
+    avatar.appendChild(imagem);
+    return avatar;
+}
+
+function criarEstruturaMensagem(tipo) {
+    const linha = document.createElement('div');
+    linha.className = 'kai-message-row ' + (tipo === 'usuario' ? 'is-user' : 'is-assistant');
+
+    if (tipo !== 'usuario') linha.appendChild(criarAvatarKai());
+
+    const mensagem = document.createElement('div');
+    mensagem.className = 'kai-message';
+
+    const autor = document.createElement('div');
+    autor.className = 'kai-message-author';
+    autor.textContent = tipo === 'usuario' ? 'Você' : 'Kai';
+
+    const corpo = document.createElement('div');
+    corpo.className = 'kai-message-body';
+
+    mensagem.append(autor, corpo);
+    linha.appendChild(mensagem);
+    return { linha, corpo };
+}
+
+function adicionarMensagemUsuario(texto) {
+    const content = document.getElementById('mensagens-content');
+    const estrutura = criarEstruturaMensagem('usuario');
+    estrutura.corpo.textContent = texto;
+    content.appendChild(estrutura.linha);
+}
+
+function adicionarIndicadorPensando() {
+    const content = document.getElementById('mensagens-content');
+    const estrutura = criarEstruturaMensagem('assistente');
+    estrutura.linha.classList.add('kai-typing');
+    estrutura.corpo.setAttribute('role', 'status');
+    estrutura.corpo.setAttribute('aria-label', 'Kai está pensando');
+
+    const label = document.createElement('span');
+    label.className = 'kai-thinking-label';
+    label.textContent = 'Pensando';
+
+    estrutura.corpo.appendChild(label);
+    for (let i = 0; i < 3; i += 1) {
+        const ponto = document.createElement('i');
+        ponto.className = 'kai-typing-dot';
+        ponto.setAttribute('aria-hidden', 'true');
+        estrutura.corpo.appendChild(ponto);
     }
+
+    content.appendChild(estrutura.linha);
+    return estrutura.linha;
+}
+
+function escreverRespostaHTML(elemento, html, velocidade = 9) {
+    elemento.innerHTML = html;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        rolarChatParaFim();
+        return;
+    }
+
+    const walker = document.createTreeWalker(elemento, NodeFilter.SHOW_TEXT);
+    const textos = [];
+    let node;
+    while ((node = walker.nextNode())) {
+        if (node.nodeValue.trim()) textos.push({ node, texto: node.nodeValue });
+    }
+
+    textos.forEach(item => { item.node.nodeValue = ''; });
+    let indiceNo = 0;
+    let indiceCaractere = 0;
+
+    function escrever() {
+        if (indiceNo >= textos.length) {
+            rolarChatParaFim();
+            return;
+        }
+
+        const item = textos[indiceNo];
+        const passo = Math.min(indiceCaractere + 2, item.texto.length);
+        item.node.nodeValue = item.texto.slice(0, passo);
+        indiceCaractere = passo;
+
+        if (indiceCaractere >= item.texto.length) {
+            indiceNo += 1;
+            indiceCaractere = 0;
+        }
+
+        rolarChatParaFim();
+        window.setTimeout(escrever, velocidade);
+    }
+
+    escrever();
+}
+
+function adicionarRespostaKai(html) {
+    const content = document.getElementById('mensagens-content');
+    const estrutura = criarEstruturaMensagem('assistente');
+    content.appendChild(estrutura.linha);
+    escreverRespostaHTML(estrutura.corpo, html || 'Não consegui preparar uma resposta agora.');
+}
+
+function adicionarErro(mensagem) {
+    const content = document.getElementById('mensagens-content');
+    const estrutura = criarEstruturaMensagem('assistente');
+    estrutura.corpo.classList.add('kai-error-message');
+    estrutura.corpo.textContent = mensagem;
+    content.appendChild(estrutura.linha);
 }
 
 async function enviarMensagem() {
-    // Efeito de Digitação HTML interativo
-    function typeWriterHTML(element, html, speed = 15) {
-        let i = 0;
-        let isTag = false;
-        let text = "";
-        element.innerHTML = "";
-        
-        function type() {
-            if (i < html.length) {
-                text += html.charAt(i);
-                if (html.charAt(i) === '<') isTag = true;
-                if (html.charAt(i) === '>') isTag = false;
-                
-                i++;
-                if (isTag) {
-                    type(); 
-                } else {
-                    element.innerHTML = text;
-                    rolarParaBaixo();
-                    setTimeout(type, speed);
-                }
-            } else {
-                element.innerHTML = html;
-                rolarParaBaixo();
-            }
-        }
-        type();
-    }
     const input = document.getElementById('mensagem-input');
-    const caixaContent = document.getElementById('mensagens-content'); 
+    const botao = document.getElementById('kaiSendButton');
     const boasVindas = document.getElementById('msg-boas-vindas');
-    const texto = input.value;
-    
-    if (!texto) return;
+    const texto = input ? input.value.trim() : '';
+
+    if (!texto || envioEmAndamento) return;
+
+    envioEmAndamento = true;
+    botao.disabled = true;
+    botao.setAttribute('aria-label', 'Enviando mensagem');
 
     if (boasVindas) boasVindas.remove();
+    adicionarMensagemUsuario(texto);
 
-    // 1. Adiciona o texto do usuário na tela
-    caixaContent.insertAdjacentHTML('beforeend', `
-        <div class="balao balao-usuario">
-            ${texto}
-        </div>`);
-        
-    input.value = ''; 
-    rolarParaBaixo(); 
+    input.value = '';
+    ajustarAlturaCampo();
+    rolarChatParaFim(true);
 
-    // 2. Adiciona o balão animado da KAI "Pensando..." com um ID único
-    const idPensando = `pensando-${Date.now()}`;
-    caixaContent.insertAdjacentHTML('beforeend', `
-        <div id="${idPensando}" class="balao balao-ia typing-indicator">
-            <img src="${kaiAvatarUrl}" alt="Kai" style="width: 24px; height: 24px; object-fit: contain; margin-right: 8px;">
-            <b style="color: #2288c4; margin-right: 8px;">Kai:</b>
-            <span style="font-style: italic; margin-right: 5px;">Pensando</span>
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-        </div>`);
-        
-    rolarParaBaixo();
+    const pensando = adicionarIndicadorPensando();
+    rolarChatParaFim(true);
 
     try {
         const response = await fetch(urlKaiChat, {
@@ -79,130 +166,211 @@ async function enviarMensagem() {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': csrfToken
             },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 mensagem: texto,
-                sessao_id: sessaoAtualId 
+                sessao_id: sessaoAtualId
             })
         });
 
-        // 3. Remove a animação de "Pensando" agora que o backend respondeu
-        const balaoPensando = document.getElementById(idPensando);
-        if (balaoPensando) balaoPensando.remove();
-
         const data = await response.json();
+        pensando.remove();
 
-        if (data.status === 'sucesso') {
-            if (!sessaoAtualId && data.sessao_id) {
-                sessaoAtualId = data.sessao_id;
-                window.history.replaceState({}, '', `?sessao=${sessaoAtualId}`);
-            }
-
-            const idResposta = `resposta-${Date.now()}`;
-            caixaContent.insertAdjacentHTML('beforeend', `
-                <div class="balao balao-ia">
-                    <div style="display: flex; align-items: center; margin-bottom: 6px;">
-                        <img src="${kaiAvatarUrl}" alt="Kai" style="width: 24px; height: 24px; margin-right: 8px; object-fit: contain;">
-                        <b style="color: #2288c4;">Kai:</b>
-                    </div>
-                    <div id="${idResposta}"></div>
-                </div>`);
-                
-            // Efeito de digitação em tempo real
-            typeWriterHTML(document.getElementById(idResposta), data.resposta, 15);
-            
-        } else {
-            caixaContent.insertAdjacentHTML('beforeend', `<div class="balao balao-ia text-danger"><b>Erro:</b> ${data.mensagem}</div>`);
+        if (!response.ok || data.status !== 'sucesso') {
+            adicionarErro(data.mensagem || 'A Kai não conseguiu responder. Tente novamente.');
+            return;
         }
+
+        if (!sessaoAtualId && data.sessao_id) {
+            sessaoAtualId = data.sessao_id;
+            window.history.replaceState({}, '', '?sessao=' + encodeURIComponent(sessaoAtualId));
+        }
+
+        adicionarRespostaKai(data.resposta);
     } catch (error) {
-        console.error('Erro:', error);
-        // Remove a animação de "Pensando" caso dê erro de conexão
-        const balaoPensando = document.getElementById(idPensando);
-        if (balaoPensando) balaoPensando.remove();
-        
-        caixaContent.insertAdjacentHTML('beforeend', `<div class="balao balao-ia text-danger">Falha ao conectar com o servidor.</div>`);
+        console.error('Erro ao conversar com a Kai:', error);
+        pensando.remove();
+        adicionarErro('Não foi possível conectar com a Kai agora. Tente novamente em instantes.');
+    } finally {
+        envioEmAndamento = false;
+        botao.disabled = false;
+        botao.setAttribute('aria-label', 'Enviar mensagem');
+        input.focus();
+        rolarChatParaFim(true);
     }
-    
-    rolarParaBaixo(); 
 }
 
-// ==========================================
-// VIGIA DO SCROLL (Mostra o Botão de Descer)
-// ==========================================
-document.addEventListener('DOMContentLoaded', () => {
-    const caixaChat = document.getElementById('caixa-chat');
-    const btnScroll = document.getElementById('btnScrollBottom');
-
-    if (caixaChat && btnScroll) {
-        // Toda vez que a tela rolar...
-        caixaChat.addEventListener('scroll', () => {
-            // Calcula qual a distância entre onde estamos e o fundo da tela
-            const distToBottom = caixaChat.scrollHeight - caixaChat.scrollTop - caixaChat.clientHeight;
-            
-            // Se o usuário subiu mais de 150 pixels pra cima, mostramos o botão
-            if (distToBottom > 150) {
-                btnScroll.style.display = 'flex';
-            } else {
-                btnScroll.style.display = 'none';
-            }
-        });
+function handleEnter(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        enviarMensagem();
     }
-});
+}
 
-window.onload = rolarParaBaixo;
+function abrirSidebar() {
+    const sidebar = document.getElementById('menuHistorico');
+    const backdrop = document.getElementById('kaiSidebarBackdrop');
+    const trigger = document.getElementById('kaiHistoryTrigger');
+    if (!sidebar || !backdrop) return;
+    sidebar.classList.add('is-open');
+    backdrop.hidden = false;
+    trigger?.setAttribute('aria-expanded', 'true');
+}
 
+function fecharSidebar() {
+    const sidebar = document.getElementById('menuHistorico');
+    const backdrop = document.getElementById('kaiSidebarBackdrop');
+    const trigger = document.getElementById('kaiHistoryTrigger');
+    sidebar?.classList.remove('is-open');
+    if (backdrop) backdrop.hidden = true;
+    trigger?.setAttribute('aria-expanded', 'false');
+}
 
-// ==========================================
-// MÓDULO DE GESTÃO DO HISTÓRICO
-// ==========================================
+function abrirModal(id) {
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    fecharMenusDeSessao();
+    modal.hidden = false;
+    modalAtivo = modal;
+    document.body.classList.add('kai-modal-open');
+    window.setTimeout(() => {
+        const foco = modal.querySelector('input:not([type="hidden"]), button');
+        foco?.focus();
+    }, 20);
+}
 
-let modalRenomearObj, modalDeletarObj;
-
-document.addEventListener('DOMContentLoaded', () => {
-    const elRenomear = document.getElementById('modalRenomear');
-    const elDeletar = document.getElementById('modalDeletar');
-    
-    if (typeof bootstrap !== 'undefined') {
-        if (elRenomear) modalRenomearObj = new bootstrap.Modal(elRenomear);
-        if (elDeletar) modalDeletarObj = new bootstrap.Modal(elDeletar);
-    }
-});
+function fecharModal() {
+    if (!modalAtivo) return;
+    modalAtivo.hidden = true;
+    modalAtivo = null;
+    document.body.classList.remove('kai-modal-open');
+}
 
 function abrirModalRenomear(id, nomeAtual) {
     document.getElementById('inputRenomearId').value = id;
     document.getElementById('inputRenomearNome').value = nomeAtual;
-    if (modalRenomearObj) modalRenomearObj.show();
+    abrirModal('modalRenomear');
 }
 
 function abrirModalDeletar(id) {
     document.getElementById('inputDeletarId').value = id;
-    if (modalDeletarObj) modalDeletarObj.show();
+    abrirModal('modalDeletar');
 }
 
-function salvarNovoNome() {
+async function salvarNovoNome() {
     const id = document.getElementById('inputRenomearId').value;
-    const novoNome = document.getElementById('inputRenomearNome').value;
-    if (!novoNome.trim()) return;
+    const campo = document.getElementById('inputRenomearNome');
+    const novoNome = campo.value.trim();
+    if (!novoNome) {
+        campo.focus();
+        return;
+    }
 
-    fetch(`/kai/renomear/${id}/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-        body: JSON.stringify({ titulo: novoNome })
-    })
-    .then(res => res.json())
-    .then(data => { if (data.status === 'sucesso') location.reload(); });
+    try {
+        const response = await fetch('/kai/renomear/' + encodeURIComponent(id) + '/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify({ titulo: novoNome })
+        });
+        const data = await response.json();
+        if (response.ok && data.status === 'sucesso') window.location.reload();
+    } catch (error) {
+        console.error('Erro ao renomear conversa:', error);
+    }
 }
 
-function confirmarDelecao() {
+async function confirmarDelecao() {
     const id = document.getElementById('inputDeletarId').value;
-    fetch(`/kai/deletar/${id}/`, {
-        method: 'POST',
-        headers: { 'X-CSRFToken': csrfToken }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === 'sucesso') {
-            if (id == sessaoAtualId) { window.location.href = window.location.pathname + '?nova=true'; } 
-            else { location.reload(); }
+
+    try {
+        const response = await fetch('/kai/deletar/' + encodeURIComponent(id) + '/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken }
+        });
+        const data = await response.json();
+
+        if (response.ok && data.status === 'sucesso') {
+            if (String(id) === String(sessaoAtualId)) {
+                window.location.href = window.location.pathname + '?nova=true';
+            } else {
+                window.location.reload();
+            }
         }
+    } catch (error) {
+        console.error('Erro ao excluir conversa:', error);
+    }
+}
+
+function fecharMenusDeSessao(excecao) {
+    document.querySelectorAll('.kai-session-options[open]').forEach(menu => {
+        if (menu !== excecao) menu.removeAttribute('open');
     });
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const caixaChat = document.getElementById('caixa-chat');
+    const btnScroll = document.getElementById('btnScrollBottom');
+    const input = document.getElementById('mensagem-input');
+    const composer = document.getElementById('kaiComposer');
+
+    rolarChatParaFim();
+    window.setTimeout(rolarChatParaFim, 120);
+
+    composer?.addEventListener('submit', event => {
+        event.preventDefault();
+        enviarMensagem();
+    });
+
+    input?.addEventListener('keydown', handleEnter);
+    input?.addEventListener('input', ajustarAlturaCampo);
+    ajustarAlturaCampo();
+
+    document.querySelectorAll('[data-kai-prompt]').forEach(botao => {
+        botao.addEventListener('click', () => {
+            input.value = botao.dataset.kaiPrompt || '';
+            ajustarAlturaCampo();
+            input.focus();
+            input.setSelectionRange(input.value.length, input.value.length);
+        });
+    });
+
+    caixaChat?.addEventListener('scroll', () => {
+        const distancia = caixaChat.scrollHeight - caixaChat.scrollTop - caixaChat.clientHeight;
+        btnScroll?.classList.toggle('is-visible', distancia > 150);
+    });
+
+    btnScroll?.addEventListener('click', () => rolarChatParaFim(true));
+    document.getElementById('kaiHistoryTrigger')?.addEventListener('click', abrirSidebar);
+    document.getElementById('kaiSidebarClose')?.addEventListener('click', fecharSidebar);
+    document.getElementById('kaiSidebarBackdrop')?.addEventListener('click', fecharSidebar);
+
+    document.querySelectorAll('[data-kai-modal-close]').forEach(botao => {
+        botao.addEventListener('click', fecharModal);
+    });
+
+    document.querySelectorAll('.kai-modal').forEach(modal => {
+        modal.addEventListener('click', event => {
+            if (event.target === modal) fecharModal();
+        });
+    });
+
+    document.querySelectorAll('.kai-session-options').forEach(menu => {
+        menu.addEventListener('toggle', () => {
+            if (menu.open) fecharMenusDeSessao(menu);
+        });
+    });
+
+    document.addEventListener('click', event => {
+        if (!event.target.closest('.kai-session-options')) fecharMenusDeSessao();
+    });
+
+    document.getElementById('inputRenomearNome')?.addEventListener('keydown', event => {
+        if (event.key === 'Enter') salvarNovoNome();
+    });
+
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+            if (modalAtivo) fecharModal();
+            else fecharSidebar();
+        }
+    });
+});

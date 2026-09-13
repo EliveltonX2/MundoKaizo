@@ -12,6 +12,8 @@
 <script defer src="{% static 'livros_interativos/js/leitor.js' %}?v=20260902b"></script>
 </head>
 <body class="li-page li-reader" data-theme data-book-id="{{ aula.capitulo.livro.id }}" data-book-title="{{ aula.capitulo.livro.titulo }}" data-collection-id="{{ aula.capitulo.livro.colecao.id }}" data-volume="{{ aula.capitulo.livro.volume|default_if_none:'' }}" data-chapter="{{ aula.capitulo.numero }}">
+{% url 'livros_interativos:lista' as livros_interativos_url %}
+{% include 'includes/navbar.html' with back_url=livros_interativos_url custom_title=aula.titulo show_search=False %}
 <header class="li-reader-header">
 <a class="li-reader-back" href="{% url 'livros_interativos:lista' %}#livro-{{ aula.capitulo.livro.id }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Voltar às aulas</span></a>
 <div class="li-reader-title"><span>{{ aula.capitulo.livro.titulo }} · Capítulo {{ aula.capitulo.numero }} · Aula {{ aula.numero_aula }}</span><h1>{{ aula.titulo }}</h1></div>

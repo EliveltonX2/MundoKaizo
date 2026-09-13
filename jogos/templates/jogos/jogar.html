@@ -75,7 +75,8 @@
 </head>
 <body>
 <div class="player-container">
-    {% include 'includes/navbar.html' %}
+    {% url 'jogos:lista' as jogos_url %}
+    {% include 'includes/navbar.html' with back_url=jogos_url custom_title=jogo.titulo show_search=False %}
     
     <div class="player-iframe-wrapper">
         <div class="player-loader" aria-hidden="true">

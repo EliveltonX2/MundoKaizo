@@ -3,76 +3,129 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/png" href="{% static 'core/ico/favicon/favicon-96x96.png' %}" sizes="96x96" />
-    <link rel="icon" type="image/svg+xml" href="{% static 'core/ico/favicon/favicon.svg' %}" />
-    <link rel="shortcut icon" href="{% static 'core/ico/favicon/favicon.ico' %}" />
-    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'core/ico/favicon/apple-touch-icon.png' %}" />
-    <link rel="manifest" href="{% static 'core/ico/favicon/site.webmanifest' %}" />
-    <title>Galeria de Vídeos - MundoKaizo</title>
-    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'core/css/app.css' %}">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f3f7fa">
+    <link rel="icon" type="image/png" href="{% static 'core/ico/favicon/favicon-96x96.png' %}" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="{% static 'core/ico/favicon/favicon.svg' %}">
+    <link rel="shortcut icon" href="{% static 'core/ico/favicon/favicon.ico' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'core/ico/favicon/apple-touch-icon.png' %}">
+    <link rel="manifest" href="{% static 'core/ico/favicon/site.webmanifest' %}">
+    <title>Galeria de vídeos | MundoKaizo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/css/videos.css' %}?v=20260912b">
 </head>
-<body>
-
+<body class="video-page">
+    <a class="video-skip" href="#video-catalogo">Pular para os vídeos</a>
     {% include 'includes/navbar.html' with show_search=True search_placeholder="Pesquisar vídeos..." %}
 
-    <div class="container mt-4">
-        
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 style="color: #5e6e82;">{{ titulo_pagina }}</h2>
-            {% if is_gestor %}
-                <a href="/admin/core/videoaula/add/" class="btn-morph" target="_blank">
-                    <i class="fas fa-plus"></i> Novo Vídeo
-                </a>
-            {% endif %}
-        </div>
-
-        <div class="row g-4">
-            {% for video in videos %}
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="book-card h-100"> 
-                    <div class="book-cover" style="height: 180px; min-height: 180px; position: relative; overflow: hidden; background-color: #000;">
-    
-                        <img src="{{ video.get_capa }}" alt="{{ video.titulo }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.9;">
-
-                        <a href="{% url 'assistir_aula' video.id %}" style="position: absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; text-decoration:none; background: rgba(0,0,0,0.2);">
-                            <i class="fas fa-play-circle fa-4x text-white" style="opacity: 1;"></i>
-                        </a>
-                    </div>
-                    
-                    <div class="mt-3 text-start">
-                        <h5 class="mb-1" style="color: #5e6e82; font-size: 1.1rem; font-weight: bold;">
-                            {{ video.titulo|truncatechars:40 }}
-                        </h5>
-                        
-                        <p class="text-muted small mb-2">
-                            {% if video.livro %}
-                                <i class="fas fa-book me-1"></i> {{ video.livro.titulo|truncatechars:30 }}
-                            {% else %}
-                                <i class="fas fa-film me-1"></i> Vídeo Avulso
-                            {% endif %}
-                        </p>
-
-                        <p class="text-muted small">
-                            {{ video.descricao|truncatewords:15|default:"Sem descrição." }}
-                        </p>
-                    </div>
-
-                    <a href="{% url 'assistir_aula' video.id %}" class="btn-morph w-100 mt-auto">
-                        ASSISTIR
-                    </a>
+    <main class="video-shell">
+        <section class="video-hero" aria-labelledby="video-page-title">
+            <div class="video-hero-copy">
+                <span class="video-eyebrow"><i class="fa-solid fa-circle-play" aria-hidden="true"></i> Aperte o play</span>
+                <h1 id="video-page-title">Vídeos para <span>aprender,</span><br>descobrir e criar.</h1>
+                <p>Conteúdos rápidos e visuais para acompanhar cada descoberta no seu ritmo.</p>
+                <div class="video-hero-tags" aria-label="Destaques da galeria">
+                    <span><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Conteúdo educativo</span>
+                    <span><i class="fa-solid fa-clock" aria-hidden="true"></i> Assista no seu ritmo</span>
                 </div>
             </div>
-            {% empty %}
-            <div class="col-12 text-center py-5">
-                <h4 class="text-muted">Nenhum vídeo encontrado.</h4>
-                <i class="fas fa-video-slash fa-3x text-muted mt-3"></i>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
 
+            <div class="video-scene" aria-hidden="true">
+                <span class="video-scene-orbit orbit-large"></span>
+                <span class="video-scene-orbit orbit-small"></span>
+                <span class="video-scene-spark spark-left">✦</span>
+                <span class="video-scene-spark spark-right">✦</span>
+                <div class="video-screen">
+                    <div class="video-screen-top"><i></i><i></i><i></i><span>MUNDOKAIZO PLAY</span></div>
+                    <div class="video-screen-content">
+                        <span class="video-screen-lines"><i></i><i></i><i></i></span>
+                        <span class="video-screen-play"><i class="fa-solid fa-play"></i></span>
+                    </div>
+                    <span class="video-screen-base"></span>
+                </div>
+            </div>
+        </section>
+
+        <section class="video-catalog" id="video-catalogo" aria-labelledby="video-catalog-title">
+            <header class="video-catalog-header">
+                <div>
+                    <span class="video-section-kicker">NOSSA VIDEOTECA</span>
+                    <h2 id="video-catalog-title">{{ titulo_pagina }}</h2>
+                    <p>Escolha um conteúdo e continue sua jornada.</p>
+                </div>
+                <div class="video-catalog-actions">
+                    <span class="video-count"><i class="fa-solid fa-film" aria-hidden="true"></i> {{ videos|length }} vídeo{{ videos|length|pluralize }}</span>
+                    {% if is_gestor %}
+                        <a href="/admin/core/videoaula/add/" class="video-add" target="_blank" rel="noopener">
+                            <i class="fa-solid fa-plus" aria-hidden="true"></i> Novo vídeo
+                        </a>
+                    {% endif %}
+                </div>
+            </header>
+
+            {% if request.GET.q %}
+                <div class="video-search-status" role="status">
+                    <span><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Resultados para <strong>“{{ request.GET.q }}”</strong></span>
+                    <a href="{% url 'galeria_videos' %}"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Limpar busca</a>
+                </div>
+            {% endif %}
+
+            {% if videos %}
+                <div class="video-grid">
+                    {% for video in videos %}
+                        <article class="video-card" data-video-card>
+                            <a href="{% url 'assistir_aula' video.id %}" class="video-media" aria-label="Assistir {{ video.titulo }}">
+                                <span class="video-cover-fallback" aria-hidden="true"><i class="fa-solid fa-clapperboard"></i></span>
+                                <img src="{{ video.get_capa }}" alt="Capa do vídeo {{ video.titulo }}" loading="lazy" data-video-cover>
+                                <span class="video-media-shade" aria-hidden="true"></span>
+                                <span class="video-play" aria-hidden="true"><i class="fa-solid fa-play"></i></span>
+                                {% if video.livro %}
+                                    <span class="video-badge"><i class="fa-solid fa-book-open" aria-hidden="true"></i> Videoaula</span>
+                                {% else %}
+                                    <span class="video-badge"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Vídeo Kaizo</span>
+                                {% endif %}
+                            </a>
+
+                            <div class="video-card-body">
+                                <div class="video-card-meta">
+                                    {% if video.livro %}
+                                        <span><i class="fa-solid fa-book" aria-hidden="true"></i> {{ video.livro.titulo|truncatechars:34 }}</span>
+                                    {% else %}
+                                        <span><i class="fa-solid fa-compass" aria-hidden="true"></i> Conteúdo avulso</span>
+                                    {% endif %}
+                                </div>
+                                <h3><a href="{% url 'assistir_aula' video.id %}">{{ video.titulo|truncatechars:54 }}</a></h3>
+                                <p>{{ video.descricao|default:"Um novo conteúdo para aprender e explorar no MundoKaizo."|truncatewords:19 }}</p>
+                                <a href="{% url 'assistir_aula' video.id %}" class="video-watch">
+                                    <span>Assistir agora</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                </a>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="video-empty">
+                    <div class="video-empty-icon" aria-hidden="true"><i class="fa-solid fa-video-slash"></i></div>
+                    {% if request.GET.q %}
+                        <span class="video-section-kicker">NENHUM RESULTADO</span>
+                        <h3>Esse vídeo ainda não apareceu por aqui.</h3>
+                        <p>Tente pesquisar com outra palavra ou volte para conferir toda a galeria.</p>
+                        <a href="{% url 'galeria_videos' %}">Ver todos os vídeos <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+                    {% else %}
+                        <span class="video-section-kicker">EM PREPARAÇÃO</span>
+                        <h3>Novos vídeos estão chegando.</h3>
+                        <p>Assim que os conteúdos forem cadastrados, eles aparecerão nesta galeria.</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </section>
+
+        <footer class="video-footer">
+            <span><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> Um ambiente seguro para aprender.</span>
+            <strong>MundoKaizo · Galeria de vídeos</strong>
+        </footer>
+    </main>
+
+    <script src="{% static 'core/js/videos.js' %}?v=20260912b"></script>
 </body>
 </html>

@@ -4,167 +4,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de Tickets | MundoKaizo</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'core/css/home.css' %}?v=20260901a">
-    <style>
-        .suporte-container {
-            max-width: 1000px;
-            margin: 40px auto;
-            padding: 30px;
-            background: #fff;
-            border-radius: 15px;
-            box-shadow: 0 10px 28px rgba(10,43,73,.07);
-        }
-        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background-color: #f3f7fa; font-weight: 800; }
-        .badge-nao-lidas { background-color: #ef4444; color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
-        .btn-primary { display: inline-block; padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; text-decoration: none; font-weight: bold; }
-        .btn-abrir { display: inline-block; padding: 6px 12px; background: #10b981; color: white; border-radius: 6px; cursor: pointer; border: none; text-decoration: none; font-weight: bold; }
-        
-        /* Modal Styles */
-        .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
-        .modal-content { background-color: #fff; margin: 5% auto; padding: 25px; border-radius: 15px; width: 90%; max-width: 600px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
-        .modal-iframe-content { max-width: 800px; height: 80vh; padding: 0; overflow: hidden; }
-        .close-modal { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1; margin-top: -10px; }
-        .close-modal:hover, .close-modal:focus { color: black; text-decoration: none; cursor: pointer; }
-        
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-family: 'Nunito', sans-serif; }
-        .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-        .btn-cancel { padding: 10px 20px; background: #f3f4f6; color: #4b5563; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-    </style>
+    <title>Suporte | MundoKaizo</title>
+    <link rel="icon" type="image/png" href="{% static 'core/ico/favicon/favicon-96x96.png' %}" sizes="96x96">
+    <link rel="stylesheet" href="{% static 'core/css/suporte_kaizo.css' %}?v=20260914a">
 </head>
-<body class="home-page">
-    {% include "includes/navbar.html" %}
+<body class="support-page" data-support-page="list">
+    {% url 'home' as support_home %}
+    {% include "includes/navbar.html" with back_url=support_home custom_title="Suporte" %}
 
-    <main id="conteudo-principal" class="home-shell">
-        <div class="suporte-container">
-            <div class="header-actions">
+    <main id="conteudo-principal" class="support-shell">
+        <header class="support-heading">
+            <div class="support-heading-copy">
+                <span class="support-eyebrow"><i class="fa-solid fa-headset" aria-hidden="true"></i> Central de ajuda</span>
+                <h1>Meus chamados</h1>
+                <p>Acompanhe suas solicitações e converse com a equipe de suporte do MundoKaizo.</p>
+            </div>
+            <button class="support-new-button" type="button" data-open-new-ticket>
+                <span class="support-new-icon"><i class="fa-solid fa-plus" aria-hidden="true"></i></span>
+                <span><strong>Novo chamado</strong><small>Conte como podemos ajudar</small></span>
+            </button>
+        </header>
+
+        <section class="support-overview" aria-label="Resumo do suporte">
+            <div class="support-overview-item">
+                <span class="support-overview-icon"><i class="fa-regular fa-folder-open" aria-hidden="true"></i></span>
+                <span><small>Total de chamados</small><strong>{{ tickets|length }}</strong></span>
+            </div>
+            <div class="support-overview-copy">
+                <span><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Atendimento organizado</span>
+                <p>Abra o chamado para acompanhar respostas e continuar a conversa.</p>
+            </div>
+            <div class="support-status-legend" aria-label="Legenda dos status">
+                <span class="is-open"><i></i> Aberto</span>
+                <span class="is-analysis"><i></i> Em análise</span>
+                <span class="is-resolved"><i></i> Resolvido</span>
+            </div>
+        </section>
+
+        <section class="support-list-panel">
+            <div class="support-list-heading">
                 <div>
-                    <h2><i class="fa-solid fa-headset"></i> Meus Chamados de Suporte</h2>
-                    <p>Acompanhe aqui o andamento das suas solicitações.</p>
+                    <span>ACOMPANHAMENTO</span>
+                    <h2>Solicitações recentes</h2>
                 </div>
-                <button class="btn-primary" onclick="abrirModalNovo()">+ Novo Chamado</button>
+                <small><i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i> Atualizado ao abrir a página</small>
             </div>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Assunto</th>
-                        <th>Categoria</th>
-                        <th>Status</th>
-                        <th>Mensagens</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for ticket in tickets %}
-                    <tr>
-                        <td>#{{ ticket.id }}</td>
-                        <td><strong>{{ ticket.assunto }}</strong></td>
-                        <td>{{ ticket.get_categoria_display }}</td>
-                        <td>
-                            {% if ticket.status == 'ABERTO' %}
-                                <span style="color: #f59e0b; font-weight: bold;">{{ ticket.get_status_display }}</span>
-                            {% elif ticket.status == 'EM_ANALISE' %}
-                                <span style="color: #3b82f6; font-weight: bold;">{{ ticket.get_status_display }}</span>
-                            {% else %}
-                                <span style="color: #10b981; font-weight: bold;">{{ ticket.get_status_display }}</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if ticket.nao_lidas > 0 %}
-                                <span class="badge-nao-lidas">{{ ticket.nao_lidas }} Nova(s)</span>
-                            {% else %}
-                                <span style="color: #9ca3af;">0</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <button onclick="abrirModalChat('{% url 'suporte:detalhe_ticket' ticket.id %}')" class="btn-abrir">Abrir Chat</button>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" style="text-align: center; padding: 20px;">Nenhum chamado de suporte encontrado.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+            <div class="support-table-wrap">
+                <table class="support-table">
+                    <thead>
+                        <tr>
+                            <th>Chamado</th>
+                            <th>Assunto</th>
+                            <th>Categoria</th>
+                            <th>Status</th>
+                            <th>Mensagens</th>
+                            <th><span class="support-sr-only">Ações</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ticket in tickets %}
+                            <tr>
+                                <td data-label="Chamado">
+                                    <span class="support-ticket-id">#{{ ticket.id }}</span>
+                                </td>
+                                <td data-label="Assunto">
+                                    <strong class="support-ticket-subject">{{ ticket.assunto }}</strong>
+                                </td>
+                                <td data-label="Categoria">
+                                    <span class="support-category"><i class="fa-regular fa-folder" aria-hidden="true"></i> {{ ticket.get_categoria_display }}</span>
+                                </td>
+                                <td data-label="Status">
+                                    {% if ticket.status == 'ABERTO' %}
+                                        <span class="support-status is-open"><i></i>{{ ticket.get_status_display }}</span>
+                                    {% elif ticket.status == 'EM_ANALISE' %}
+                                        <span class="support-status is-analysis"><i></i>{{ ticket.get_status_display }}</span>
+                                    {% else %}
+                                        <span class="support-status is-resolved"><i></i>{{ ticket.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td data-label="Mensagens">
+                                    {% if ticket.nao_lidas > 0 %}
+                                        <span class="support-unread"><i class="fa-solid fa-message" aria-hidden="true"></i> {{ ticket.nao_lidas }} nova{{ ticket.nao_lidas|pluralize:"s" }}</span>
+                                    {% else %}
+                                        <span class="support-no-unread"><i class="fa-regular fa-circle-check" aria-hidden="true"></i> Em dia</span>
+                                    {% endif %}
+                                </td>
+                                <td class="support-action-cell">
+                                    <button
+                                        type="button"
+                                        class="support-open-chat"
+                                        data-chat-url="{% url 'suporte:detalhe_ticket' ticket.id %}"
+                                        aria-label="Abrir conversa do chamado {{ ticket.id }}"
+                                    >
+                                        <span>Abrir conversa</span>
+                                        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr class="support-empty-row">
+                                <td colspan="6">
+                                    <div class="support-empty">
+                                        <span><i class="fa-regular fa-comments" aria-hidden="true"></i></span>
+                                        <h3>Nenhum chamado por aqui</h3>
+                                        <p>Quando precisar de ajuda, abra uma solicitação e acompanhe toda a conversa neste espaço.</p>
+                                        <button type="button" data-open-new-ticket><i class="fa-solid fa-plus" aria-hidden="true"></i> Abrir primeiro chamado</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <footer class="support-footer">
+            <span><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> Sua solicitação fica organizada em um único lugar.</span>
+            <span>MundoKaizo · Central de suporte</span>
+        </footer>
     </main>
 
-    <!-- Modal Novo Chamado -->
-    <div id="modalNovo" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="fecharModalNovo()">&times;</span>
-            <h2>Abrir Novo Chamado</h2>
-            <form method="POST" action="{% url 'suporte:novo_ticket' %}">
+    <div id="modalNovo" class="support-modal" role="dialog" aria-modal="true" aria-labelledby="newTicketTitle" hidden>
+        <div class="support-modal-card support-new-modal">
+            <button class="support-modal-close" type="button" data-close-modal aria-label="Fechar janela">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+            <div class="support-modal-heading">
+                <span class="support-modal-icon"><i class="fa-solid fa-headset" aria-hidden="true"></i></span>
+                <div>
+                    <span>NOVA SOLICITAÇÃO</span>
+                    <h2 id="newTicketTitle">Como podemos ajudar?</h2>
+                    <p>Conte o que aconteceu com o máximo de detalhes possível.</p>
+                </div>
+            </div>
+
+            <form method="POST" action="{% url 'suporte:novo_ticket' %}" class="support-ticket-form" id="newTicketForm">
                 {% csrf_token %}
-                <div class="form-group">
-                    <label>Assunto</label>
-                    <input type="text" name="assunto" required placeholder="Resumo do problema">
+                <div class="support-form-group">
+                    <label for="supportSubject">Assunto</label>
+                    <div class="support-field">
+                        <i class="fa-regular fa-message" aria-hidden="true"></i>
+                        <input id="supportSubject" type="text" name="assunto" required placeholder="Resuma o que você precisa">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Categoria</label>
-                    <select name="categoria" required>
-                        <option value="">Selecione uma categoria...</option>
-                        {% for value, label in categorias %}
-                            <option value="{{ value }}">{{ label }}</option>
-                        {% endfor %}
-                    </select>
+
+                <div class="support-form-group">
+                    <label for="supportCategory">Categoria</label>
+                    <div class="support-field support-select-field">
+                        <i class="fa-regular fa-folder-open" aria-hidden="true"></i>
+                        <select id="supportCategory" name="categoria" required>
+                            <option value="">Selecione uma categoria</option>
+                            {% for value, label in categorias %}
+                                <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <i class="fa-solid fa-chevron-down support-select-arrow" aria-hidden="true"></i>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Mensagem Inicial</label>
-                    <textarea name="mensagem" rows="5" required placeholder="Descreva sua solicitação com detalhes..."></textarea>
+
+                <div class="support-form-group">
+                    <div class="support-label-row">
+                        <label for="supportMessage">Mensagem inicial</label>
+                        <small><span id="supportCharacterCount">0</span> caracteres</small>
+                    </div>
+                    <div class="support-field support-textarea-field">
+                        <textarea id="supportMessage" name="mensagem" rows="6" required placeholder="Descreva sua solicitação, o que você esperava e o que apareceu na tela..."></textarea>
+                    </div>
+                    <p class="support-form-hint"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i> Se puder, informe em qual área do MundoKaizo ocorreu o problema.</p>
                 </div>
-                <div class="form-actions">
-                    <button type="button" class="btn-cancel" onclick="fecharModalNovo()">Cancelar</button>
-                    <button type="submit" class="btn-primary">Abrir Chamado</button>
+
+                <div class="support-form-actions">
+                    <button type="button" class="support-button-secondary" data-close-modal>Cancelar</button>
+                    <button type="submit" class="support-button-primary" id="submitTicketButton">
+                        <span>Abrir chamado</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal Chat (Iframe) -->
-    <div id="modalChat" class="modal">
-        <div class="modal-content modal-iframe-content">
-            <span class="close-modal" onclick="fecharModalChat()" style="position:absolute; right: 15px; top: 15px; z-index:10;">&times;</span>
-            <iframe id="iframeChat" src="" style="width: 100%; height: 100%; border: none; border-radius: 15px;"></iframe>
+    <div id="modalChat" class="support-modal support-chat-modal" role="dialog" aria-modal="true" aria-labelledby="chatModalTitle" hidden>
+        <div class="support-modal-card support-chat-modal-card">
+            <div class="support-chat-modal-bar">
+                <div>
+                    <span class="support-chat-live"><i></i> CANAL DE ATENDIMENTO</span>
+                    <strong id="chatModalTitle">Conversa do chamado</strong>
+                </div>
+                <button class="support-modal-close is-inline" type="button" data-close-chat aria-label="Fechar conversa">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+            <iframe id="iframeChat" title="Conversa do chamado de suporte" src=""></iframe>
         </div>
     </div>
 
-    <script>
-        function abrirModalNovo() {
-            document.getElementById('modalNovo').style.display = 'block';
-        }
-        function fecharModalNovo() {
-            document.getElementById('modalNovo').style.display = 'none';
-        }
-        function abrirModalChat(url) {
-            document.getElementById('iframeChat').src = url;
-            document.getElementById('modalChat').style.display = 'block';
-        }
-        function fecharModalChat() {
-            document.getElementById('modalChat').style.display = 'none';
-            document.getElementById('iframeChat').src = '';
-            // Atualiza a página atual para recarregar a tabela (badges e etc) ao fechar o chat
-            window.location.reload();
-        }
-        // Fechar ao clicar fora
-        window.onclick = function(event) {
-            if (event.target == document.getElementById('modalNovo')) {
-                fecharModalNovo();
-            }
-            if (event.target == document.getElementById('modalChat')) {
-                fecharModalChat();
-            }
-        }
-    </script>
+    <script src="{% static 'core/js/suporte_kaizo.js' %}?v=20260914a"></script>
 </body>
 </html>

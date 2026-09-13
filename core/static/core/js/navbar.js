@@ -4,6 +4,47 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuButton = document.querySelector('.mk-menu-btn');
     const sideMenu = document.getElementById('mkMainMenu');
     const backdrop = document.querySelector('.mk-menu-backdrop');
+    // MASCOTE SURPRESA: a lista vem do HTML e pode crescer sem mudar esta lógica.
+    const mascotHost = document.querySelector('[data-mk-brand-mascot]');
+    const mascotImage = mascotHost?.querySelector('.mk-brand-mascot');
+    if (mascotHost && mascotImage) {
+        const mascotSources = (mascotHost.dataset.mascots || '')
+            .split('|')
+            .map(source => source.trim())
+            .filter(Boolean);
+
+        if (mascotSources.length) {
+            let randomValue;
+            if (window.crypto?.getRandomValues) {
+                const values = new Uint32Array(1);
+                window.crypto.getRandomValues(values);
+                randomValue = values[0] / 4294967296;
+            } else {
+                randomValue = Math.random();
+            }
+
+            const rareMascots = (mascotHost.dataset.rareMascots || '')
+                .split('|')
+                .map(name => name.trim())
+                .filter(Boolean);
+            const weightedMascots = mascotSources.map((source, index) => ({
+                index,
+                weight: rareMascots.some(name => source.endsWith(name)) ? 1 : 10
+            }));
+            const totalWeight = weightedMascots.reduce((total, mascot) => total + mascot.weight, 0);
+            let draw = randomValue * totalWeight;
+            const selectedMascot = weightedMascots.find(mascot => {
+                draw -= mascot.weight;
+                return draw < 0;
+            }) || weightedMascots[weightedMascots.length - 1];
+            const mascotIndex = selectedMascot.index;
+            const revealMascot = () => mascotHost.classList.add('is-ready');
+            mascotImage.addEventListener('load', revealMascot, { once: true });
+            mascotImage.src = mascotSources[mascotIndex];
+            mascotHost.dataset.mascotIndex = String(mascotIndex + 1);
+            if (mascotImage.complete && mascotImage.naturalWidth) revealMascot();
+        }
+    }
 
     const closeUserMenu = () => {
         if (!userButton || !userMenu) return;

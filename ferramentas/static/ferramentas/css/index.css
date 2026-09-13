@@ -509,3 +509,13 @@
     .empty-illustration { width: 112px; height: 112px; border-radius: 32px; font-size: 44px; }
     .tools-footer { align-items: center; flex-direction: column; gap: 8px; }
 }
+
+/* PADRAO COMPACTO DE BANNER — mesma régua visual da página Início */
+@media (min-width:701px) {
+    .tools-hero { min-height:176px; margin-top:16px; padding:20px 40px; grid-template-columns:minmax(0,1.3fr) 220px; gap:22px; border-radius:28px; }
+    .eyebrow { margin-bottom:7px; padding:5px 9px; font-size:8px; }
+    .hero-copy h1 { font-size:clamp(29px,2.8vw,36px); }
+    .hero-copy p { margin-top:8px; font-size:12px; line-height:1.42; }
+    .hero-visual { height:145px; transform:scale(.76); transform-origin:right center; }
+}
+@media (max-width:700px) { .tools-hero { min-height:245px; margin-top:12px; } }

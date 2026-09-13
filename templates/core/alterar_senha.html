@@ -3,37 +3,129 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Alterar Senha - MundoKaizo</title>
-    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'core/css/app.css' %}">
-    <link rel="shortcut icon" type="image/png" href="{% static 'core/ico/mkz.svg' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f3f7fa">
+    <title>Alterar senha | MundoKaizo</title>
+    <link rel="icon" type="image/svg+xml" href="{% static 'core/ico/favicon/favicon.svg' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/css/alterar_senha.css' %}?v=20260912a">
 </head>
-<body>
+<body class="mk-password-page">
+    {% include 'includes/navbar.html' with custom_title="Minha conta" show_search=False %}
 
-    {% include 'includes/navbar.html' %}
-
-    <div class="container pt-4">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card-panel">
-                    <h3 class="mb-4 text-center" style="color: #5e6e82;">Alterar Senha</h3>
-                    <form method="post">
-                        {% csrf_token %}
-                        {% for field in form %}
-                            <div class="mb-3">
-                                <label class="form-label ps-2 text-muted">{{ field.label }}</label>
-                                <input type="{{ field.field.widget.input_type }}" name="{{ field.name }}" class="form-control search-input" id="{{ field.id_for_label }}">
-                                {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
-                            </div>
-                        {% endfor %}
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn-morph" style="color: #007bff;"><i class="fas fa-save"></i> SALVAR</button>
-                        </div>
-                    </form>
+    <main class="password-shell" id="conteudo-principal">
+        <section class="password-experience" aria-labelledby="password-page-title">
+            <aside class="password-intro">
+                <div class="password-intro-copy">
+                    <span class="password-eyebrow"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Segurança da conta</span>
+                    <h1 id="password-page-title">Sua aventura merece uma senha forte.</h1>
+                    <p>Atualize sua senha com tranquilidade. Em poucos passos, sua conta continua protegida para explorar o MundoKaizo.</p>
                 </div>
-            </div>
-        </div>
-    </div>
+
+                <div class="password-illustration" aria-hidden="true">
+                    <span class="password-orbit orbit-one"></span>
+                    <span class="password-orbit orbit-two"></span>
+                    <span class="password-spark spark-one"><i class="fa-solid fa-star"></i></span>
+                    <span class="password-spark spark-two"><i class="fa-solid fa-star"></i></span>
+                    <div class="password-shield">
+                        <i class="fa-solid fa-lock"></i>
+                        <span class="shield-check"><i class="fa-solid fa-check"></i></span>
+                    </div>
+                </div>
+
+                <div class="password-tips">
+                    <div><span><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i></span><p><strong>Crie algo único</strong>Evite nomes, datas e sequências fáceis.</p></div>
+                    <div><span><i class="fa-solid fa-user-shield" aria-hidden="true"></i></span><p><strong>Guarde só para você</strong>Não compartilhe sua senha com outras pessoas.</p></div>
+                </div>
+            </aside>
+
+            <section class="password-card" aria-labelledby="password-form-title">
+                <header class="password-card-header">
+                    <div class="password-user-chip">
+                        <span class="password-avatar" aria-hidden="true">{{ request.user.username|first|upper }}</span>
+                        <span><small>Conta conectada</small><strong>{{ request.user.username }}</strong></span>
+                    </div>
+                    <span class="password-status"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Protegida</span>
+                </header>
+
+                <div class="password-card-copy">
+                    <span class="password-step">MINHA CONTA</span>
+                    <h2 id="password-form-title">Alterar senha</h2>
+                    <p>Confirme sua senha atual e escolha a nova combinação.</p>
+                </div>
+
+                {% if form.non_field_errors %}
+                    <div class="password-alert" role="alert">
+                        <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                        <div><strong>Não foi possível salvar</strong>{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>
+                    </div>
+                {% endif %}
+
+                <form method="post" class="password-form" data-password-form>
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="password-field {% if field.errors %}has-error{% endif %}">
+                            <label for="{{ field.id_for_label }}">
+                                {% if field.name == 'old_password' %}
+                                    <span class="field-icon"><i class="fa-solid fa-key" aria-hidden="true"></i></span>
+                                {% elif field.name == 'new_password1' %}
+                                    <span class="field-icon"><i class="fa-solid fa-lock" aria-hidden="true"></i></span>
+                                {% else %}
+                                    <span class="field-icon"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>
+                                {% endif %}
+                                <span>{{ field.label }}</span>
+                            </label>
+                            <div class="password-input-wrap">
+                                <input
+                                    type="password"
+                                    name="{{ field.name }}"
+                                    id="{{ field.id_for_label }}"
+                                    class="password-input"
+                                    {% if field.name == 'old_password' %}autocomplete="current-password" placeholder="Digite sua senha atual"{% elif field.name == 'new_password1' %}autocomplete="new-password" placeholder="Crie sua nova senha" data-password-primary{% else %}autocomplete="new-password" placeholder="Repita sua nova senha" data-password-confirm{% endif %}
+                                    required
+                                    aria-describedby="{{ field.id_for_label }}-feedback"
+                                    {% if field.errors %}aria-invalid="true"{% endif %}>
+                                <button class="password-toggle" type="button" data-password-toggle aria-label="Mostrar senha" title="Mostrar senha">
+                                    <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                            <div id="{{ field.id_for_label }}-feedback" class="field-feedback">
+                                {% if field.errors %}
+                                    <span class="field-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> {{ field.errors.0 }}</span>
+                                {% elif field.name == 'old_password' %}
+                                    <span class="field-hint">A mesma senha que você usa para entrar.</span>
+                                {% elif field.name == 'new_password1' %}
+                                    <span class="field-hint">Prefira uma combinação longa e difícil de adivinhar.</span>
+                                {% else %}
+                                    <span class="field-hint" data-confirm-message>Digite novamente para confirmar.</span>
+                                {% endif %}
+                            </div>
+
+                            {% if field.name == 'new_password1' %}
+                                <div class="password-strength" data-password-strength aria-live="polite">
+                                    <div class="strength-track" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+                                    <div class="strength-copy"><span>Força da senha</span><strong data-strength-label>Comece a digitar</strong></div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <div class="password-actions">
+                        <button type="submit" class="password-save">
+                            <span>Salvar nova senha</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                        </button>
+                        <a href="{% url 'home' %}" class="password-cancel"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</a>
+                    </div>
+                </form>
+
+                <footer class="password-card-footer">
+                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                    <span>Seus dados são tratados com segurança no MundoKaizo.</span>
+                </footer>
+            </section>
+        </section>
+    </main>
+
+    <script src="{% static 'core/js/alterar_senha.js' %}?v=20260912a"></script>
 </body>
 </html>

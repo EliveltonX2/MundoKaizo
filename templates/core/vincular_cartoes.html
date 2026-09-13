@@ -4,64 +4,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vincular Cartões - Gestão Kaizo</title>
-    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Vincular cartões | MundoKaizo</title>
+    <link rel="icon" type="image/png" href="{% static 'core/ico/favicon/favicon-96x96.png' %}" sizes="96x96">
+    <link rel="stylesheet" href="{% static 'core/css/vincular_cartoes.css' %}?v=20260914a">
 </head>
-<body class="bg-light">
+<body class="card-link-page">
+    {% url 'gerenciar' as gerenciar_url %}
+    {% include 'includes/navbar.html' with back_url=gerenciar_url show_search=False %}
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-5">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="{% url 'home' %}">
-                <i class="fas fa-arrow-left me-2"></i> Voltar
-            </a>
-            <span class="navbar-text text-white fw-bold">
-                Painel do {{ request.user.get_tipo_display }}
-            </span>
-        </div>
-    </nav>
-
-    <div class="container" style="max-width: 800px;">
-        
+    <main class="card-link-shell">
         {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
-                    <i class="fas fa-info-circle me-2"></i> {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
+            <section class="card-link-alerts" aria-label="Mensagens do sistema">
+                {% for message in messages %}
+                    <div class="card-link-alert {{ message.tags|default:'info' }}" role="status">
+                        <span class="card-link-alert-icon">
+                            {% if message.tags == 'success' %}
+                                <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                            {% elif message.tags == 'error' %}
+                                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                            {% else %}
+                                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                            {% endif %}
+                        </span>
+                        <span><strong>{% if message.tags == 'success' %}Tudo certo!{% elif message.tags == 'error' %}Precisamos revisar{% else %}Informação{% endif %}</strong><small>{{ message }}</small></span>
+                        <button type="button" data-dismiss-alert aria-label="Fechar mensagem"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+                    </div>
+                {% endfor %}
+            </section>
         {% endif %}
 
-        <div class="card shadow-lg border-0 rounded-4">
-            <div class="card-header bg-white border-0 pt-4 pb-0 text-center">
-                <h3 class="fw-bold text-primary"><i class="fas fa-link me-2"></i> Vincular Cartões de Aluno</h3>
-                <p class="text-muted small">Atribua os cartões físicos às suas respectivas turmas antes de entregá-los aos alunos.</p>
+        <header class="card-link-heading">
+            <div>
+                <span class="card-link-eyebrow"><i class="fa-solid fa-id-card" aria-hidden="true"></i> Gestão de cartões</span>
+                <h1>Vincular cartões de aluno</h1>
+                <p>Prepare os cartões físicos de uma turma antes de entregá-los aos estudantes.</p>
             </div>
-            
-            <div class="card-body p-4 p-md-5">
-                <form method="post" action="{% url 'vincular_cartoes' %}">
+            <div class="card-link-heading-visual" aria-hidden="true">
+                <span class="card-link-card card-link-card-back"><i class="fa-solid fa-wifi"></i></span>
+                <span class="card-link-card card-link-card-front"><i class="fa-solid fa-graduation-cap"></i><b>KZ</b></span>
+                <span class="card-link-connection"><i class="fa-solid fa-link"></i></span>
+            </div>
+        </header>
+
+        <div class="card-link-grid">
+            <aside class="card-link-guide">
+                <div class="card-link-guide-heading">
+                    <span><i class="fa-solid fa-route" aria-hidden="true"></i></span>
+                    <div><small>PASSO A PASSO</small><h2>Vinculação segura</h2></div>
+                </div>
+
+                <ol class="card-link-steps">
+                    <li class="is-active">
+                        <span>1</span>
+                        <div><strong>Escolha a turma</strong><p>Todos os códigos informados serão vinculados à turma selecionada.</p></div>
+                    </li>
+                    <li>
+                        <span>2</span>
+                        <div><strong>Leia os cartões</strong><p>Use o leitor de código de barras ou digite um código por linha.</p></div>
+                    </li>
+                    <li>
+                        <span>3</span>
+                        <div><strong>Confira e salve</strong><p>Revise a quantidade encontrada antes de confirmar os vínculos.</p></div>
+                    </li>
+                </ol>
+
+                <div class="card-link-scanner-tip">
+                    <span><i class="fa-solid fa-barcode" aria-hidden="true"></i></span>
+                    <div><strong>Usando um leitor?</strong><p>Cada leitura seguida de Enter cria automaticamente uma nova linha.</p></div>
+                </div>
+            </aside>
+
+            <section class="card-link-form-panel">
+                <div class="card-link-form-heading">
+                    <div>
+                        <span>CONFIGURAÇÃO</span>
+                        <h2>Dados da vinculação</h2>
+                    </div>
+                    <span class="card-link-secure"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Operação segura</span>
+                </div>
+
+                {% if form.non_field_errors %}
+                    <div class="card-link-form-errors" role="alert">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <form method="post" action="{% url 'vincular_cartoes' %}" id="cardLinkForm">
                     {% csrf_token %}
-                    
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-muted small text-uppercase">1. Selecione a Turma de Destino</label>
-                        {{ form.turma }}
+
+                    <div class="card-link-form-group">
+                        <div class="card-link-label-row">
+                            <label for="{{ form.turma.id_for_label }}"><span>1</span> Turma de destino</label>
+                            <small>Obrigatório</small>
+                        </div>
+                        <div class="card-link-select-wrap">
+                            <i class="fa-solid fa-users" aria-hidden="true"></i>
+                            {{ form.turma }}
+                            <i class="fa-solid fa-chevron-down card-link-chevron" aria-hidden="true"></i>
+                        </div>
+                        {% if form.turma.errors %}<div class="card-link-field-errors">{{ form.turma.errors }}</div>{% endif %}
                     </div>
 
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-muted small text-uppercase">2. Digite ou bipe os códigos (Um por linha)</label>
-                        {{ form.codigos }}
-                        <div class="form-text mt-2"><i class="fas fa-barcode"></i> Você pode usar um leitor de código de barras. Cada "bip" pulará uma linha automaticamente.</div>
+                    <div class="card-link-form-group">
+                        <div class="card-link-label-row">
+                            <label for="{{ form.codigos.id_for_label }}"><span>2</span> Códigos dos cartões</label>
+                            <small>Um por linha</small>
+                        </div>
+                        <div class="card-link-codes-wrap">
+                            <div class="card-link-textarea-top">
+                                <span><i class="fa-solid fa-barcode" aria-hidden="true"></i> LEITOR DE CÓDIGOS</span>
+                                <span class="card-link-live-indicator"><i></i> Pronto</span>
+                            </div>
+                            {{ form.codigos }}
+                            <div class="card-link-code-summary" aria-live="polite">
+                                <span><strong id="cardCodeCount">0</strong><small>códigos detectados</small></span>
+                                <span><i class="fa-solid fa-circle-check" aria-hidden="true"></i><small>Revise antes de salvar</small></span>
+                            </div>
+                        </div>
+                        {% if form.codigos.errors %}<div class="card-link-field-errors">{{ form.codigos.errors }}</div>{% endif %}
                     </div>
 
-                    <button type="submit" class="btn btn-success w-100 btn-lg rounded-pill fw-bold shadow-sm">
-                        <i class="fas fa-save me-2"></i> SALVAR VÍNCULOS
-                    </button>
+                    <div class="card-link-submit-area">
+                        <div class="card-link-submit-note">
+                            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                            <span><strong>Antes de confirmar</strong><small>Verifique a turma e a quantidade de cartões.</small></span>
+                        </div>
+                        <button type="submit" class="card-link-submit" id="cardLinkSubmit">
+                            <span class="card-link-submit-icon"><i class="fa-solid fa-link" aria-hidden="true"></i></span>
+                            <span><strong>Salvar vínculos</strong><small>Confirmar cartões nesta turma</small></span>
+                            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                        </button>
+                    </div>
                 </form>
-            </div>
+            </section>
         </div>
-        
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <footer class="card-link-footer">
+            <span><i class="fa-solid fa-id-card-clip" aria-hidden="true"></i> Cartões organizados facilitam o acesso dos alunos.</span>
+            <span>MundoKaizo · Gestão de cartões</span>
+        </footer>
+    </main>
+
+    <script src="{% static 'core/js/vincular_cartoes.js' %}?v=20260914a"></script>
 </body>
 </html>
