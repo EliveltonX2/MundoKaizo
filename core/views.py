@@ -5,7 +5,11 @@ from django.contrib.auth.hashers import make_password
 from django.contrib import messages
 from django.core.cache import cache
 from django.core.files.storage import default_storage
-from .models import Livro, Pagina, User, VideoAula, Turma, TokenCadastro, SessaoChat, Mensagem, EstatisticasUsuario, RegistroAcessoDemo
+from .models import (
+    Livro, Pagina, User, VideoAula, Turma, TokenCadastro, SessaoChat, 
+    Mensagem, EstatisticasUsuario, RegistroAcessoDemo, AnoEscolar, 
+    Cidade, Escola, Estado, Pais
+)
 from jogos.models import Jogo, SessaoJogo
 from .services import adicionar_watermark
 from django.db.models import Q
@@ -245,7 +249,7 @@ def resetar_senha(request, user_id):
         alvo = get_object_or_404(User, pk=user_id)
         quem_pede = request.user
         
-        # Verificação de Segurança (Muito Importante!)
+        # Verificação de Segurança Hierárquica
         autorizado = False
         
         if quem_pede.tipo == 'PROFESSOR':
@@ -255,22 +259,37 @@ def resetar_senha(request, user_id):
                 autorizado = True
                 
         elif quem_pede.tipo == 'GESTOR_LOCAL':
-            # Lógica simplificada: Se o alvo está numa turma de uma escola que o gestor cuida
+            # Se o alvo está numa turma de uma escola que o gestor cuida
             escolas_gestor = quem_pede.escolas.all()
             if alvo.turmas.filter(escola__in=escolas_gestor).exists():
                 autorizado = True
+
+        elif quem_pede.tipo == 'GESTOR_REGIONAL':
+            cidades_gestor = quem_pede.cidades_gestao.all()
+            escolas_gestor = quem_pede.escolas.all()
+            if alvo.turmas.filter(Q(escola__cidade__in=cidades_gestor) | Q(escola__in=escolas_gestor)).exists():
+                autorizado = True
+
+        elif quem_pede.tipo == 'GESTOR_REDE':
+            cidades_gestor = quem_pede.cidades_gestao.all()
+            estados_gestor = quem_pede.estados_gestao.all()
+            if alvo.turmas.filter(Q(escola__cidade__in=cidades_gestor) | Q(escola__cidade__estado__in=estados_gestor)).exists():
+                autorizado = True
         
-        elif quem_pede.tipo in ['GESTOR_GERAL', 'ADMIN'] or quem_pede.is_superuser:
+        elif quem_pede.tipo in ['GESTOR_KAIZO', 'ADMIN', 'GESTOR_GERAL'] or quem_pede.is_superuser:
             autorizado = True
 
         if autorizado:
-            nova_senha = "123456" # Senha padrão de reset (ou gerar aleatória)
+            nova_senha = "123456" # Senha padrão de reset
             alvo.password = make_password(nova_senha) # Hash da senha
             alvo.save()
-            messages.success(request, f"Senha de {alvo.username} resetada para '123456'.")
+            messages.success(request, f"Senha do aluno '{alvo.get_full_name() or alvo.username}' resetada para '123456'.")
         else:
-            messages.error(request, "Você não tem permissão para resetar este usuário.")
+            messages.error(request, "Você não tem permissão para resetar a senha deste usuário.")
     
+    next_url = request.POST.get('next')
+    if next_url:
+        return redirect(next_url)
     return redirect('detalhes_aluno', aluno_id=user_id)
 
 
@@ -449,8 +468,13 @@ def api_turmas_por_escola(request, escola_id):
 
 @login_required
 def vincular_cartoes_view(request):
+    # Alunos não têm acesso a /gestao/*
+    if request.user.tipo == 'ALUNO':
+        messages.error(request, "Acesso restrito. Alunos não têm acesso à área de gestão.")
+        return redirect('home')
+
     # Apenas Professores ou Gestores podem acessar
-    if request.user.tipo not in ['PROFESSOR', 'GESTOR_LOCAL', 'GESTOR_GERAL', 'ADMIN']:
+    if request.user.tipo not in ['PROFESSOR', 'GESTOR_LOCAL', 'GESTOR_REGIONAL', 'GESTOR_REDE', 'GESTOR_KAIZO', 'GESTOR_GERAL', 'ADMIN'] and not request.user.is_superuser:
         return redirect('home')
 
     if request.method == 'POST':
@@ -482,38 +506,337 @@ def vincular_cartoes_view(request):
             if erros > 0:
                 messages.warning(request, f"{erros} códigos eram inválidos, não eram de aluno ou já estavam usados.")
                 
-            return redirect('vincular_cartoes') # Atualize com o nome da sua URL de gestão
+            return redirect('vincular_cartoes')
     else:
         form = VincularCartoesForm(professor=request.user)
 
     return render(request, 'core/vincular_cartoes.html', {'form': form})
 
 @login_required
-def criar_turma_view(request):
-    # Apenas Gestores e Admins podem criar turmas
-    if request.user.tipo not in ['GESTOR_LOCAL', 'ADMIN']:
-        messages.error(request, "Você não tem permissão para acessar esta página.")
+def gestao_organizacao_view(request):
+    user = request.user
+    
+    # 1. Alunos e usuários Demo NÃO têm acesso à página de controle de turmas /gestao/*
+    if user.tipo in ['ALUNO', 'DEMO']:
+        messages.error(request, "Acesso restrito. Alunos não têm acesso à área de controle de turmas e gestão.")
         return redirect('home')
 
-    if request.method == 'POST':
-        # Passamos o request.user para o form aplicar a trava de segurança
-        form = TurmaForm(request.POST, gestor=request.user)
-        if form.is_valid():
-            turma = form.save()
-            messages.success(request, f"A turma '{turma.nome}' foi criada com sucesso na escola {turma.escola.nome}!")
-            # Redireciona de volta para a mesma página para ele criar outra se quiser
-            return redirect('criar_turma') 
-    else:
-        form = TurmaForm(gestor=request.user)
+    # Permissões do usuário
+    is_admin = user.is_superuser or user.tipo in ['ADMIN', 'GESTOR_KAIZO', 'GESTOR_GERAL']
+    is_gestor_rede = user.tipo == 'GESTOR_REDE'
+    is_gestor_regional = user.tipo == 'GESTOR_REGIONAL'
+    is_gestor_local = user.tipo == 'GESTOR_LOCAL'
+    is_professor = user.tipo == 'PROFESSOR'
 
-    # Pegamos as turmas que já existem nas escolas desse gestor para mostrar numa listinha
-    turmas_existentes = Turma.objects.filter(escola__in=request.user.escolas.all()).order_by('escola__nome', 'nome')
+    if not (is_admin or is_gestor_rede or is_gestor_regional or is_gestor_local or is_professor):
+        messages.error(request, "Você não tem permissão para acessar esta área.")
+        return redirect('home')
+
+    # Níveis de capacidade
+    pode_gerenciar_rede = is_admin or is_gestor_rede
+    pode_gerenciar_escolas = is_admin or is_gestor_rede or is_gestor_regional
+    pode_gerenciar_turmas = is_admin or is_gestor_rede or is_gestor_regional or is_gestor_local
+
+    # Escopos de Dados
+    if is_admin:
+        cidades_escopo = Cidade.objects.all().select_related('estado').order_by('nome')
+        escolas_escopo = Escola.objects.all().select_related('cidade', 'cidade__estado').order_by('nome')
+        turmas_escopo = Turma.objects.all().select_related('escola', 'ano_escolar').prefetch_related('user_set').order_by('escola__nome', 'nome')
+    elif is_gestor_rede:
+        cidades_escopo = user.cidades_gestao.all().select_related('estado').order_by('nome')
+        escolas_escopo = Escola.objects.filter(
+            Q(cidade__in=cidades_escopo) | Q(cidade__estado__in=user.estados_gestao.all())
+        ).distinct().select_related('cidade', 'cidade__estado').order_by('nome')
+        turmas_escopo = Turma.objects.filter(escola__in=escolas_escopo).select_related('escola', 'ano_escolar').prefetch_related('user_set').order_by('escola__nome', 'nome')
+    elif is_gestor_regional:
+        cidades_escopo = user.cidades_gestao.all().select_related('estado').order_by('nome')
+        escolas_escopo = Escola.objects.filter(
+            Q(cidade__in=cidades_escopo) | Q(id__in=user.escolas.values_list('id', flat=True))
+        ).distinct().select_related('cidade', 'cidade__estado').order_by('nome')
+        turmas_escopo = Turma.objects.filter(escola__in=escolas_escopo).select_related('escola', 'ano_escolar').prefetch_related('user_set').order_by('escola__nome', 'nome')
+    elif is_gestor_local:
+        cidades_escopo = Cidade.objects.none()
+        escolas_escopo = user.escolas.all().select_related('cidade', 'cidade__estado').order_by('nome')
+        turmas_escopo = Turma.objects.filter(escola__in=escolas_escopo).select_related('escola', 'ano_escolar').prefetch_related('user_set').order_by('escola__nome', 'nome')
+    else: # PROFESSOR
+        cidades_escopo = Cidade.objects.none()
+        escolas_escopo = user.escolas.all().select_related('cidade', 'cidade__estado').order_by('nome')
+        turmas_escopo = user.turmas.all().select_related('escola', 'ano_escolar').prefetch_related('user_set').order_by('escola__nome', 'nome')
+
+    aba_ativa = request.GET.get('aba', 'turmas')
+
+    if request.method == 'POST':
+        acao = request.POST.get('acao')
+        aba_ativa = request.POST.get('aba_origem', 'turmas')
+
+        # 1. CRIAR TURMA
+        if acao == 'criar_turma':
+            if not pode_gerenciar_turmas:
+                messages.error(request, "Você não tem permissão para criar turmas.")
+                return redirect(f"{reverse('gestao_organizacao')}?aba={aba_ativa}")
+
+            nome = request.POST.get('nome', '').strip()
+            escola_id = request.POST.get('escola')
+            ano_escolar_id = request.POST.get('ano_escolar')
+            professor_id = request.POST.get('professor')
+
+            if not nome or not escola_id:
+                messages.error(request, "Nome da turma e Escola são obrigatórios.")
+                return redirect(f"{reverse('gestao_organizacao')}?aba={aba_ativa}")
+
+            escola = get_object_or_404(Escola, id=escola_id)
+            if not is_admin and escola not in escolas_escopo:
+                messages.error(request, "Você não tem permissão para cadastrar turmas nesta escola.")
+                return redirect(f"{reverse('gestao_organizacao')}?aba={aba_ativa}")
+
+            ano_obj = AnoEscolar.objects.filter(id=ano_escolar_id).first() if ano_escolar_id else None
+            turma = Turma.objects.create(nome=nome, escola=escola, ano_escolar=ano_obj)
+
+            if professor_id:
+                prof = User.objects.filter(id=professor_id, tipo='PROFESSOR').first()
+                if prof:
+                    prof.turmas.add(turma)
+                    prof.escolas.add(escola)
+                    messages.success(request, f"Turma '{turma.nome}' criada com sucesso e atribuída ao professor {prof.get_full_name() or prof.username}!")
+                else:
+                    messages.success(request, f"Turma '{turma.nome}' criada com sucesso!")
+            else:
+                messages.success(request, f"Turma '{turma.nome}' criada com sucesso!")
+
+            return redirect(f"{reverse('gestao_organizacao')}?aba={aba_ativa}")
+
+        # 2. EDITAR TURMA
+        elif acao == 'editar_turma':
+            if not pode_gerenciar_turmas:
+                messages.error(request, "Você não tem permissão para editar turmas.")
+                return redirect(f"{reverse('gestao_organizacao')}?aba={aba_ativa}")
+
+            turma_id = request.POST.get('turma_id')
+            turma = get_object_or_404(Turma, id=turma_id)
+            if not is_admin and turma not in turmas_escopo:
+                messages.error(request, "Você não tem permissão sobre esta turma.")
+                return redirect(f"{reverse('gestao_organizacao')}?aba={aba_ativa}")
+
+            nome = request.POST.get('nome', '').strip()
+            escola_id = request.POST.get('escola')
+            ano_escolar_id = request.POST.get('ano_escolar')
+
+            if not nome:
+                messages.error(request, "O nome da turma não pode ficar em branco.")
+                return redirect(f"{reverse('gestao_organizacao')}?aba={aba_ativa}")
+
+            turma.nome = nome
+            if escola_id:
+                escola = get_object_or_404(Escola, id=escola_id)
+                if not is_admin and escola not in escolas_escopo:
+                    messages.error(request, "Escola selecionada fora do seu escopo.")
+                    return redirect(f"{reverse('gestao_organizacao')}?aba={aba_ativa}")
+                turma.escola = escola
+
+            turma.ano_escolar = AnoEscolar.objects.filter(id=ano_escolar_id).first() if ano_escolar_id else None
+            turma.save()
+            messages.success(request, f"Turma '{turma.nome}' atualizada com sucesso!")
+            return redirect(f"{reverse('gestao_organizacao')}?aba={aba_ativa}")
+
+        # 3. EXCLUIR TURMA COM CONFIRMAÇÃO DE DIGITAÇÃO
+        elif acao == 'excluir_turma':
+            if not pode_gerenciar_turmas:
+                messages.error(request, "Você não tem permissão para excluir turmas.")
+                return redirect(f"{reverse('gestao_organizacao')}?aba={aba_ativa}")
+
+            turma_id = request.POST.get('turma_id')
+            nome_confirmacao = request.POST.get('nome_confirmacao', '').strip()
+            turma = get_object_or_404(Turma, id=turma_id)
+
+            if not is_admin and turma not in turmas_escopo:
+                messages.error(request, "Você não tem permissão sobre esta turma.")
+                return redirect(f"{reverse('gestao_organizacao')}?aba={aba_ativa}")
+
+            if nome_confirmacao.lower() != turma.nome.strip().lower():
+                messages.error(request, f"Aviso de Segurança: Para excluir a turma, é necessário digitar exatamente o nome '{turma.nome}'. A confirmação digitada ('{nome_confirmacao}') não confere.")
+                return redirect(f"{reverse('gestao_organizacao')}?aba={aba_ativa}")
+
+            nome_excluido = turma.nome
+            turma.delete()
+            messages.success(request, f"A turma '{nome_excluido}' foi excluída com sucesso.")
+            return redirect(f"{reverse('gestao_organizacao')}?aba={aba_ativa}")
+
+        # 4. ATRIBUIR PROFESSOR À TURMA
+        elif acao == 'atribuir_professor':
+            if not pode_gerenciar_turmas:
+                messages.error(request, "Sem permissão.")
+                return redirect(f"{reverse('gestao_organizacao')}?aba={aba_ativa}")
+
+            turma_id = request.POST.get('turma_id')
+            professor_id = request.POST.get('professor_id')
+            turma = get_object_or_404(Turma, id=turma_id)
+            if not is_admin and turma not in turmas_escopo:
+                messages.error(request, "Turma fora do seu escopo.")
+                return redirect(f"{reverse('gestao_organizacao')}?aba={aba_ativa}")
+
+            prof = get_object_or_404(User, id=professor_id, tipo='PROFESSOR')
+            prof.turmas.add(turma)
+            prof.escolas.add(turma.escola)
+            messages.success(request, f"Professor {prof.get_full_name() or prof.username} atribuído à turma '{turma.nome}' com sucesso!")
+            return redirect(f"{reverse('gestao_organizacao')}?aba={aba_ativa}")
+
+        # 5. REMOVER PROFESSOR DA TURMA
+        elif acao == 'remover_professor':
+            if not pode_gerenciar_turmas:
+                messages.error(request, "Sem permissão.")
+                return redirect(f"{reverse('gestao_organizacao')}?aba={aba_ativa}")
+
+            turma_id = request.POST.get('turma_id')
+            professor_id = request.POST.get('professor_id')
+            turma = get_object_or_404(Turma, id=turma_id)
+            if not is_admin and turma not in turmas_escopo:
+                messages.error(request, "Turma fora do seu escopo.")
+                return redirect(f"{reverse('gestao_organizacao')}?aba={aba_ativa}")
+
+            prof = get_object_or_404(User, id=professor_id)
+            prof.turmas.remove(turma)
+            messages.success(request, f"Professor {prof.get_full_name() or prof.username} desvinculado da turma '{turma.nome}'.")
+            return redirect(f"{reverse('gestao_organizacao')}?aba={aba_ativa}")
+
+        # 6. ATRIBUIR GESTOR ESCOLAR À ESCOLA (Gestor Regional+)
+        elif acao == 'atribuir_gestor_escola':
+            if not pode_gerenciar_escolas:
+                messages.error(request, "Você não tem permissão para gerenciar gestores escolares.")
+                return redirect(f"{reverse('gestao_organizacao')}?aba=escolas")
+
+            escola_id = request.POST.get('escola_id')
+            gestor_id = request.POST.get('gestor_id')
+            escola = get_object_or_404(Escola, id=escola_id)
+            if not is_admin and escola not in escolas_escopo:
+                messages.error(request, "Escola fora do seu escopo.")
+                return redirect(f"{reverse('gestao_organizacao')}?aba=escolas")
+
+            gestor = get_object_or_404(User, id=gestor_id, tipo='GESTOR_LOCAL')
+            gestor.escolas.add(escola)
+            messages.success(request, f"Gestor {gestor.get_full_name() or gestor.username} associado à escola '{escola.nome}' com sucesso!")
+            return redirect(f"{reverse('gestao_organizacao')}?aba=escolas")
+
+        # 7. REMOVER GESTOR ESCOLAR DA ESCOLA
+        elif acao == 'remover_gestor_escola':
+            if not pode_gerenciar_escolas:
+                messages.error(request, "Sem permissão.")
+                return redirect(f"{reverse('gestao_organizacao')}?aba=escolas")
+
+            escola_id = request.POST.get('escola_id')
+            gestor_id = request.POST.get('gestor_id')
+            escola = get_object_or_404(Escola, id=escola_id)
+            if not is_admin and escola not in escolas_escopo:
+                messages.error(request, "Escola fora do seu escopo.")
+                return redirect(f"{reverse('gestao_organizacao')}?aba=escolas")
+
+            gestor = get_object_or_404(User, id=gestor_id)
+            gestor.escolas.remove(escola)
+            messages.success(request, f"Gestor {gestor.get_full_name() or gestor.username} desvinculado da escola '{escola.nome}'.")
+            return redirect(f"{reverse('gestao_organizacao')}?aba=escolas")
+
+        # 8. ATRIBUIR GESTOR REGIONAL À CIDADE/REDE (Gestor de Rede+)
+        elif acao == 'atribuir_gestor_regional':
+            if not pode_gerenciar_rede:
+                messages.error(request, "Você não tem permissão para gerenciar gestores regionais.")
+                return redirect(f"{reverse('gestao_organizacao')}?aba=rede")
+
+            cidade_id = request.POST.get('cidade_id')
+            gestor_id = request.POST.get('gestor_id')
+            cidade = get_object_or_404(Cidade, id=cidade_id)
+            if not is_admin and cidade not in cidades_escopo:
+                messages.error(request, "Cidade/Rede fora do seu escopo.")
+                return redirect(f"{reverse('gestao_organizacao')}?aba=rede")
+
+            gestor = get_object_or_404(User, id=gestor_id, tipo='GESTOR_REGIONAL')
+            gestor.cidades_gestao.add(cidade)
+            messages.success(request, f"Gestor Regional {gestor.get_full_name() or gestor.username} associado à rede '{cidade.nome}' com sucesso!")
+            return redirect(f"{reverse('gestao_organizacao')}?aba=rede")
+
+        # 9. REMOVER GESTOR REGIONAL DA CIDADE/REDE
+        elif acao == 'remover_gestor_regional':
+            if not pode_gerenciar_rede:
+                messages.error(request, "Sem permissão.")
+                return redirect(f"{reverse('gestao_organizacao')}?aba=rede")
+
+            cidade_id = request.POST.get('cidade_id')
+            gestor_id = request.POST.get('gestor_id')
+            cidade = get_object_or_404(Cidade, id=cidade_id)
+            if not is_admin and cidade not in cidades_escopo:
+                messages.error(request, "Cidade/Rede fora do seu escopo.")
+                return redirect(f"{reverse('gestao_organizacao')}?aba=rede")
+
+            gestor = get_object_or_404(User, id=gestor_id)
+            gestor.cidades_gestao.remove(cidade)
+            messages.success(request, f"Gestor Regional {gestor.get_full_name() or gestor.username} desvinculado da rede '{cidade.nome}'.")
+            return redirect(f"{reverse('gestao_organizacao')}?aba=rede")
+
+    # Montagem dos dados de exibição
+    turmas_cards = []
+    total_alunos_contados = 0
+    for t in turmas_escopo:
+        profs = t.user_set.filter(tipo='PROFESSOR', is_active=True).order_by('first_name', 'username')
+        alunos = t.user_set.filter(tipo='ALUNO', is_active=True).order_by('first_name', 'username')
+        total_alunos_contados += alunos.count()
+        turmas_cards.append({
+            'turma': t,
+            'professores': profs,
+            'alunos': alunos,
+            'total_alunos': alunos.count()
+        })
+
+    escolas_cards = []
+    if pode_gerenciar_escolas:
+        for esc in escolas_escopo:
+            gestores = esc.user_set.filter(tipo='GESTOR_LOCAL', is_active=True).order_by('first_name', 'username')
+            escolas_cards.append({
+                'escola': esc,
+                'gestores': gestores,
+                'total_turmas': esc.turma_set.count()
+            })
+
+    cidades_cards = []
+    if pode_gerenciar_rede:
+        for cid in cidades_escopo:
+            gestores_reg = cid.user_set.filter(tipo='GESTOR_REGIONAL', is_active=True).order_by('first_name', 'username')
+            cidades_cards.append({
+                'cidade': cid,
+                'gestores': gestores_reg,
+                'total_escolas': cid.escola_set.count()
+            })
+
+    anos_escolares = AnoEscolar.objects.all().order_by('ordem')
+    professores_disponiveis = User.objects.filter(tipo='PROFESSOR', is_active=True).order_by('first_name', 'username')
+    gestores_locais_disponiveis = User.objects.filter(tipo='GESTOR_LOCAL', is_active=True).order_by('first_name', 'username') if pode_gerenciar_escolas else []
+    gestores_regionais_disponiveis = User.objects.filter(tipo='GESTOR_REGIONAL', is_active=True).order_by('first_name', 'username') if pode_gerenciar_rede else []
 
     contexto = {
-        'form': form,
-        'turmas_existentes': turmas_existentes
+        'aba_ativa': aba_ativa,
+        'pode_gerenciar_turmas': pode_gerenciar_turmas,
+        'pode_gerenciar_escolas': pode_gerenciar_escolas,
+        'pode_gerenciar_rede': pode_gerenciar_rede,
+        'is_professor': is_professor,
+        'is_gestor_local': is_gestor_local,
+        'is_gestor_regional': is_gestor_regional,
+        'is_gestor_rede': is_gestor_rede,
+        'is_admin': is_admin,
+        'turmas_cards': turmas_cards,
+        'escolas_cards': escolas_cards,
+        'cidades_cards': cidades_cards,
+        'anos_escolares': anos_escolares,
+        'escolas_disponiveis': escolas_escopo,
+        'professores_disponiveis': professores_disponiveis,
+        'gestores_locais_disponiveis': gestores_locais_disponiveis,
+        'gestores_regionais_disponiveis': gestores_regionais_disponiveis,
+        'total_turmas': len(turmas_cards),
+        'total_alunos': total_alunos_contados,
+        'total_escolas': len(escolas_cards) if pode_gerenciar_escolas else 0,
+        'total_cidades': len(cidades_cards) if pode_gerenciar_rede else 0,
     }
-    return render(request, 'core/criar_turma.html', contexto)
+    return render(request, 'core/gestao_organizacao.html', contexto)
+
+def criar_turma_view(request):
+    """ Redireciona a chamada da view legada criar_turma para a nova página de Gestão e Organização """
+    return gestao_organizacao_view(request)
 
 
 

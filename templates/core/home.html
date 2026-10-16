@@ -76,7 +76,7 @@
                     <span class="card-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
                 </a>
 
-                {% if request.user.tipo == 'ALUNO' or request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'GESTOR_GERAL' or request.user.tipo == 'ADMIN' %}
+                {% if request.user.tipo == 'ALUNO' or request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_REDE' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'GESTOR_GERAL' or request.user.tipo == 'ADMIN' %}
                 <a href="{% url 'dashboard' %}" class="experience-card card-dashboard" data-tilt data-reveal>
                     <span class="mini-chart" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
                     <span class="card-icon"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i></span>
@@ -99,7 +99,7 @@
                     <span class="card-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
                 </a>
 
-                {% if request.user.tipo == 'DEMO' or request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'GESTOR_GERAL' or request.user.tipo == 'ADMIN' %}
+                {% if request.user.tipo == 'DEMO' or request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_REDE' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'GESTOR_GERAL' or request.user.tipo == 'ADMIN' %}
                 <a href="{% url 'kai_chat' %}" class="experience-card card-kai" data-tilt data-reveal>
                     <span class="kai-glow" aria-hidden="true"></span>
                     <img src="{% static 'core/img/kai.png' %}" alt="" class="kai-character">
@@ -108,7 +108,7 @@
                 </a>
                 {% endif %}
 
-                {% if request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'GESTOR_GERAL' or request.user.tipo == 'ADMIN' %}
+                {% if request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_REDE' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'GESTOR_GERAL' or request.user.tipo == 'ADMIN' %}
                 <a href="{% url 'painel_educador:dashboard' %}" class="experience-card card-professor" data-tilt data-reveal>
                     <span class="teacher-badge"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Área exclusiva</span>
                     <span class="card-icon"><i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i></span>

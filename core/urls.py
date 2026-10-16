@@ -39,8 +39,10 @@ urlpatterns = [
          name='alterar_senha'),
     path('ativar/', views.ativar_conta_view, name='ativar_conta'),
     path('api/turmas/<int:escola_id>/', views.api_turmas_por_escola, name='api_turmas'),
-    path('gestao/vincular-cartoes/', views.vincular_cartoes_view, name='vincular_cartoes'),
+    path('gestao/', views.gestao_organizacao_view, name='gestao_home'),
+    path('gestao/organizacao/', views.gestao_organizacao_view, name='gestao_organizacao'),
     path('gestao/nova-turma/', views.criar_turma_view, name='criar_turma'),
+    path('gestao/vincular-cartoes/', views.vincular_cartoes_view, name='vincular_cartoes'),
     
     path('kai/', views.chat_view, name='kai_chat'),
     path('kai/renomear/<int:sessao_id>/', views.renomear_chat, name='renomear_chat'),

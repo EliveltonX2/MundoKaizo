@@ -111,7 +111,7 @@
             </a>
         {% endif %}
 
-        {% if request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'GESTOR_GERAL' or request.user.tipo == 'ADMIN' %}
+        {% if request.user.tipo == 'PROFESSOR' or request.user.tipo == 'GESTOR_LOCAL' or request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_REDE' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'GESTOR_GERAL' or request.user.tipo == 'ADMIN' %}
             <div class="mk-side-menu-divider"><span>ESPAÇO DO PROFESSOR</span></div>
             <a class="mk-teacher-link {% if request.resolver_match.url_name == 'gerenciar' %}is-current{% endif %}" href="{% url 'gerenciar' %}">
                 <span class="mk-menu-icon"><i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i></span><span>Gerenciar</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>
@@ -125,8 +125,8 @@
             <a href="{% url 'vincular_cartoes' %}">
                 <span class="mk-menu-icon"><i class="fa-solid fa-id-card" aria-hidden="true"></i></span><span>Vincular Cartões</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>
             </a>
-            {% if user.tipo == 'GESTOR_LOCAL' or user.tipo == 'ADMIN' %}
-                <a href="{% url 'criar_turma' %}"><span class="mk-menu-icon"><i class="fa-solid fa-school" aria-hidden="true"></i></span><span>Gerenciar Turmas</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i></a>
+            {% if user.tipo == 'PROFESSOR' or user.tipo == 'GESTOR_LOCAL' or user.tipo == 'GESTOR_REGIONAL' or user.tipo == 'GESTOR_REDE' or user.tipo == 'GESTOR_KAIZO' or user.tipo == 'ADMIN' or user.is_superuser %}
+                <a class="{% if request.resolver_match.url_name == 'gestao_organizacao' or request.resolver_match.url_name == 'criar_turma' %}is-current{% endif %}" href="{% url 'gestao_organizacao' %}"><span class="mk-menu-icon"><i class="fa-solid fa-sitemap" aria-hidden="true"></i></span><span>Gestão e Organização</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i></a>
             {% endif %}
             <a class="{% if request.resolver_match.url_name == 'kai_chat' %}is-current{% endif %}" href="{% url 'kai_chat' %}">
                 <span class="mk-menu-icon mk-kai-icon"><img src="{% static 'core/img/kai.png' %}" alt=""></span><span>Falar com a Kai</span><i class="fa-solid fa-chevron-right mk-menu-arrow" aria-hidden="true"></i>

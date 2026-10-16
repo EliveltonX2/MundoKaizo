@@ -1,0 +1,620 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão e Organização | MundoKaizo</title>
+    <link rel="icon" href="{% static 'core/ico/favicon/favicon.svg' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/css/gestao_organizacao.css' %}?v=20261016a">
+    <script defer src="{% static 'core/js/gestao_organizacao.js' %}?v=20261016a"></script>
+</head>
+<body class="go-page">
+    {% include 'includes/navbar.html' with back_url='/' custom_title="Gestão e Organização" show_search=False %}
+
+    <main class="go-shell" id="gestaoOrganizacao">
+        <!-- Header -->
+        <header class="go-heading">
+            <div class="go-heading-icon" aria-hidden="true">
+                <i class="fa-solid fa-sitemap"></i>
+            </div>
+            <div class="go-heading-copy">
+                <span class="go-eyebrow">MundoKaizo • Estrutura Educacional</span>
+                <h1>Gestão e Organização</h1>
+                <p>Controle de turmas, acompanhamento de alunos e distribuição de equipes e papéis.</p>
+            </div>
+            <div class="go-heading-badges">
+                {% if is_admin %}
+                    <span class="go-role-pill is-admin"><i class="fa-solid fa-crown"></i> Administrador Kaizo</span>
+                {% elif is_gestor_rede %}
+                    <span class="go-role-pill"><i class="fa-solid fa-network-wired"></i> Gestor de Rede</span>
+                {% elif is_gestor_regional %}
+                    <span class="go-role-pill"><i class="fa-solid fa-city"></i> Gestor Regional</span>
+                {% elif is_gestor_local %}
+                    <span class="go-role-pill"><i class="fa-solid fa-school"></i> Gestor Escolar</span>
+                {% elif is_professor %}
+                    <span class="go-role-pill is-prof"><i class="fa-solid fa-chalkboard-user"></i> Professor</span>
+                {% endif %}
+            </div>
+        </header>
+
+        <!-- Mensagens do Sistema -->
+        {% if messages %}
+            <div style="margin-top: 18px; display: grid; gap: 8px;">
+                {% for message in messages %}
+                    <div style="padding: 12px 16px; border-radius: 12px; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: space-between; {% if message.tags == 'error' or message.tags == 'danger' %}background: #fff0f3; color: #a4283d; border: 1px solid #f6ccd4;{% else %}background: #eef9f2; color: #1e7048; border: 1px solid #c9ecda;{% endif %}">
+                        <span><i class="fa-solid {% if message.tags == 'error' or message.tags == 'danger' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}" style="margin-right: 8px;"></i> {{ message }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Stats Ribbon -->
+        <section class="go-stats-ribbon" aria-label="Métricas gerais da sua gestão">
+            <div class="go-stat-card">
+                <div class="go-stat-icon"><i class="fa-solid fa-people-roof"></i></div>
+                <div class="go-stat-copy">
+                    <strong>{{ total_turmas }}</strong>
+                    <span>Turma{{ total_turmas|pluralize }}</span>
+                </div>
+            </div>
+            <div class="go-stat-card">
+                <div class="go-stat-icon"><i class="fa-solid fa-user-graduate"></i></div>
+                <div class="go-stat-copy">
+                    <strong>{{ total_alunos }}</strong>
+                    <span>Aluno{{ total_alunos|pluralize }}</span>
+                </div>
+            </div>
+            {% if pode_gerenciar_escolas %}
+            <div class="go-stat-card">
+                <div class="go-stat-icon"><i class="fa-solid fa-school"></i></div>
+                <div class="go-stat-copy">
+                    <strong>{{ total_escolas }}</strong>
+                    <span>Escola{{ total_escolas|pluralize }}</span>
+                </div>
+            </div>
+            {% endif %}
+            {% if pode_gerenciar_rede %}
+            <div class="go-stat-card">
+                <div class="go-stat-icon"><i class="fa-solid fa-network-wired"></i></div>
+                <div class="go-stat-copy">
+                    <strong>{{ total_cidades }}</strong>
+                    <span>Rede{{ total_cidades|pluralize }} / Cidade{{ total_cidades|pluralize }}</span>
+                </div>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- Categorias / Abas de Navegação -->
+        <nav class="go-tabs-nav" aria-label="Seções de Gestão">
+            <button type="button" class="go-tab-btn {% if aba_ativa == 'turmas' %}is-active{% endif %}" data-tab="turmas">
+                <i class="fa-solid fa-users-rectangle"></i>
+                <span>Controle de Turmas & Alunos</span>
+                <span class="go-tab-count">{{ total_turmas }}</span>
+            </button>
+
+            {% if pode_gerenciar_escolas %}
+            <button type="button" class="go-tab-btn {% if aba_ativa == 'escolas' %}is-active{% endif %}" data-tab="escolas">
+                <i class="fa-solid fa-school-flag"></i>
+                <span>Equipe Escolar (Gestores)</span>
+                <span class="go-tab-count">{{ total_escolas }}</span>
+            </button>
+            {% endif %}
+
+            {% if pode_gerenciar_rede %}
+            <button type="button" class="go-tab-btn {% if aba_ativa == 'rede' %}is-active{% endif %}" data-tab="rede">
+                <i class="fa-solid fa-globe"></i>
+                <span>Gestão da Rede (Regionais)</span>
+                <span class="go-tab-count">{{ total_cidades }}</span>
+            </button>
+            {% endif %}
+        </nav>
+
+        <!-- ============================================================== -->
+        <!-- ABA 1: CONTROLE DE TURMAS & ALUNOS                             -->
+        <!-- ============================================================== -->
+        <section class="go-tab-pane {% if aba_ativa == 'turmas' %}is-active{% endif %}" id="tab-turmas">
+            {% if is_professor %}
+            <div class="go-notice-banner">
+                <i class="fa-solid fa-info-circle"></i>
+                <span><strong>Modo Professor:</strong> Você tem visualização das turmas atribuídas a você. Clique nos alunos para abrir a ficha completa de desempenho ou resetar a senha.</span>
+            </div>
+            {% endif %}
+
+            <div class="go-toolbar">
+                <div class="go-search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchTurmas" placeholder="Filtrar turmas por nome, escola ou professor...">
+                </div>
+
+                {% if pode_gerenciar_turmas %}
+                <button type="button" class="go-btn go-btn-primary" id="btnOpenCriarTurma">
+                    <i class="fa-solid fa-plus"></i> Nova Turma
+                </button>
+                {% endif %}
+            </div>
+
+            {% if turmas_cards %}
+            <div class="go-cards-grid">
+                {% for item in turmas_cards %}
+                <article class="go-card go-turma-card" data-search-info="{{ item.turma.nome }} {{ item.turma.escola.nome }} {% for p in item.professores %}{{ p.get_full_name }} {{ p.username }} {% endfor %}">
+                    <!-- Topo do Card -->
+                    <div class="go-card-header">
+                        <div class="go-card-avatar" aria-hidden="true">{{ item.turma.nome|first|upper }}</div>
+                        <div class="go-card-title">
+                            <h3>{{ item.turma.nome }}</h3>
+                            <p><i class="fa-solid fa-school"></i> {{ item.turma.escola.nome }}</p>
+                        </div>
+                        {% if item.turma.ano_escolar %}
+                        <span class="go-tag-pill">{{ item.turma.ano_escolar.nome }}</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Professores Atribuídos -->
+                    <div class="go-card-section">
+                        <div class="go-card-section-title">
+                            <span><i class="fa-solid fa-chalkboard-user"></i> Professores Atribuídos</span>
+                            {% if pode_gerenciar_turmas %}
+                            <button type="button" class="go-btn go-btn-outline go-btn-sm btn-atribuir-prof" data-turma-id="{{ item.turma.id }}" data-turma-nome="{{ item.turma.nome }}">
+                                <i class="fa-solid fa-user-plus"></i> Atribuir
+                            </button>
+                            {% endif %}
+                        </div>
+
+                        <div class="go-chips-wrap">
+                            {% for prof in item.professores %}
+                            <div class="go-user-chip">
+                                <i class="fa-solid fa-user-tie" style="color: var(--go-blue);"></i>
+                                <span>{{ prof.get_full_name|default:prof.username }}</span>
+                                {% if pode_gerenciar_turmas %}
+                                <form method="post" style="display:inline;" onsubmit="return confirm('Remover o professor {{ prof.username }} desta turma?');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="acao" value="remover_professor">
+                                    <input type="hidden" name="aba_origem" value="turmas">
+                                    <input type="hidden" name="turma_id" value="{{ item.turma.id }}">
+                                    <input type="hidden" name="professor_id" value="{{ prof.id }}">
+                                    <button type="submit" class="go-chip-remove" title="Remover professor da turma"><i class="fa-solid fa-xmark"></i></button>
+                                </form>
+                                {% endif %}
+                            </div>
+                            {% empty %}
+                            <span class="go-empty-hint">Nenhum professor alocado ainda.</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Acordeão de Alunos -->
+                    <div class="go-students-accordion">
+                        <button type="button" class="go-accordion-toggle">
+                            <span><i class="fa-solid fa-user-graduate" style="margin-right: 6px; color: var(--go-aqua);"></i> {{ item.total_alunos }} aluno{{ item.total_alunos|pluralize }} matriculado{{ item.total_alunos|pluralize }}</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </button>
+
+                        <div class="go-students-list">
+                            {% for aluno in item.alunos %}
+                            <div class="go-student-row">
+                                <div class="go-student-info">
+                                    <i class="fa-solid fa-circle-user" style="color: #8da4b3;"></i>
+                                    <strong>{{ aluno.get_full_name|default:aluno.username }}</strong>
+                                    <small>({{ aluno.username }})</small>
+                                </div>
+                                <div class="go-student-actions">
+                                    <a href="{% url 'detalhes_aluno' aluno.id %}" class="go-btn go-btn-outline go-btn-sm" title="Ver ficha pedagógica completa">
+                                        <i class="fa-solid fa-eye"></i> Detalhes
+                                    </a>
+                                    <button type="button" class="go-btn go-btn-outline go-btn-sm btn-reset-aluno" data-aluno-id="{{ aluno.id }}" data-aluno-nome="{{ aluno.get_full_name|default:aluno.username }}" title="Redefinir senha para padrão">
+                                        <i class="fa-solid fa-key" style="color: #b07e15;"></i> Resetar
+                                    </button>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <p style="margin: 10px 0; color: var(--go-muted); font-size: 12px; text-align: center;">Nenhum aluno ativo nesta turma ainda.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Ações de Gerenciamento da Turma (Gestor Local+) -->
+                    {% if pode_gerenciar_turmas %}
+                    <div class="go-card-actions">
+                        <button type="button" class="go-btn go-btn-outline go-btn-sm btn-editar-turma" 
+                            data-turma-id="{{ item.turma.id }}" 
+                            data-turma-nome="{{ item.turma.nome }}"
+                            data-escola-id="{{ item.turma.escola.id }}"
+                            data-ano-id="{{ item.turma.ano_escolar.id|default:'' }}">
+                            <i class="fa-solid fa-pen"></i> Editar
+                        </button>
+                        <button type="button" class="go-btn go-btn-danger go-btn-sm btn-excluir-turma"
+                            data-turma-id="{{ item.turma.id }}"
+                            data-turma-nome="{{ item.turma.nome }}">
+                            <i class="fa-solid fa-trash-can"></i> Apagar
+                        </button>
+                    </div>
+                    {% endif %}
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="background:#fff; padding: 40px; border-radius: 18px; text-align: center; border: 1px solid var(--go-line);">
+                <i class="fa-solid fa-people-group" style="font-size: 38px; color: var(--go-blue); margin-bottom: 12px;"></i>
+                <h3 style="margin: 0; font-size: 18px;">Nenhuma turma encontrada</h3>
+                <p style="color: var(--go-muted); font-size: 13px;">Não há turmas vinculadas ao seu escopo no momento.</p>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- ============================================================== -->
+        <!-- ABA 2: EQUIPE ESCOLAR (GESTOR REGIONAL+)                       -->
+        <!-- ============================================================== -->
+        {% if pode_gerenciar_escolas %}
+        <section class="go-tab-pane {% if aba_ativa == 'escolas' %}is-active{% endif %}" id="tab-escolas">
+            <div class="go-notice-banner">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span><strong>Gestão Escolar Regional:</strong> Associe os Gestores Escolares (Diretores e Coordenadores) para que possam gerenciar as turmas e alunos de suas respectivas escolas.</span>
+            </div>
+
+            <div class="go-table-container">
+                <table class="go-table">
+                    <thead>
+                        <tr>
+                            <th>Escola</th>
+                            <th>Cidade / Estado</th>
+                            <th>Turmas</th>
+                            <th>Gestores Escolares Atribuídos</th>
+                            <th style="width: 250px;">Adicionar Gestor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in escolas_cards %}
+                        <tr>
+                            <td>
+                                <strong><i class="fa-solid fa-school" style="color: var(--go-blue); margin-right: 6px;"></i> {{ item.escola.nome }}</strong>
+                            </td>
+                            <td>
+                                {{ item.escola.cidade.nome }} - {{ item.escola.cidade.estado.sigla }}
+                            </td>
+                            <td>
+                                <span class="go-tag-pill">{{ item.total_turmas }} turma{{ item.total_turmas|pluralize }}</span>
+                            </td>
+                            <td>
+                                <div class="go-chips-wrap">
+                                    {% for g in item.gestores %}
+                                    <div class="go-user-chip">
+                                        <i class="fa-solid fa-user-check" style="color: var(--go-green);"></i>
+                                        <span>{{ g.get_full_name|default:g.username }}</span>
+                                        <form method="post" style="display:inline;" onsubmit="return confirm('Desvincular o gestor {{ g.username }} desta escola?');">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="acao" value="remover_gestor_escola">
+                                            <input type="hidden" name="aba_origem" value="escolas">
+                                            <input type="hidden" name="escola_id" value="{{ item.escola.id }}">
+                                            <input type="hidden" name="gestor_id" value="{{ g.id }}">
+                                            <button type="submit" class="go-chip-remove" title="Desvincular gestor"><i class="fa-solid fa-xmark"></i></button>
+                                        </form>
+                                    </div>
+                                    {% empty %}
+                                    <span class="go-empty-hint">Nenhum gestor atribuído ainda.</span>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td>
+                                <form method="post" style="display: flex; gap: 6px;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="acao" value="atribuir_gestor_escola">
+                                    <input type="hidden" name="aba_origem" value="escolas">
+                                    <input type="hidden" name="escola_id" value="{{ item.escola.id }}">
+                                    <select name="gestor_id" required style="height: 34px; padding: 0 8px; border: 1px solid #d4e0e8; border-radius: 8px; font-size: 11px; flex: 1;">
+                                        <option value="">Selecionar Gestor...</option>
+                                        {% for gl in gestores_locais_disponiveis %}
+                                        <option value="{{ gl.id }}">{{ gl.get_full_name|default:gl.username }} ({{ gl.username }})</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="go-btn go-btn-primary go-btn-sm" title="Vincular à Escola">
+                                        <i class="fa-solid fa-check"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: var(--go-muted); padding: 30px;">
+                                Nenhuma escola vinculada ao seu escopo regional.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- ============================================================== -->
+        <!-- ABA 3: GESTÃO DA REDE (GESTOR DE REDE / ADMIN)                -->
+        <!-- ============================================================== -->
+        {% if pode_gerenciar_rede %}
+        <section class="go-tab-pane {% if aba_ativa == 'rede' %}is-active{% endif %}" id="tab-rede">
+            <div class="go-notice-banner">
+                <i class="fa-solid fa-network-wired"></i>
+                <span><strong>Coordenação de Rede Educacional:</strong> Associe os Gestores Regionais às cidades ou redes municipais/estaduais sob sua liderança.</span>
+            </div>
+
+            <div class="go-table-container">
+                <table class="go-table">
+                    <thead>
+                        <tr>
+                            <th>Cidade / Rede</th>
+                            <th>Estado</th>
+                            <th>Escolas na Rede</th>
+                            <th>Gestores Regionais Atribuídos</th>
+                            <th style="width: 260px;">Associar Gestor Regional</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in cidades_cards %}
+                        <tr>
+                            <td>
+                                <strong><i class="fa-solid fa-city" style="color: var(--go-purple); margin-right: 6px;"></i> {{ item.cidade.nome }}</strong>
+                            </td>
+                            <td>
+                                {{ item.cidade.estado.nome }} ({{ item.cidade.estado.sigla }})
+                            </td>
+                            <td>
+                                <span class="go-tag-pill">{{ item.total_escolas }} escola{{ item.total_escolas|pluralize }}</span>
+                            </td>
+                            <td>
+                                <div class="go-chips-wrap">
+                                    {% for gr in item.gestores %}
+                                    <div class="go-user-chip">
+                                        <i class="fa-solid fa-user-shield" style="color: var(--go-purple);"></i>
+                                        <span>{{ gr.get_full_name|default:gr.username }}</span>
+                                        <form method="post" style="display:inline;" onsubmit="return confirm('Desvincular o gestor regional {{ gr.username }} desta cidade?');">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="acao" value="remover_gestor_regional">
+                                            <input type="hidden" name="aba_origem" value="rede">
+                                            <input type="hidden" name="cidade_id" value="{{ item.cidade.id }}">
+                                            <input type="hidden" name="gestor_id" value="{{ gr.id }}">
+                                            <button type="submit" class="go-chip-remove" title="Desvincular gestor regional"><i class="fa-solid fa-xmark"></i></button>
+                                        </form>
+                                    </div>
+                                    {% empty %}
+                                    <span class="go-empty-hint">Nenhum gestor regional atribuído.</span>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td>
+                                <form method="post" style="display: flex; gap: 6px;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="acao" value="atribuir_gestor_regional">
+                                    <input type="hidden" name="aba_origem" value="rede">
+                                    <input type="hidden" name="cidade_id" value="{{ item.cidade.id }}">
+                                    <select name="gestor_id" required style="height: 34px; padding: 0 8px; border: 1px solid #d4e0e8; border-radius: 8px; font-size: 11px; flex: 1;">
+                                        <option value="">Selecionar Regional...</option>
+                                        {% for gr_user in gestores_regionais_disponiveis %}
+                                        <option value="{{ gr_user.id }}">{{ gr_user.get_full_name|default:gr_user.username }} ({{ gr_user.username }})</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="go-btn go-btn-primary go-btn-sm" title="Vincular à Rede">
+                                        <i class="fa-solid fa-check"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: var(--go-muted); padding: 30px;">
+                                Nenhuma rede/cidade associada ao seu escopo.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        {% endif %}
+    </main>
+
+    <!-- ============================================================== -->
+    <!-- MODAIS                                                         -->
+    <!-- ============================================================== -->
+
+    {% if pode_gerenciar_turmas %}
+    <!-- Modal: Criar Turma -->
+    <div class="go-modal-backdrop" id="modalCriarTurma">
+        <div class="go-modal" role="dialog" aria-labelledby="modalCriarTitle">
+            <div class="go-modal-header">
+                <h3 id="modalCriarTitle"><i class="fa-solid fa-plus" style="color: var(--go-green);"></i> Nova Turma</h3>
+                <button type="button" class="go-modal-close" data-close-modal aria-label="Fechar">&times;</button>
+            </div>
+            <form method="post" style="display: grid; gap: 14px;">
+                {% csrf_token %}
+                <input type="hidden" name="acao" value="criar_turma">
+                <input type="hidden" name="aba_origem" value="turmas">
+
+                <div class="go-form-group">
+                    <label for="createNome"><i class="fa-solid fa-users"></i> Nome da Turma *</label>
+                    <input type="text" id="createNome" name="nome" placeholder="Ex: 6º Ano B - Matutino" required>
+                </div>
+
+                <div class="go-form-group">
+                    <label for="createEscola"><i class="fa-solid fa-school"></i> Escola Pertencente *</label>
+                    <select id="createEscola" name="escola" required>
+                        <option value="">Selecione a escola...</option>
+                        {% for esc in escolas_disponiveis %}
+                        <option value="{{ esc.id }}">{{ esc.nome }} ({{ esc.cidade.nome }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="go-form-group">
+                    <label for="createAno"><i class="fa-solid fa-graduation-cap"></i> Ano Escolar / Série</label>
+                    <select id="createAno" name="ano_escolar">
+                        <option value="">Selecione o ano escolar (opcional)...</option>
+                        {% for ano in anos_escolares %}
+                        <option value="{{ ano.id }}">{{ ano.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="go-form-group">
+                    <label for="createProf"><i class="fa-solid fa-chalkboard-user"></i> Atribuir Professor Inicial (Opcional)</label>
+                    <select id="createProf" name="professor">
+                        <option value="">Sem professor inicial (alocar depois)</option>
+                        {% for prof in professores_disponiveis %}
+                        <option value="{{ prof.id }}">{{ prof.get_full_name|default:prof.username }} ({{ prof.username }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                    <button type="button" class="go-btn go-btn-outline" data-close-modal>Cancelar</button>
+                    <button type="submit" class="go-btn go-btn-primary">Criar Turma</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Editar Turma -->
+    <div class="go-modal-backdrop" id="modalEditarTurma">
+        <div class="go-modal" role="dialog" aria-labelledby="modalEditTitle">
+            <div class="go-modal-header">
+                <h3 id="modalEditTitle"><i class="fa-solid fa-pen-to-square" style="color: var(--go-blue);"></i> Editar Turma</h3>
+                <button type="button" class="go-modal-close" data-close-modal aria-label="Fechar">&times;</button>
+            </div>
+            <form method="post" style="display: grid; gap: 14px;">
+                {% csrf_token %}
+                <input type="hidden" name="acao" value="editar_turma">
+                <input type="hidden" name="aba_origem" value="turmas">
+                <input type="hidden" name="turma_id" id="editTurmaId">
+
+                <div class="go-form-group">
+                    <label for="editNome"><i class="fa-solid fa-users"></i> Nome da Turma *</label>
+                    <input type="text" id="editNome" name="nome" required>
+                </div>
+
+                <div class="go-form-group">
+                    <label for="editEscola"><i class="fa-solid fa-school"></i> Escola Pertencente</label>
+                    <select id="editEscola" name="escola" required>
+                        {% for esc in escolas_disponiveis %}
+                        <option value="{{ esc.id }}">{{ esc.nome }} ({{ esc.cidade.nome }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="go-form-group">
+                    <label for="editAno"><i class="fa-solid fa-graduation-cap"></i> Ano Escolar</label>
+                    <select id="editAno" name="ano_escolar">
+                        <option value="">Selecione o ano escolar...</option>
+                        {% for ano in anos_escolares %}
+                        <option value="{{ ano.id }}">{{ ano.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                    <button type="button" class="go-btn go-btn-outline" data-close-modal>Cancelar</button>
+                    <button type="submit" class="go-btn go-btn-primary">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Atribuir Professor -->
+    <div class="go-modal-backdrop" id="modalAtribuirProf">
+        <div class="go-modal" role="dialog" aria-labelledby="modalAtribProfTitle">
+            <div class="go-modal-header">
+                <h3 id="modalAtribProfTitle"><i class="fa-solid fa-user-plus" style="color: var(--go-blue);"></i> Atribuir Professor</h3>
+                <button type="button" class="go-modal-close" data-close-modal aria-label="Fechar">&times;</button>
+            </div>
+            <form method="post" style="display: grid; gap: 14px;">
+                {% csrf_token %}
+                <input type="hidden" name="acao" value="atribuir_professor">
+                <input type="hidden" name="aba_origem" value="turmas">
+                <input type="hidden" name="turma_id" id="atribTurmaId">
+
+                <p style="margin: 0; font-size: 13px; color: var(--go-muted);">
+                    Selecione o professor para alocar à turma <strong id="atribTurmaNome"></strong>:
+                </p>
+
+                <div class="go-form-group">
+                    <label for="selectProfId"><i class="fa-solid fa-chalkboard-user"></i> Professor</label>
+                    <select id="selectProfId" name="professor_id" required>
+                        <option value="">Escolha um professor...</option>
+                        {% for prof in professores_disponiveis %}
+                        <option value="{{ prof.id }}">{{ prof.get_full_name|default:prof.username }} ({{ prof.username }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                    <button type="button" class="go-btn go-btn-outline" data-close-modal>Cancelar</button>
+                    <button type="submit" class="go-btn go-btn-primary">Atribuir Professor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Excluir Turma com Confirmação Estrita por Digitação -->
+    <div class="go-modal-backdrop" id="modalExcluirTurma">
+        <div class="go-modal" role="dialog" aria-labelledby="modalExcluirTitle">
+            <div class="go-modal-header">
+                <h3 id="modalExcluirTitle" style="color: var(--go-red);"><i class="fa-solid fa-triangle-exclamation"></i> Excluir Turma</h3>
+                <button type="button" class="go-modal-close" data-close-modal aria-label="Fechar">&times;</button>
+            </div>
+            <form method="post" style="display: grid; gap: 14px;">
+                {% csrf_token %}
+                <input type="hidden" name="acao" value="excluir_turma">
+                <input type="hidden" name="aba_origem" value="turmas">
+                <input type="hidden" name="turma_id" id="delTurmaId">
+
+                <div class="go-delete-box">
+                    <p style="margin: 0;"><strong>Atenção:</strong> Esta ação é irreversível e excluirá permanentemente a turma <span id="delTurmaNome" style="font-weight: 900;"></span> e desvinculará seus alunos e professores.</p>
+                </div>
+
+                <p style="margin: 0; font-size: 13px; color: var(--go-ink); font-weight: 700;">
+                    Para confirmar a exclusão, digite exatamente o nome da turma: <span class="go-highlight-name" id="delTurmaTargetSpan"></span>
+                </p>
+
+                <div class="go-form-group">
+                    <input type="text" id="inputConfirmarDeleteTurma" name="nome_confirmacao" placeholder="Digite o nome exato da turma aqui..." autocomplete="off" required>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                    <button type="button" class="go-btn go-btn-outline" data-close-modal>Cancelar</button>
+                    <button type="submit" class="go-btn go-btn-danger" id="btnConfirmarDelete" disabled>
+                        <i class="fa-solid fa-trash-can"></i> Confirmar Exclusão
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Modal: Resetar Senha de Aluno -->
+    <div class="go-modal-backdrop" id="modalResetarSenha">
+        <div class="go-modal" role="dialog" aria-labelledby="modalResetTitle">
+            <div class="go-modal-header">
+                <h3 id="modalResetTitle"><i class="fa-solid fa-key" style="color: #b07e15;"></i> Resetar Senha de Aluno</h3>
+                <button type="button" class="go-modal-close" data-close-modal aria-label="Fechar">&times;</button>
+            </div>
+            <form method="post" style="display: grid; gap: 14px;">
+                {% csrf_token %}
+                <input type="hidden" name="acao" value="resetar_senha_aluno">
+                <input type="hidden" name="aba_origem" value="turmas">
+                <input type="hidden" name="aluno_id" id="resetAlunoId">
+
+                <p style="margin: 0; font-size: 13px; color: var(--go-ink);">
+                    Deseja redefinir a senha do aluno <strong id="resetAlunoNome"></strong>?
+                </p>
+
+                <div style="background: #fdfaf3; padding: 12px; border-radius: 10px; border: 1px solid #faeccc; font-size: 12px; color: #7f6016;">
+                    A senha provisória será redefinida para: <strong>123456</strong>. O aluno poderá alterá-la após o login.
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                    <button type="button" class="go-btn go-btn-outline" data-close-modal>Cancelar</button>
+                    <button type="submit" class="go-btn go-btn-primary" style="background: #b07e15;">Confirmar Reset</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

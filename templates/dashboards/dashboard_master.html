@@ -30,7 +30,7 @@
             <div class="card-body p-4">
                 <form method="GET" action="{% url 'gerenciar' %}" class="master-filter-grid" id="filterForm">
                     
-                    {% if request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'ADMIN' %}
+                    {% if request.user.tipo == 'GESTOR_REGIONAL' or request.user.tipo == 'GESTOR_REDE' or request.user.tipo == 'GESTOR_KAIZO' or request.user.tipo == 'ADMIN' %}
                     <div class="master-filter-field">
                         <label class="master-filter-label">Estado / Cidade</label>
                         <select name="cidade" class="master-filter-select" onchange="document.getElementById('filterForm').submit()">

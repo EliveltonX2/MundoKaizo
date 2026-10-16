@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,35 +14,39 @@
 
     <title>Login - MundoKaizo</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <link rel="stylesheet" href="{% static 'core/css/login.css' %}">
 </head>
+
 <body>
 
     <div class="main-wrapper">
-        
+
         <div class="logo-section">
-            <img src="{% static 'core/img/logokaizo.png' %}" alt="Logo Mundo Kaizo" class="main-logo">
+            <img src="{% static 'core/img/MundoKaizo_Logo-vetorizado_Black.svg' %}" alt="Logo Mundo Kaizo"
+                class="main-logo">
         </div>
 
         <div class="login-card-section">
             <div class="login-card">
                 <h3 class="login-title">Bem-vindo</h3>
-                
+
                 <form method="post">
                     {% csrf_token %}
-                    
+
                     {% if form.errors %}
-                        <div style="background-color: #f8d7da; color: #842029; padding: 10px; border-radius: 10px; margin-bottom: 20px; font-size: 0.9rem; text-align: center;">
-                            <i class="fas fa-exclamation-circle"></i> Usuário ou senha incorretos.
-                        </div>
+                    <div
+                        style="background-color: #f8d7da; color: #842029; padding: 10px; border-radius: 10px; margin-bottom: 20px; font-size: 0.9rem; text-align: center;">
+                        <i class="fas fa-exclamation-circle"></i> Usuário ou senha incorretos.
+                    </div>
                     {% endif %}
 
                     <div class="form-group">
                         <label class="form-label">USUÁRIO</label>
                         <div class="input-wrapper">
                             <i class="fas fa-user"></i>
-                            <input type="text" name="username" class="input-field" placeholder="Seu usuário" required autofocus>
+                            <input type="text" name="username" class="input-field" placeholder="Seu usuário" required
+                                autofocus>
                         </div>
                     </div>
 
@@ -49,19 +54,20 @@
                         <label class="form-label">SENHA</label>
                         <div class="input-wrapper">
                             <i class="fas fa-lock"></i>
-                            <input type="password" name="password" id="senhaInput" class="input-field" placeholder="Sua senha" required>
+                            <input type="password" name="password" id="senhaInput" class="input-field"
+                                placeholder="Sua senha" required>
                             <i class="fas fa-eye" id="iconeOlho" style="cursor: pointer;" onclick="toggleSenha()"></i>
                         </div>
                     </div>
 
                     <button type="submit" class="btn btn-primary">ENTRAR</button>
                 </form>
-                
+
                 <div class="card-footer">
                     <a href="{% url 'ativar_conta' %}" class="btn btn-activation">
                         <i class="fas fa-ticket-alt" style="margin-right: 8px;"></i> ATIVE SEU CARTÃO
                     </a>
-                    
+
                     <a href="{% url 'password_reset_guide' %}" class="link-muted">
                         <i class="fas fa-question-circle"></i> Esqueceu a senha?
                     </a>
@@ -71,14 +77,14 @@
         </div>
 
     </div>
-    
+
     <img src="{% static 'core/img/kaizo_jap.png' %}" alt="Detalhe" class="corner-image">
 
     <script>
         function toggleSenha() {
             const input = document.getElementById("senhaInput");
             const icone = document.getElementById("iconeOlho");
-            
+
             if (input.type === "password") {
                 input.type = "text";
                 icone.classList.remove("fa-eye");
@@ -92,4 +98,5 @@
     </script>
 
 </body>
+
 </html>

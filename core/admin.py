@@ -9,6 +9,8 @@ import uuid
 # Configuração customizada para o User
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
+    list_display = ('username', 'first_name', 'last_name', 'tipo', 'is_staff', 'is_active')
+    list_filter = ('tipo', 'is_staff', 'is_superuser', 'is_active')
     fieldsets = UserAdmin.fieldsets + (
         ('Informações Escolares', {'fields': ('tipo', 'escolas', 'turmas', 'cidades_gestao', 'estados_gestao', 'paises_gestao')}),
     )

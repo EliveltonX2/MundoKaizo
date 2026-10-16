@@ -101,6 +101,7 @@ class User(AbstractUser):
         PROFESSOR = 'PROFESSOR', 'Professor'
         GESTOR_LOCAL = 'GESTOR_LOCAL', 'Gestor Escolar'
         GESTOR_REGIONAL = 'GESTOR_REGIONAL', 'Gestor Regional'
+        GESTOR_REDE = 'GESTOR_REDE', 'Gestor de Rede'
         GESTOR_KAIZO = 'GESTOR_KAIZO', 'Gestor Kaizo'
         ADMIN = 'ADMIN', 'Administrador'
         DEMO = 'DEMO', 'Conta de Demonstração'
@@ -115,8 +116,8 @@ class User(AbstractUser):
     escolas = models.ManyToManyField(Escola, blank=True, help_text="Para Gestores Locais e Professores")
     turmas = models.ManyToManyField(Turma, blank=True, help_text="Para Professores e Alunos")
     
-    cidades_gestao = models.ManyToManyField(Cidade, blank=True, help_text="Para Gestor Regional gerenciar cidades")
-    estados_gestao = models.ManyToManyField(Estado, blank=True, help_text="Para Gestor Regional/Kaizo gerenciar estados")
+    cidades_gestao = models.ManyToManyField(Cidade, blank=True, help_text="Para Gestor Regional/Rede gerenciar cidades")
+    estados_gestao = models.ManyToManyField(Estado, blank=True, help_text="Para Gestor Regional/Rede/Kaizo gerenciar estados")
     paises_gestao = models.ManyToManyField(Pais, blank=True, help_text="Para Gestor Kaizo gerenciar países")
 
     def __str__(self):
@@ -134,6 +135,10 @@ class User(AbstractUser):
     @property
     def is_gestor_regional(self):
         return self.tipo == self.Tipos.GESTOR_REGIONAL
+
+    @property
+    def is_gestor_rede(self):
+        return self.tipo == self.Tipos.GESTOR_REDE
         
     @property
     def is_gestor_kaizo(self):

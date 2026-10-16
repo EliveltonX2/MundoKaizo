@@ -18,7 +18,7 @@ def relatorios_avancados_view(request):
     tipo = request.user.tipo
     
     # Restringe acesso apenas para Professores e Gestores
-    if tipo not in ['PROFESSOR', 'GESTOR_LOCAL', 'GESTOR_REGIONAL', 'GESTOR_KAIZO', 'ADMIN'] and not request.user.is_superuser:
+    if tipo not in ['PROFESSOR', 'GESTOR_LOCAL', 'GESTOR_REGIONAL', 'GESTOR_REDE', 'GESTOR_KAIZO', 'ADMIN'] and not request.user.is_superuser:
         return redirect('home')
         
     turmas_base = Turma.objects.all()
@@ -37,7 +37,7 @@ def relatorios_avancados_view(request):
         turmas_base = turmas_base.filter(escola__in=escolas_base)
         cidades_base = Cidade.objects.none()
         estados_base = Estado.objects.none()
-    elif tipo == 'GESTOR_REGIONAL':
+    elif tipo in ['GESTOR_REGIONAL', 'GESTOR_REDE']:
         cidades_base = cidades_base.filter(id__in=request.user.cidades_gestao.values_list('id', flat=True))
         estados_base = estados_base.filter(id__in=request.user.estados_gestao.values_list('id', flat=True))
         escolas_base = escolas_base.filter(cidade__in=cidades_base)
@@ -188,7 +188,7 @@ def exportar_csv_dashboard(request):
         turmas_base = turmas_base.filter(id__in=request.user.turmas.values_list('id', flat=True))
     elif tipo == 'GESTOR_LOCAL':
         turmas_base = turmas_base.filter(escola__in=request.user.escolas.values_list('id', flat=True))
-    elif tipo == 'GESTOR_REGIONAL':
+    elif tipo in ['GESTOR_REGIONAL', 'GESTOR_REDE']:
         turmas_base = turmas_base.filter(escola__cidade__in=request.user.cidades_gestao.values_list('id', flat=True))
     elif tipo in ['GESTOR_KAIZO', 'ADMIN'] or request.user.is_superuser:
         pass

@@ -59,7 +59,7 @@ body {
 
 .main-logo {
     width: 100%;
-    max-width: 220px; /* Menor no celular */
+    max-width: 275px; /* Aumentado em 25% (era 220px) */
     height: auto;
     filter: drop-shadow(0 15px 25px rgba(0,0,0,0.15));
     transition: var(--transition-default);
@@ -214,7 +214,7 @@ body {
     }
 
     .main-logo {
-        max-width: 380px;
+        max-width: 475px; /* Aumentado em 25% (era 380px) */
     }
 
     .main-logo:hover {
